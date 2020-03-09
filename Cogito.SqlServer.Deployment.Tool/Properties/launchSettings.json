@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Cogito.SqlServer.Deployment.Tool": {
+      "commandName": "Project",
+      "commandLineArgs": "deploy -s D:\\"
+    }
+  }
+}

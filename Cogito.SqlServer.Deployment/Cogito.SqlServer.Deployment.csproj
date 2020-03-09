@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net47</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Cogito.Autofac" Version="2.2.5" />
+        <PackageReference Include="Cogito.Extensions.Logging.Serilog.Autofac" Version="2.0.5" />
+        <PackageReference Include="MartinCostello.SqlLocalDb" Version="3.0.0" />
+        <PackageReference Include="Microsoft.Data.SqlClient" Version="1.1.1" />
+        <PackageReference Include="Microsoft.Extensions.Options" Version="3.1.2" />
+        <PackageReference Include="Microsoft.SqlServer.DacFx.x64" Version="150.4573.2" />
+        <PackageReference Include="Microsoft.SqlServer.SqlManagementObjects" Version="150.18208.0" />
+        <PackageReference Include="NCalc2" Version="2.1.0" />
+        <PackageReference Include="Polly" Version="7.2.0" />
+        <PackageReference Include="System.IO.Packaging" Version="4.7.0" />
+        <PackageReference Include="TaskTupleAwaiter" Version="1.2.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+    </ItemGroup>
+
+</Project>

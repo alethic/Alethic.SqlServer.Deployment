@@ -1,0 +1,88 @@
+﻿<Deployment xmlns="https://cogito.cx/schemas/SqlServer/Deployment/2020">
+    <Parameter Name="SetupExePath" DefaultValue="C:\Foo\SQLExpress\setup.exe" />
+    <Parameter Name="SQL_InstanceName" DefaultValue="(localdb)\SQL01" />
+    <Parameter Name="EFM_InstanceName" DefaultValue="(localdb)\EFM01" />
+    <Parameter Name="DST_InstanceName" DefaultValue="(localdb)\DST01" />
+    <Parameter Name="PathToJcmsDacPac" DefaultValue="C:\dev\Cogito.SqlServer.Deployment\Database1\bin\Debug\Database1.dacpac" />
+    <Parameter Name="PathToConversionDacPac" DefaultValue="C:\dev\Cogito.SqlServer.Deployment\Database1\bin\Debug\Database1.dacpac" />
+    <Parameter Name="PathToExchangeDacPac" DefaultValue="C:\dev\Cogito.SqlServer.Deployment\Database1\bin\Debug\Database1.dacpac" />
+    <Parameter Name="DistributorAdminUserName" DefaultValue="distributor_admin" />
+    <Parameter Name="DistributorAdminPassword" DefaultValue="distributor_admin" />
+    <Target Name="DST">
+        <Instance Name="[DST_InstanceName]">
+            <Setup Exe="[SetupExePath]" />
+            <Distributor
+                AdminUser="[DistributorAdminUserName]"
+                AdminPassword="[DistributorAdminPassword]" />
+        </Instance>
+    </Target>
+    <Target Name="SQL">
+        <Instance Name="[SQL_InstanceName]">
+            <Setup Exe="[SetupExePath]" />
+            <Configuration Name="clr enabled" Value="1" />
+        </Instance>
+    </Target>
+    <Target Name="EFM">
+        <Instance Name="[EFM_InstanceName]">
+            <Setup Exe="[SetupExePath]" />
+            <Configuration Name="clr enabled" Value="1" />
+        </Instance>
+    </Target>
+    <Target Name="SQL_TO_EFM">
+        <DependsOn Name="SQL" />
+        <DependsOn Name="EFM" />
+        <Instance Name="[SQL_InstanceName]">
+            <LinkedServer Name="NEON" DataSource="[EFM_InstanceName]" />
+        </Instance>
+    </Target>
+    <Target Name="EFM_TO_SQL">
+        <DependsOn Name="EFM" />
+        <DependsOn Name="SQL" />
+        <Instance Name="[EFM_InstanceName]">
+            <LinkedServer Name="JCMS" DataSource="[SQL_InstanceName]" />
+        </Instance>
+    </Target>
+    <Target Name="SQL_JCMS">
+        <DependsOn Name="SQL" />
+        <DependsOn Name="SQL_TO_EFM" />
+        <Instance Name="[SQL_InstanceName]">
+            <Database Name="JCMS">
+                <Package Source="[PathToJcmsDacPac]" />
+            </Database>
+            <Publication
+                Name="JCMS"
+                Type="Transactional"
+                Database="JCMS"
+                Distributor="[DST_InstanceName]"
+                DistributorAdminUser="[DistributorAdminUserName]"
+                DistributorAdminPassword="[DistributorAdminPassword]" />
+        </Instance>
+    </Target>
+    <Target Name="SQL_Conversion">
+        <DependsOn Name="SQL" />
+        <Instance Name="[SQL_InstanceName]">
+            <Database Name="Conversion" Package="[PathToConversionDacPac]" />
+        </Instance>
+    </Target>
+    <Target Name="EFM_JCMS">
+        <DependsOn Name="EFM" />
+        <DependsOn Name="SQL_JCMS" />
+        <Instance Name="[EFM_InstanceName]">
+            <Subscription Name="JCMS" Publisher="[SQL_InstanceName]" Publication="JCMS" />
+        </Instance>
+    </Target>
+    <Target Name="EFM_Exchange">
+        <DependsOn Name="EFM" />
+        <Instance Name="[EFM_InstanceName]">
+            <Database Name="Exchange">
+                <Package Source="[PathToExchangeDacPac]">
+                    <DeployOptions>
+                        <SqlCommandVariableValues>
+                            <SqlCommandVariableValue Name="Foo" Value="Bar" />
+                        </SqlCommandVariableValues>
+                    </DeployOptions>
+                </Package>
+            </Database>
+        </Instance>
+    </Target>
+</Deployment>
