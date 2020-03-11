@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Data;
 using System.IO;
-using System.Linq;
+using System.Net;
 using System.Security.AccessControl;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Cogito.Collections;
 using Cogito.SqlServer.Deployment.Internal;
 
 using Microsoft.Data.SqlClient;
@@ -14,6 +12,9 @@ using Microsoft.Data.SqlClient;
 namespace Cogito.SqlServer.Deployment
 {
 
+    /// <summary>
+    /// Step to configure a transactional publication.
+    /// </summary>
     public class SqlDeploymentPublicationTransactionalStep : SqlDeploymentPublicationStep
     {
 
@@ -29,6 +30,16 @@ namespace Cogito.SqlServer.Deployment
 
         }
 
+        /// <summary>
+        /// Gets the configuration of the log reader agent.
+        /// </summary>
+        public SqlDeploymentLogReaderAgentConfig LogReaderAgent { get; set; }
+
+        /// <summary>
+        /// Gets the configuration of the snapshot agent.
+        /// </summary>
+        public SqlDeploymentSnapshotAgentConfig SnapshotAgent { get; set; }
+
         public override Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(true);
@@ -36,111 +47,47 @@ namespace Cogito.SqlServer.Deployment
 
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
-            using (var distributor = new SqlConnection(DistributorName))
-            using (var publisher = await OpenConnectionAsync(cancellationToken))
-            {
-                await distributor.OpenAsync(cancellationToken);
+            using var publish = await OpenConnectionAsync(cancellationToken);
 
-                // configure the publisher to accept connections from the distributor
-                await ConfigurePublisher(distributor, publisher);
+            // switch to publisher database
+            publish.ChangeDatabase(DatabaseName);
 
-                // switch to publisher database
-                publisher.ChangeDatabase(DatabaseName);
+            // ensure replication is enabled on the database
+            await publish.ExecuteSpSetReplicationDbOptionAsync(DatabaseName, "publish", "true");
 
-                // ensure replication is enabled on the database
-                await publisher.ExecuteSpSetReplicationDbOptionAsync(DatabaseName, "publish", "true");
+            // configure log reader agent
+            var logReaderAgent = await publish.ExecuteSpHelpLogReaderAgentAsync();
+            if (logReaderAgent?.JobId == null)
+                await publish.ExecuteSpAddLogReaderAgentAsync(
+                    LogReaderAgent?.ProcessCredentials?.UserName,
+                    LogReaderAgent?.ProcessCredentials?.Password,
+                    LogReaderAgent?.ConnectCredentials == null ? 1 : 0,
+                    LogReaderAgent?.ConnectCredentials?.UserId,
+                    LogReaderAgent?.ConnectCredentials?.Password != null ? new NetworkCredential("", LogReaderAgent.ConnectCredentials.Password).Password : null);
 
-                // configure log reader agent
-                var logReaderAgent = await publisher.ExecuteSpHelpLogReaderAgentAsync();
-                if (logReaderAgent?.JobId == null)
-                {
-                    if (config.LogReaderAgentCredential != null)
-                        await publisher.ExecuteSpAddLogReaderAgentAsync(config.LogReaderAgentCredential.UserName, config.LogReaderAgentCredential.Password, 1);
-                    else
-                        await publisher.ExecuteSpAddLogReaderAgentAsync(null, null, null);
-                }
+            // add publication if it does not exist
+            var existingPublication1 = await publish.LoadDataTableAsync($"SELECT * from syspublications WHERE name = {Name}");
+            if (existingPublication1.Rows.Count == 0)
+                await publish.ExecuteSpAddPublicationAsync(Name, "active", true, true, true);
 
-                // add publication if it does not exist
-                var existingPublications1 = await publisher.LoadDataTableAsync($"SELECT * from syspublications WHERE name = {Name}");
-                if (existingPublications1.Rows.Count == 0)
-                    await publisher.ExecuteSpAddPublicationAsync(Name, "active", true, true, true);
+            // add publication snapshot if it does not exist
+            var existingPublication2 = await publish.LoadDataTableAsync($"SELECT * from syspublications WHERE name = {Name} AND snapshot_jobid IS NOT NULL");
+            if (existingPublication2.Rows.Count == 0)
+                await publish.ExecuteSpAddPublicationSnapshotAsync(
+                    Name,
+                    SnapshotAgent?.ProcessCredentials?.UserName,
+                    SnapshotAgent?.ProcessCredentials?.Password,
+                    SnapshotAgent?.ConnectCredentials == null ? 1 : 0,
+                    SnapshotAgent?.ConnectCredentials?.UserId,
+                    SnapshotAgent?.ConnectCredentials?.Password != null ? new NetworkCredential("", SnapshotAgent.ConnectCredentials.Password).Password : null);
 
-                // add publication snapshot if it does not exist
-                var existingPublication2 = await publisher.LoadDataTableAsync($"SELECT * from syspublications WHERE name = {Name} AND snapshot_jobid IS NOT NULL");
-                if (existingPublication2.Rows.Count == 0)
-                    if (config.SnapshotAgentCredential != null)
-                        await publisher.ExecuteSpAddPublicationSnapshotAsync(Name, config.SnapshotAgentCredential.UserName, config.SnapshotAgentCredential.Password, 1);
-                    else
-                        await publisher.ExecuteSpAddPublicationSnapshotAsync(Name, null, null, null);
+            // update the snapshot directory ACLs
+            await UpdateSnapshotDirectoryAcl(publish, Name);
 
-                // update the snapshot directory ACLs
-                await UpdateSnapshotDirectoryAcl(publisher, Name);
-
-                // change publication options
-                await publisher.ExecuteSpChangePublicationAsync(Name, "allow_anonymous", "false", 1);
-                await publisher.ExecuteSpChangePublicationAsync(Name, "immediate_sync", "false", 1);
-                await publisher.ExecuteSpChangePublicationAsync(Name, "sync_method", "database snapshot", 1);
-
-                var tables = (await publisher.LoadDataTableAsync($@"
-                            SELECT      s.schema_id         AS schema_id,
-                                        NULLIF(s.name, '')  AS schema_name,
-                                        t.object_id         AS object_id,
-                                        NULLIF(t.name, '')  AS object_name,
-                                        p.pubid             AS publication_id,
-                                        NULLIF(p.name, '')  AS publication_name,
-                                        a.artid             AS article_id,
-                                        NULLIF(a.name, '')  AS article_name
-                            FROM        sys.tables t
-                            INNER JOIN  syspublications p
-                                ON      1 = 1
-                            INNER JOIN  sys.schemas s
-                                ON      s.schema_id = t.schema_id
-                            LEFT JOIN   sysarticles a
-                                ON      a.objid = t.object_id
-                                AND     a.pubid = p.pubid
-                            WHERE       p.name = {Name}"))
-                    .Rows.Cast<DataRow>()
-                    .Select(i => new
-                    {
-                        SchemaId = (int)i["schema_id"],
-                        SchemaName = (string)i["schema_name"],
-                        ObjectId = (int)i["object_id"],
-                        ObjectName = (string)i["object_name"],
-                        PublicationId = (int)i["publication_id"],
-                        PublicationName = (string)i["publication_name"],
-                        ArticleId = i["article_id"] != DBNull.Value ? (int?)i["article_id"] : null,
-                        ArticleName = i["article_name"] != DBNull.Value ? (string)i["article_name"] : null,
-                    })
-                    .ToDictionary(i => $"[{i.SchemaName}].[{i.ObjectName}]", i => i, StringComparer.OrdinalIgnoreCase);
-
-                foreach (var tableDefinition in definition.Articles.OfType<SqlTableArticleDefinition>())
-                {
-                    var table = tables.GetOrDefault(tableDefinition.Name);
-                    if (table == null)
-                        throw new InvalidOperationException($"Missing table '{tableDefinition.Name}'.");
-
-                    if (table.ArticleId == null)
-                        await publisher.ExecuteSpAddArticleAsync(
-                            publication: table.PublicationName,
-                            article: table.ObjectName,
-                            sourceOwner: table.SchemaName,
-                            sourceObject: table.ObjectName,
-                            destinationTable: table.ObjectName,
-                            destinationOwner: table.SchemaName,
-                            status: 24,
-                            forceInvalidateSnapshot: true);
-                }
-
-                // start publication
-                try
-                {
-                    await publisher.ExecuteSpStartPublicationSnapshotAsync(Name);
-                }
-                catch (SqlException)
-                {
-                    // ignore
-                }
-            }
+            // change publication options
+            await publish.ExecuteSpChangePublicationAsync(Name, "allow_anonymous", "false", 1);
+            await publish.ExecuteSpChangePublicationAsync(Name, "immediate_sync", "false", 1);
+            await publish.ExecuteSpChangePublicationAsync(Name, "sync_method", "database snapshot", 1);
         }
 
         /// <summary>

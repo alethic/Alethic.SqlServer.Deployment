@@ -6,7 +6,7 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Specifies the configuration of the server to refer to a remote distributor.
     /// </summary>
-    public class SqlDeploymentDistribution
+    public class SqlDeploymentRemoteDistributor
     {
 
         /// <summary>
@@ -14,11 +14,17 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public SqlDeploymentExpression InstanceName { get; set; }
 
+        /// <summary>
+        /// Gets or sets the admin password to use for connecting to the existing distributor instance.
+        /// </summary>
+        public SqlDeploymentExpression? AdminPassword { get; set; }
+
         public IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context)
         {
-            yield return new SqlDeploymentDistributionStep(context.InstanceName)
+            yield return new SqlDeploymentRemoteDistributorStep(context.InstanceName)
             {
-                DistributionInstanceName = InstanceName.Expand(context),
+                DistributorInstanceName = InstanceName.Expand(context),
+                DistributorAdminPassword = AdminPassword?.Expand(context),
             };
         }
 

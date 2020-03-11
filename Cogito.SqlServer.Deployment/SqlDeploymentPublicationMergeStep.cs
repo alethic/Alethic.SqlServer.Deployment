@@ -12,10 +12,10 @@ namespace Cogito.SqlServer.Deployment
         /// Initializes a new instance.
         /// </summary>
         /// <param name="instanceName"></param>
-        /// <param name="publicationName"></param>
+        /// <param name="name"></param>
         /// <param name="databaseName"></param>
-        public SqlDeploymentPublicationMergeStep(string instanceName, string publicationName, string databaseName) :
-            base(instanceName, publicationName, databaseName)
+        public SqlDeploymentPublicationMergeStep(string instanceName, string name, string databaseName) :
+            base(instanceName, name, databaseName)
         {
 
         }

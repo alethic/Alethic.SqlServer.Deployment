@@ -42,7 +42,7 @@ namespace Cogito.SqlServer.Deployment
         /// <summary>
         /// If provided ensures the instance is configured to refer to a remote distributor.
         /// </summary>
-        public SqlDeploymentDistribution Distribution { get; set; }
+        public SqlDeploymentRemoteDistributor Distribution { get; set; }
 
         /// <summary>
         /// Gets the information regarding any publications to be configurd on the instance.

@@ -17,11 +17,11 @@ before_build:
 
 build:
   verbosity: minimal
-  project: Cogito.Autofac.sln
+  project: Cogito.SqlServer.Deployment.sln
 
 artifacts:
   - path: pkg\*.nupkg
-    name: Cogito.Autofac
+    name: Cogito.SqlServer.Deployment
 
 deploy:
   provider: NuGet

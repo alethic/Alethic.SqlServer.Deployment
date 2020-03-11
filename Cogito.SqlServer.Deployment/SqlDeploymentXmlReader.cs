@@ -121,7 +121,7 @@ namespace Cogito.SqlServer.Deployment
             p.LinkedServers.AddRange(element.Elements(Xmlns + "LinkedServer").Select(i => LoadLinkedServer(context, i)));
             p.Distributor = element.Element(Xmlns + "Distributor") is XElement distributor ? LoadDistributor(context, distributor) : null;
             p.Distribution = element.Element(Xmlns + "Distribution") is XElement distribution ? LoadDistribution(context, distribution) : null;
-            p.Publications.AddRange(element.Elements(Xmlns + "Publication").Select(i => LoadPublication(context, i)));
+            p.Publications.AddRange(LoadPublications(context, element));
             p.Subscriptions.AddRange(element.Elements(Xmlns + "Subscription").Select(i => LoadSubscription(context, i)));
             return p;
         }
@@ -197,29 +197,99 @@ namespace Cogito.SqlServer.Deployment
             return p;
         }
 
-        static SqlDeploymentDistribution LoadDistribution(ReaderContext context, XElement element)
+        static SqlDeploymentRemoteDistributor LoadDistribution(ReaderContext context, XElement element)
         {
-            var p = new SqlDeploymentDistribution();
+            var p = new SqlDeploymentRemoteDistributor();
             p.InstanceName = (string)element.Attribute("InstanceName");
             return p;
         }
 
-        static SqlDeploymentPublication LoadPublication(ReaderContext context, XElement element)
+        static IEnumerable<SqlDeploymentPublication> LoadPublications(ReaderContext context, XElement element)
         {
-            var p = new SqlDeploymentPublication();
+            foreach (var i in element.Elements(Xmlns + "SnapshotPublication"))
+                yield return LoadSnapshotPublication(context, i);
+
+            foreach (var i in element.Elements(Xmlns + "TransactionalPublication"))
+                yield return LoadTransactionalPublication(context, i);
+
+            foreach (var i in element.Elements(Xmlns + "MergePublication"))
+                yield return LoadMergePublication(context, i);
+        }
+
+        static SqlDeploymentSnapshotPublication LoadSnapshotPublication(ReaderContext context, XElement element)
+        {
+            var p = new SqlDeploymentSnapshotPublication();
             p.Name = (string)element.Attribute("Name");
-            p.Type = (string)element.Attribute("Type") switch
-            {
-                "Snapshot" => SqlDeploymentPublicationType.Snapshot,
-                "Transactional" => SqlDeploymentPublicationType.Transactional,
-                "Merge" => SqlDeploymentPublicationType.Merge,
-                _ => throw new SqlDeploymentXmlException($"Unknown Publication Type '{element.Attribute("Type")}'."),
-            };
+            p.DatabaseName = (string)element.Attribute("DatabaseName");
+
+            if (element.Element(Xmlns + "SnapshotAgent") is XElement snapshotAgentElement)
+                LoadSnapshotAgent(p.SnapshotAgent, context, snapshotAgentElement);
 
             if (element.Element(Xmlns + "Articles") is XElement articlesElement)
                 p.Articles.AddRange(LoadArticles(context, articlesElement));
 
             return p;
+        }
+
+        static SqlDeploymentTransactionalPublication LoadTransactionalPublication(ReaderContext context, XElement element)
+        {
+            var p = new SqlDeploymentTransactionalPublication();
+            p.Name = (string)element.Attribute("Name");
+            p.DatabaseName = (string)element.Attribute("DatabaseName");
+
+            if (element.Element(Xmlns + "SnapshotAgent") is XElement snapshotAgentElement)
+                LoadSnapshotAgent(p.SnapshotAgent, context, snapshotAgentElement);
+
+            if (element.Element(Xmlns + "LogReaderAgent") is XElement logReaderAgentElement)
+                LoadLogReaderAgent(p.LogReaderAgent, context, logReaderAgentElement);
+
+            if (element.Element(Xmlns + "Articles") is XElement articlesElement)
+                p.Articles.AddRange(LoadArticles(context, articlesElement));
+
+            return p;
+        }
+
+        static SqlDeploymentMergePublication LoadMergePublication(ReaderContext context, XElement element)
+        {
+            var p = new SqlDeploymentMergePublication();
+            p.Name = (string)element.Attribute("Name");
+            p.DatabaseName = (string)element.Attribute("DatabaseName");
+
+            if (element.Element(Xmlns + "SnapshotAgent") is XElement snapshotAgentElement)
+                LoadSnapshotAgent(p.SnapshotAgent, context, snapshotAgentElement);
+
+            if (element.Element(Xmlns + "Articles") is XElement articlesElement)
+                p.Articles.AddRange(LoadArticles(context, articlesElement));
+
+            return p;
+        }
+
+        static void LoadSnapshotAgent(SqlDeploymentSnapshotAgent p, ReaderContext context, XElement snapshotAgentElement)
+        {
+            p.ProcessCredentials = snapshotAgentElement.Element(Xmlns + "ProcessCredentials") is XElement e1 ? LoadWindowsCredentials(e1) : null;
+            p.ConnectCredentials = snapshotAgentElement.Element(Xmlns + "ConnectCredentials") is XElement e2 ? LoadSqlCredentials(e2) : null;
+        }
+
+        static void LoadLogReaderAgent(SqlDeploymentLogReaderAgent p, ReaderContext context, XElement logReaderAgentElement)
+        {
+            p.ProcessCredentials = logReaderAgentElement.Element(Xmlns + "ProcessCredentials") is XElement e1 ? LoadWindowsCredentials(e1) : null;
+            p.ConnectCredentials = logReaderAgentElement.Element(Xmlns + "ConnectCredentials") is XElement e2 ? LoadSqlCredentials(e2) : null;
+        }
+
+        static SqlDeploymentWindowsCredentials LoadWindowsCredentials(XElement element)
+        {
+            var c = new SqlDeploymentWindowsCredentials();
+            c.UserName = (string)element.Attribute("UserName");
+            c.Password = (string)element.Attribute("Password");
+            return c;
+        }
+
+        static SqlDeploymentSqlCredentials LoadSqlCredentials(XElement element)
+        {
+            var c = new SqlDeploymentSqlCredentials();
+            c.Login = (string)element.Attribute("Login");
+            c.Password = (string)element.Attribute("Password");
+            return c;
         }
 
         static IEnumerable<SqlDeploymentPublicationArticle> LoadArticles(ReaderContext context, XElement element)

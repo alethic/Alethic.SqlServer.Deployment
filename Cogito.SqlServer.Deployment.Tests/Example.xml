@@ -1,19 +1,20 @@
 ﻿<Deployment xmlns="https://cogito.cx/schemas/SqlServer/Deployment/2020">
-    <Parameter Name="SetupExePath" DefaultValue="C:\Foo\SQLExpress\setup.exe" />
-    <Parameter Name="SQL_InstanceName" DefaultValue="(localdb)\SQL01" />
-    <Parameter Name="EFM_InstanceName" DefaultValue="(localdb)\EFM01" />
-    <Parameter Name="DST_InstanceName" DefaultValue="(localdb)\DST01" />
+    <Parameter Name="SetupExePath" DefaultValue="D:\setup.exe" />
+    <Parameter Name="SQL_InstanceName" DefaultValue="(local)\SQL" />
+    <Parameter Name="EFM_InstanceName" DefaultValue="(local)\EFM" />
+    <Parameter Name="DST_InstanceName" DefaultValue="(local)\DST" />
     <Parameter Name="PathToJcmsDacPac" DefaultValue="C:\dev\Cogito.SqlServer.Deployment\Database1\bin\Debug\Database1.dacpac" />
     <Parameter Name="PathToConversionDacPac" DefaultValue="C:\dev\Cogito.SqlServer.Deployment\Database1\bin\Debug\Database1.dacpac" />
     <Parameter Name="PathToExchangeDacPac" DefaultValue="C:\dev\Cogito.SqlServer.Deployment\Database1\bin\Debug\Database1.dacpac" />
-    <Parameter Name="DistributorAdminUserName" DefaultValue="distributor_admin" />
     <Parameter Name="DistributorAdminPassword" DefaultValue="distributor_admin" />
+    <Parameter Name="SnapshotAgentUserName" DefaultValue="" />
+    <Parameter Name="SnapshotAgentPassword" DefaultValue="" />
+    <Parameter Name="LogReaderAgentUserName" DefaultValue="" />
+    <Parameter Name="LogReaderAgentPassword" DefaultValue="" />
     <Target Name="DST">
         <Instance Name="[DST_InstanceName]">
             <Setup Exe="[SetupExePath]" />
-            <Distributor
-                AdminUser="[DistributorAdminUserName]"
-                AdminPassword="[DistributorAdminPassword]" />
+            <Distributor AdminPassword="[DistributorAdminPassword]" />
         </Instance>
     </Target>
     <Target Name="SQL">
@@ -22,10 +23,20 @@
             <Configuration Name="clr enabled" Value="1" />
         </Instance>
     </Target>
+    <Target Name="SQL_REPL">
+        <Instance Name="[SQL_InstanceName]">
+            <RemoteDistributor InstanceName="[DST_InstanceName]" AdminPassword="[DistributorAdminPassword]" />
+        </Instance>
+    </Target>
     <Target Name="EFM">
         <Instance Name="[EFM_InstanceName]">
             <Setup Exe="[SetupExePath]" />
             <Configuration Name="clr enabled" Value="1" />
+        </Instance>
+    </Target>
+    <Target Name="EFM_REPL">
+        <Instance Name="[EFM_InstanceName]">
+            <RemoteDistributor InstanceName="[DST_InstanceName]" AdminPassword="[DistributorAdminPassword]" />
         </Instance>
     </Target>
     <Target Name="SQL_TO_EFM">
@@ -49,13 +60,6 @@
             <Database Name="JCMS">
                 <Package Source="[PathToJcmsDacPac]" />
             </Database>
-            <Publication
-                Name="JCMS"
-                Type="Transactional"
-                Database="JCMS"
-                Distributor="[DST_InstanceName]"
-                DistributorAdminUser="[DistributorAdminUserName]"
-                DistributorAdminPassword="[DistributorAdminPassword]" />
         </Instance>
     </Target>
     <Target Name="SQL_Conversion">
@@ -67,6 +71,18 @@
     <Target Name="EFM_JCMS">
         <DependsOn Name="EFM" />
         <DependsOn Name="SQL_JCMS" />
+        <DependsOn Name="SQL_REPL" />
+        <DependsOn Name="EFM_REPL" />
+        <Instance Name="[SQL_InstanceName]">
+            <TransactionalPublication Name="JCMS" DatabaseName="JCMS">
+                <SnapshotAgent>
+                    <ProcessCredentials UserName="[SnapshotAgentUserName]" Password="[SnapshotAgentPassword]" />
+                </SnapshotAgent>
+                <LogReaderAgent>
+                    <ProcessCredentials UserName="[LogReaderAgentUserName]" Password="[LogReaderAgentPassword]" />
+                </LogReaderAgent>
+            </TransactionalPublication>
+        </Instance>
         <Instance Name="[EFM_InstanceName]">
             <Subscription Name="JCMS" Publisher="[SQL_InstanceName]" Publication="JCMS" />
         </Instance>

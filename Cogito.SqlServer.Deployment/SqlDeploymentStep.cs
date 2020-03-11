@@ -45,17 +45,28 @@ namespace Cogito.SqlServer.Deployment
         /// <summary>
         /// Opens a new connection to the targeted SQL instance.
         /// </summary>
+        /// <param name="instanceName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        protected async Task<SqlConnection> OpenConnectionAsync(CancellationToken cancellationToken)
+        protected async Task<SqlConnection> OpenConnectionAsync(string instanceName, CancellationToken cancellationToken)
         {
             var b = new SqlConnectionStringBuilder();
-            b.DataSource = InstanceName;
+            b.DataSource = instanceName;
 
             var c = new SqlConnection(b.ToString());
             await c.OpenAsync(cancellationToken);
 
             return c;
+        }
+
+        /// <summary>
+        /// Opens a new connection to the targeted SQL instance.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        protected Task<SqlConnection> OpenConnectionAsync(CancellationToken cancellationToken)
+        {
+            return OpenConnectionAsync(InstanceName, cancellationToken);
         }
 
     }

@@ -351,7 +351,9 @@ namespace Cogito.SqlServer.Deployment.Internal
             string publication,
             string jobLogin,
             string jobPassword,
-            int? publisherSecurityMode)
+            int? publisherSecurityMode,
+            string publisherLogin,
+            string publisherPassword)
         {
             using (var cmd = connection.CreateCommand())
             {
@@ -359,11 +361,21 @@ namespace Cogito.SqlServer.Deployment.Internal
                 cmd.CommandText = "sp_addpublication_snapshot";
 
                 cmd.Parameters.AddWithValue("@publication", publication);
-                cmd.Parameters.AddWithValue("@job_login", jobLogin);
-                cmd.Parameters.AddWithValue("@job_password", jobPassword);
+
+                if (jobLogin != null)
+                    cmd.Parameters.AddWithValue("@job_login", jobLogin);
+
+                if (jobPassword != null)
+                    cmd.Parameters.AddWithValue("@job_password", jobPassword);
 
                 if (publisherSecurityMode != null)
                     cmd.Parameters.AddWithValue("@publisher_security_mode", (int)publisherSecurityMode);
+
+                if (publisherLogin != null)
+                    cmd.Parameters.AddWithValue("@publisher_login", publisherLogin);
+
+                if (publisherPassword != null)
+                    cmd.Parameters.AddWithValue("@publisher_password", publisherPassword);
 
                 await cmd.ExecuteNonQueryAsync();
             }
@@ -412,23 +424,36 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// <param name="jobLogin"></param>
         /// <param name="jobPassword"></param>
         /// <param name="publisherSecurityMode"></param>
+        /// <param name="publisherLogin"></param>
+        /// <param name="publisherPassword"></param>
         /// <returns></returns>
         public static async Task ExecuteSpAddLogReaderAgentAsync(
             this SqlConnection connection,
             string jobLogin,
             string jobPassword,
-            int? publisherSecurityMode)
+            int? publisherSecurityMode,
+            string publisherLogin,
+            string publisherPassword)
         {
             using (var cmd = connection.CreateCommand())
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.CommandText = "sp_addlogreader_agent";
 
-                cmd.Parameters.AddWithValue("@job_login", jobLogin);
-                cmd.Parameters.AddWithValue("@job_password", jobPassword);
+                if (jobLogin != null)
+                    cmd.Parameters.AddWithValue("@job_login", jobLogin);
+
+                if (jobLogin != null)
+                    cmd.Parameters.AddWithValue("@job_password", jobPassword);
 
                 if (publisherSecurityMode != null)
                     cmd.Parameters.AddWithValue("@publisher_security_mode", (int)publisherSecurityMode);
+
+                if (publisherLogin != null)
+                    cmd.Parameters.AddWithValue("@publisher_login ", publisherLogin);
+
+                if (publisherPassword != null)
+                    cmd.Parameters.AddWithValue("@publisher_password ", publisherPassword);
 
                 await cmd.ExecuteNonQueryAsync();
             }
