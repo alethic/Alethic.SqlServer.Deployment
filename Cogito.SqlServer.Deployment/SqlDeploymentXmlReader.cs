@@ -193,9 +193,6 @@ namespace Cogito.SqlServer.Deployment
             var p = new SqlDeploymentDistributor();
             p.DatabaseName = (string)element.Attribute("DatabaseName");
             p.AdminPassword = (string)element.Attribute("AdminPassword");
-            p.DataPath = (string)element.Attribute("DataPath");
-            p.LogsPath = (string)element.Attribute("LogsPath");
-            p.LogFileSize = (string)element.Attribute("LogFileSize");
             p.MinimumRetention = (string)element.Attribute("MinimumRetention");
             p.MaximumRetention = (string)element.Attribute("MaximumRetention");
             p.HistoryRetention = (string)element.Attribute("HistoryRetention");

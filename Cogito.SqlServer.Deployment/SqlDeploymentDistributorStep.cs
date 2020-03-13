@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.AccessControl;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Cogito.Collections;
 using Cogito.SqlServer.Deployment.Internal;
 
@@ -39,26 +40,11 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public string AdminPassword { get; internal set; }
 
-        /// <summary>
-        /// Gets the path of the distribution database data files.
-        /// </summary>
-        public string DataPath { get; internal set; }
+        public int? MinimumRetention { get; internal set; }
 
-        /// <summary>
-        /// Gets the path of the distribution database log files.
-        /// </summary>
-        public string LogsPath { get; internal set; }
+        public int? MaximumRetention { get; internal set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public int? LogFileSize { get; internal set; } = 2;
-
-        public int? MinimumRetention { get; internal set; } = 0;
-
-        public int? MaximumRetention { get; internal set; } = 72;
-
-        public int? HistoryRetention { get; internal set; } = 48;
+        public int? HistoryRetention { get; internal set; }
 
         public string SnapshotPath { get; internal set; }
 
@@ -88,10 +74,70 @@ namespace Cogito.SqlServer.Deployment
             var databaseName = DatabaseName ?? "distribution";
             var currentDistributionDb = await cnn.ExecuteSpHelpDistributionDbAsync(databaseName, cancellationToken);
             if (currentDistributionDb == null)
-                await cnn.ExecuteNonQueryAsync($@"
-                    EXEC sp_adddistributiondb
-                        @database = {databaseName},
-                        @security_mode = 1");
+            {
+                using var cmd = cnn.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "sp_adddistributiondb";
+
+                cmd.Parameters.AddWithValue("@database", databaseName);
+                cmd.Parameters.AddWithValue("@security_mode", 1);
+
+                if (MinimumRetention != null)
+                    cmd.Parameters.AddWithValue("@min_distretention", MinimumRetention);
+
+                if (MaximumRetention != null)
+                    cmd.Parameters.AddWithValue("@max_distretention", MaximumRetention);
+
+                if (HistoryRetention != null)
+                    cmd.Parameters.AddWithValue("@history_retention", HistoryRetention);
+
+                if ((int)await cmd.ExecuteScalarAsync(cancellationToken) != 0)
+                    throw new SqlDeploymentException("Error code returned executing sp_adddistributiondb.");
+            }
+            else
+            {
+                if (MinimumRetention != null && currentDistributionDb.MinDistRetention != MinimumRetention)
+                {
+                    using var cmd = cnn.CreateCommand();
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "sp_changedistributiondb";
+
+                    cmd.Parameters.AddWithValue("@database", databaseName);
+                    cmd.Parameters.AddWithValue("@property", "min_distretention");
+                    cmd.Parameters.AddWithValue("@value", MinimumRetention);
+
+                    if ((int)await cmd.ExecuteScalarAsync(cancellationToken) != 0)
+                        throw new SqlDeploymentException("Error code returned executing sp_changedistributiondb.");
+                }
+
+                if (MaximumRetention != null && currentDistributionDb.MaxDistRetention != MaximumRetention)
+                {
+                    using var cmd = cnn.CreateCommand();
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "sp_changedistributiondb";
+
+                    cmd.Parameters.AddWithValue("@database", databaseName);
+                    cmd.Parameters.AddWithValue("@property", "max_distretention");
+                    cmd.Parameters.AddWithValue("@value", MaximumRetention);
+
+                    if ((int)await cmd.ExecuteScalarAsync(cancellationToken) != 0)
+                        throw new SqlDeploymentException("Error code returned executing sp_changedistributiondb.");
+                }
+
+                if (HistoryRetention != null && currentDistributionDb.HistoryRetention != HistoryRetention)
+                {
+                    using var cmd = cnn.CreateCommand();
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "sp_changedistributiondb";
+
+                    cmd.Parameters.AddWithValue("@database", databaseName);
+                    cmd.Parameters.AddWithValue("@property", "history_retention");
+                    cmd.Parameters.AddWithValue("@value", HistoryRetention);
+
+                    if ((int)await cmd.ExecuteScalarAsync(cancellationToken) != 0)
+                        throw new SqlDeploymentException("Error code returned executing sp_changedistributiondb.");
+                }
+            }
 
             // should be derived from information on server
             var defaultDataRootTable = await cnn.LoadDataTableAsync(@"EXEC master.dbo.xp_instance_regread N'HKEY_LOCAL_MACHINE', N'Software\Microsoft\MSSQLServer\Setup', N'SQLDataRoot'");

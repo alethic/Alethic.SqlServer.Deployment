@@ -19,18 +19,6 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public SqlDeploymentExpression? AdminPassword { get; set; }
 
-        /// <summary>
-        /// Gets or sets the path to the distribution database data files.
-        /// </summary>
-        public SqlDeploymentExpression? DataPath { get; set; }
-
-        /// <summary>
-        /// Gets or sets the path to the distribution database log files.
-        /// </summary>
-        public SqlDeploymentExpression? LogsPath { get; set; }
-
-        public SqlDeploymentExpression? LogFileSize { get; set; }
-
         public SqlDeploymentExpression? MinimumRetention { get; set; }
 
         public SqlDeploymentExpression? MaximumRetention { get; set; }
@@ -45,9 +33,6 @@ namespace Cogito.SqlServer.Deployment
             {
                 DatabaseName = DatabaseName?.Expand(context),
                 AdminPassword = AdminPassword?.Expand(context),
-                DataPath = DataPath?.Expand(context),
-                LogsPath = LogsPath?.Expand(context),
-                LogFileSize = LogFileSize?.Expand<int>(context),
                 MinimumRetention = MinimumRetention?.Expand<int>(context),
                 MaximumRetention = MaximumRetention?.Expand<int>(context),
                 HistoryRetention = HistoryRetention?.Expand<int>(context),
