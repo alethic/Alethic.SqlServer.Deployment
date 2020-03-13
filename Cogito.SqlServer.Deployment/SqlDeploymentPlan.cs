@@ -30,7 +30,7 @@ namespace Cogito.SqlServer.Deployment
         /// Creates a new executor for the plan.
         /// </summary>
         /// <returns></returns>
-        public SqlDeploymentPlanExecutor CreateExecutor() => new SqlDeploymentPlanExecutor(this);
+        public SqlDeploymentExecutor CreateExecutor() => new SqlDeploymentExecutor(this);
 
     }
 

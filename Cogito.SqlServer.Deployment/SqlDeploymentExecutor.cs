@@ -12,7 +12,7 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Maintains an execution context over a plan.
     /// </summary>
-    public class SqlDeploymentPlanExecutor
+    public class SqlDeploymentExecutor
     {
 
         readonly SqlDeploymentPlan plan;
@@ -24,7 +24,7 @@ namespace Cogito.SqlServer.Deployment
         /// Initializes a new instance.
         /// </summary>
         /// <param name="plan"></param>
-        public SqlDeploymentPlanExecutor(SqlDeploymentPlan plan)
+        public SqlDeploymentExecutor(SqlDeploymentPlan plan)
         {
             this.plan = plan ?? throw new ArgumentNullException(nameof(plan));
         }
