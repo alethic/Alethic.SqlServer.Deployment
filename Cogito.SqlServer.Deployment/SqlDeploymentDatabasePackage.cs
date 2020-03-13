@@ -17,9 +17,9 @@ namespace Cogito.SqlServer.Deployment
         public SqlDeploymentExpression Source { get; set; }
 
         /// <summary>
-        /// Gets the path to the publish XML file to load during compilation.
+        /// Gets the path to the publish profile XML file to load during compilation.
         /// </summary>
-        public SqlDeploymentExpression? PublishSource { get; set; }
+        public SqlDeploymentExpression? ProfileSource { get; set; }
 
         /// <summary>
         /// Gets the set of additional options to be passed into the database package.
@@ -45,14 +45,14 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         DacProfile LoadProfile(SqlDeploymentCompileContext context)
         {
-            var profile = PublishSource != null ? DacProfile.Load(PublishSource.Value.Expand(context)) : new DacProfile();
+            var profile = ProfileSource != null ? DacProfile.Load(ProfileSource.Value.Expand(context)) : new DacProfile();
 
-            //if (DeployOptions.AdditionalDeploymentContributorArguments != null)
-            //    profile.DeployOptions.AdditionalDeploymentContributorArguments = DeployOptions.AdditionalDeploymentContributorArguments.Value.Expand<bool>(context);
-            //if (DeployOptions.AdditionalDeploymentContributorPaths != null)
-            //    profile.DeployOptions.AdditionalDeploymentContributorPaths = DeployOptions.AdditionalDeploymentContributorPaths.Value.Expand<bool>(context);
-            //if (DeployOptions.AdditionalDeploymentContributors != null)
-            //    profile.DeployOptions.AdditionalDeploymentContributors = DeployOptions.AdditionalDeploymentContributors.Value.Expand<bool>(context);
+            if (DeployOptions.AdditionalDeploymentContributorArguments != null)
+                profile.DeployOptions.AdditionalDeploymentContributorArguments = DeployOptions.AdditionalDeploymentContributorArguments.Value.Expand<string>(context);
+            if (DeployOptions.AdditionalDeploymentContributorPaths != null)
+                profile.DeployOptions.AdditionalDeploymentContributorPaths = DeployOptions.AdditionalDeploymentContributorPaths.Value.Expand<string>(context);
+            if (DeployOptions.AdditionalDeploymentContributors != null)
+                profile.DeployOptions.AdditionalDeploymentContributors = DeployOptions.AdditionalDeploymentContributors.Value.Expand<string>(context);
             if (DeployOptions.AllowDropBlockingAssemblies != null)
                 profile.DeployOptions.AllowDropBlockingAssemblies = DeployOptions.AllowDropBlockingAssemblies.Value.Expand<bool>(context);
             if (DeployOptions.AllowIncompatiblePlatform != null)

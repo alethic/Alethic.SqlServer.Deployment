@@ -127,23 +127,16 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public string Exe { get; }
 
-        public override Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
-        {
-            return CreateInstance(InstanceName);
-        }
-
         /// <summary>
-        /// Attempts to locate the existing SQL server instance, or creates it.
+        /// Deploys a new instance of SQL Server.
         /// </summary>
-        /// <param name="instanceName"></param>
+        /// <param name="context"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task CreateInstance(string instanceName)
+        public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
         {
-            if (instanceName == null)
-                throw new ArgumentNullException(nameof(instanceName));
-
             // attempt to refresh server name
-            var serverName = await TryGetServerName(instanceName) ?? instanceName;
+            var serverName = await TryGetServerName(InstanceName) ?? InstanceName;
 
             // parse instance name
             var m = serverName.Split('\\');
@@ -166,13 +159,13 @@ namespace Cogito.SqlServer.Deployment
                     await InstallSqlServer(name);
 
                 // test connection and return instance
-                if (await TryGetServerName(instanceName) is string s)
+                if (await TryGetServerName(InstanceName) is string s)
                 {
                     // required for deployment
-                    if (await IsSysAdmin(instanceName) != true)
+                    if (await IsSysAdmin(InstanceName) != true)
                         throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
 
-                    await ConfigureSqlAgent(instanceName);
+                    await ConfigureSqlAgent(InstanceName);
                     return;
                 }
 
@@ -181,13 +174,13 @@ namespace Cogito.SqlServer.Deployment
             else
             {
                 // test connection and return instance
-                if (await TryGetServerName(instanceName) is string s)
+                if (await TryGetServerName(InstanceName) is string s)
                 {
                     // required for deployment
-                    if (await IsSysAdmin(instanceName) != true)
+                    if (await IsSysAdmin(InstanceName) != true)
                         throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
 
-                    await ConfigureSqlAgent(instanceName);
+                    await ConfigureSqlAgent(InstanceName);
                     return;
                 }
 

@@ -22,7 +22,7 @@ namespace Cogito.SqlServer.Deployment.Tests
         {
             var x = XDocument.Load(typeof(SqlDeploymentTests).Assembly.GetManifestResourceStream("Cogito.SqlServer.Deployment.Tests.Example.xml"));
             var d = SqlDeployment.Load(x);
-            var l = d.Compile("EFM_JCMS");
+            var l = d.Compile();
         }
 
         [TestMethod]
@@ -30,7 +30,8 @@ namespace Cogito.SqlServer.Deployment.Tests
         {
             var x = XDocument.Load(typeof(SqlDeploymentTests).Assembly.GetManifestResourceStream("Cogito.SqlServer.Deployment.Tests.Example.xml"));
             var d = SqlDeployment.Load(x);
-            await d.Compile("EFM_JCMS").ExecuteAsync();
+            var l = d.Compile();
+            await l.CreateExecutor().ExecuteAsync("EFM_JCMS");
         }
 
     }

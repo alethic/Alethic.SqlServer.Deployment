@@ -60,7 +60,11 @@
         <DependsOn Name="SQL_TO_EFM" />
         <Instance Name="[SQL_InstanceName]">
             <Database Name="JCMS" Owner="sa">
-                <Package Source="[PathToJcmsDacPac]" />
+                <Package Source="[PathToJcmsDacPac]">
+                    <DeployOptions>
+                        <AllowIncompatiblePlatform>true</AllowIncompatiblePlatform>
+                    </DeployOptions>
+                </Package>
             </Database>
         </Instance>
     </Target>

@@ -163,7 +163,96 @@ namespace Cogito.SqlServer.Deployment
         static SqlDeploymentDatabasePackageDeployOptions LoadDatabasePackageDeployOptions(ReaderContext context, XElement element)
         {
             var o = new SqlDeploymentDatabasePackageDeployOptions();
+            o.AdditionalDeploymentContributorArguments = (string)element.Element("AdditionalDeploymentContributorArguments");
+            o.AdditionalDeploymentContributorPaths = (string)element.Element("AdditionalDeploymentContributorPaths");
+            o.AdditionalDeploymentContributors = (string)element.Element("AdditionalDeploymentContributors");
+            o.AllowDropBlockingAssemblies = (string)element.Element("AllowDropBlockingAssemblies");
+            o.AllowIncompatiblePlatform = (string)element.Element("AllowIncompatiblePlatform");
+            o.AllowUnsafeRowLevelSecurityDataMovement = (string)element.Element("AllowUnsafeRowLevelSecurityDataMovement");
+            o.BackupDatabaseBeforeChanges = (string)element.Element("BackupDatabaseBeforeChanges");
+            o.BlockOnPossibleDataLoss = (string)element.Element("BlockOnPossibleDataLoss");
+            o.BlockWhenDriftDetected = (string)element.Element("BlockWhenDriftDetected");
+            o.CommandTimeout = (string)element.Element("CommandTimeout");
+            o.CommentOutSetVarDeclarations = (string)element.Element("CommentOutSetVarDeclarations");
+            o.CompareUsingTargetCollation = (string)element.Element("CompareUsingTargetCollation");
+            o.CreateNewDatabase = (string)element.Element("CreateNewDatabase");
+            o.DatabaseLockTimeout = (string)element.Element("DatabaseLockTimeout");
+            //o.DatabaseSpecification = (string)element.Element("DatabaseSpecification");
+            o.DeployDatabaseInSingleUserMode = (string)element.Element("DeployDatabaseInSingleUserMode");
+            o.DisableAndReenableDdlTriggers = (string)element.Element("DisableAndReenableDdlTriggers");
+            o.DoNotAlterChangeDataCaptureObjects = (string)element.Element("DoNotAlterChangeDataCaptureObjects");
+            o.DoNotAlterReplicatedObjects = (string)element.Element("DoNotAlterReplicatedObjects");
+            //o.DoNotDropObjectTypes = (string)element.Element("DoNotDropObjectTypes");
+            o.DropConstraintsNotInSource = (string)element.Element("DropConstraintsNotInSource");
+            o.DropDmlTriggersNotInSource = (string)element.Element("DropDmlTriggersNotInSource");
+            o.DropExtendedPropertiesNotInSource = (string)element.Element("DropExtendedPropertiesNotInSource");
+            o.DropIndexesNotInSource = (string)element.Element("DropIndexesNotInSource");
+            o.DropObjectsNotInSource = (string)element.Element("DropObjectsNotInSource");
+            o.DropPermissionsNotInSource = (string)element.Element("DropPermissionsNotInSource");
+            o.DropRoleMembersNotInSource = (string)element.Element("DropRoleMembersNotInSource");
+            o.DropStatisticsNotInSource = (string)element.Element("DropStatisticsNotInSource");
+            //o.ExcludeObjectTypes = (string)element.Element("ExcludeObjectTypes");
+            o.GenerateSmartDefaults = (string)element.Element("GenerateSmartDefaults");
+            o.IgnoreAnsiNulls = (string)element.Element("IgnoreAnsiNulls");
+            o.IgnoreAuthorizer = (string)element.Element("IgnoreAuthorizer");
+            o.IgnoreColumnCollation = (string)element.Element("IgnoreColumnCollation");
+            o.IgnoreColumnOrder = (string)element.Element("IgnoreColumnOrder");
+            o.IgnoreComments = (string)element.Element("IgnoreComments");
+            o.IgnoreCryptographicProviderFilePath = (string)element.Element("IgnoreCryptographicProviderFilePath");
+            o.IgnoreDdlTriggerOrder = (string)element.Element("IgnoreDdlTriggerOrder");
+            o.IgnoreDdlTriggerState = (string)element.Element("IgnoreDdlTriggerState");
+            o.IgnoreDefaultSchema = (string)element.Element("IgnoreDefaultSchema");
+            o.IgnoreDmlTriggerOrder = (string)element.Element("IgnoreDmlTriggerOrder");
+            o.IgnoreDmlTriggerState = (string)element.Element("IgnoreDmlTriggerState");
+            o.IgnoreExtendedProperties = (string)element.Element("IgnoreExtendedProperties");
+            o.IgnoreFileAndLogFilePath = (string)element.Element("IgnoreFileAndLogFilePath");
+            o.IgnoreFilegroupPlacement = (string)element.Element("IgnoreFilegroupPlacement");
+            o.IgnoreFileSize = (string)element.Element("IgnoreFileSize");
+            o.IgnoreFillFactor = (string)element.Element("IgnoreFillFactor");
+            o.IgnoreFullTextCatalogFilePath = (string)element.Element("IgnoreFullTextCatalogFilePath");
+            o.IgnoreIdentitySeed = (string)element.Element("IgnoreIdentitySeed");
+            o.IgnoreIncrement = (string)element.Element("IgnoreIncrement");
+            o.IgnoreIndexOptions = (string)element.Element("IgnoreIndexOptions");
+            o.IgnoreIndexPadding = (string)element.Element("IgnoreIndexPadding");
+            o.IgnoreKeywordCasing = (string)element.Element("IgnoreKeywordCasing");
+            o.IgnoreLockHintsOnIndexes = (string)element.Element("IgnoreLockHintsOnIndexes");
+            o.IgnoreLoginSids = (string)element.Element("IgnoreLoginSids");
+            o.IgnoreNotForReplication = (string)element.Element("IgnoreNotForReplication");
+            o.IgnoreObjectPlacementOnPartitionScheme = (string)element.Element("IgnoreObjectPlacementOnPartitionScheme");
+            o.IgnorePartitionSchemes = (string)element.Element("IgnorePartitionSchemes");
+            o.IgnorePermissions = (string)element.Element("IgnorePermissions");
+            o.IgnoreQuotedIdentifiers = (string)element.Element("IgnoreQuotedIdentifiers");
+            o.IgnoreRoleMembership = (string)element.Element("IgnoreRoleMembership");
+            o.IgnoreRouteLifetime = (string)element.Element("IgnoreRouteLifetime");
+            o.IgnoreSemicolonBetweenStatements = (string)element.Element("IgnoreSemicolonBetweenStatements");
+            o.IgnoreTableOptions = (string)element.Element("IgnoreTableOptions");
+            o.IgnoreUserSettingsObjects = (string)element.Element("IgnoreUserSettingsObjects");
+            o.IgnoreWhitespace = (string)element.Element("IgnoreWhitespace");
+            o.IgnoreWithNocheckOnCheckConstraints = (string)element.Element("IgnoreWithNocheckOnCheckConstraints");
+            o.IgnoreWithNocheckOnForeignKeys = (string)element.Element("IgnoreWithNocheckOnForeignKeys");
+            o.IncludeCompositeObjects = (string)element.Element("IncludeCompositeObjects");
+            o.IncludeTransactionalScripts = (string)element.Element("IncludeTransactionalScripts");
+            o.LongRunningCommandTimeout = (string)element.Element("LongRunningCommandTimeout");
+            o.NoAlterStatementsToChangeClrTypes = (string)element.Element("NoAlterStatementsToChangeClrTypes");
+            o.PopulateFilesOnFileGroups = (string)element.Element("PopulateFilesOnFileGroups");
+            o.RegisterDataTierApplication = (string)element.Element("RegisterDataTierApplication");
+            o.RunDeploymentPlanExecutors = (string)element.Element("RunDeploymentPlanExecutors");
+            o.ScriptDatabaseCollation = (string)element.Element("ScriptDatabaseCollation");
+            o.ScriptDatabaseCompatibility = (string)element.Element("ScriptDatabaseCompatibility");
+            o.ScriptDatabaseOptions = (string)element.Element("ScriptDatabaseOptions");
+            o.ScriptDeployStateChecks = (string)element.Element("ScriptDeployStateChecks");
+            o.ScriptFileSize = (string)element.Element("ScriptFileSize");
+            o.ScriptNewConstraintValidation = (string)element.Element("ScriptNewConstraintValidation");
+            o.ScriptRefreshModule = (string)element.Element("ScriptRefreshModule");
 
+            if (element.Element(Xmlns + "SqlCommandVariableValues") is XElement sqlCommandVariableValuesElement)
+                foreach (var sqlCommandVariableValue in sqlCommandVariableValuesElement.Elements(Xmlns + "SqlCommandVariableValue"))
+                    o.SqlCommandVariableValues[(string)sqlCommandVariableValue.Attribute("Name")] = (string)sqlCommandVariableValue.Attribute("Value");
+
+            o.TreatVerificationErrorsAsWarnings = (string)element.Element("TreatVerificationErrorsAsWarnings");
+            o.UnmodifiableObjectWarnings = (string)element.Element("UnmodifiableObjectWarnings");
+            o.VerifyCollationCompatibility = (string)element.Element("VerifyCollationCompatibility");
+            o.VerifyDeployment = (string)element.Element("VerifyDeployment");
             return o;
         }
 

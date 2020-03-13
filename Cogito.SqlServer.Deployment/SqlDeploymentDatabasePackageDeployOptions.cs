@@ -39,7 +39,7 @@ namespace Cogito.SqlServer.Deployment
 
         public SqlDeploymentExpression? DatabaseLockTimeout { get; set; }
 
-        public DacAzureDatabaseSpecification DatabaseSpecification { get; set; }
+        //public DacAzureDatabaseSpecification DatabaseSpecification { get; set; }
 
         public SqlDeploymentExpression? DeployDatabaseInSingleUserMode { get; set; }
 

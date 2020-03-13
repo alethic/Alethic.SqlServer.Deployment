@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Cogito.SqlServer.Deployment
 {
@@ -10,42 +7,30 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Describes a compiled SQL deployment plan.
     /// </summary>
-    public class SqlDeploymentPlan : IEnumerable<SqlDeploymentStep>
+    public class SqlDeploymentPlan
     {
 
-        readonly List<SqlDeploymentStep> steps;
+        readonly Dictionary<string, SqlDeploymentPlanTarget> targets;
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="steps"></param>
-        internal SqlDeploymentPlan(List<SqlDeploymentStep> steps)
+        /// <param name="targets"></param>
+        internal SqlDeploymentPlan(Dictionary<string, SqlDeploymentPlanTarget> targets)
         {
-            this.steps = steps ?? throw new ArgumentNullException(nameof(steps));
+            this.targets = targets ?? throw new ArgumentNullException(nameof(targets));
         }
 
         /// <summary>
-        /// Executes the plan.
+        /// Gets the plan targets available within the plan.
         /// </summary>
-        /// <param name="cancellationToken"></param>
+        internal Dictionary<string, SqlDeploymentPlanTarget> Targets => targets;
+
+        /// <summary>
+        /// Creates a new executor for the plan.
+        /// </summary>
         /// <returns></returns>
-        public async Task ExecuteAsync(CancellationToken cancellationToken = default)
-        {
-            var context = new SqlDeploymentExecuteContext();
-
-            foreach (var step in steps)
-                await step.Execute(context, cancellationToken);
-        }
-
-        public IEnumerator<SqlDeploymentStep> GetEnumerator()
-        {
-            return steps.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        public SqlDeploymentPlanExecutor CreateExecutor() => new SqlDeploymentPlanExecutor(this);
 
     }
 
