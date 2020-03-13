@@ -60,14 +60,6 @@ namespace Cogito.SqlServer.Deployment
 
         public string SnapshotPath { get; internal set; }
 
-        public override async Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
-        {
-            using var cnn = await OpenConnectionAsync(cancellationToken);
-            var distributorName = await cnn.GetServerPropertyAsync("SERVERNAME");
-            var currentDistributorName = (string)await cnn.ExecuteScalarAsync($"SELECT name FROM sys.servers WHERE is_distributor = 1");
-            return currentDistributorName != "repl_distributor";
-        }
-
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var cnn = await OpenConnectionAsync(cancellationToken);
@@ -75,6 +67,11 @@ namespace Cogito.SqlServer.Deployment
 
             // find proper name of server
             var distributorName = await cnn.GetServerPropertyAsync("SERVERNAME");
+
+            // check that we aren't alrady configured
+            var currentDistributorName = (string)await cnn.ExecuteScalarAsync($"SELECT name FROM sys.servers WHERE is_distributor = 1");
+            if (currentDistributorName == "repl_distributor")
+                return;
 
             // configure instance as distributor
             await cnn.ExecuteNonQueryAsync($@"

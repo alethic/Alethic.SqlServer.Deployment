@@ -38,11 +38,6 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public string DistributorDatabaseName { get; internal set; } = "distribution";
 
-        public override Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(true);
-        }
-
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var publisher = await OpenConnectionAsync(cancellationToken);

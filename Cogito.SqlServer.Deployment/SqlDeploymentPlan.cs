@@ -34,8 +34,7 @@ namespace Cogito.SqlServer.Deployment
             var context = new SqlDeploymentExecuteContext();
 
             foreach (var step in steps)
-                if (await step.ShouldExecute(context, cancellationToken))
-                    await step.Execute(context, cancellationToken);
+                await step.Execute(context, cancellationToken);
         }
 
         public IEnumerator<SqlDeploymentStep> GetEnumerator()

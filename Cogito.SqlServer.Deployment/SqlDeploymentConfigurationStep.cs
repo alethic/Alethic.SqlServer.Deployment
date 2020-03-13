@@ -35,17 +35,31 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public int Value { get; }
 
-        public override async Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
-        {
-            return true;
-        }
-
+        /// <summary>
+        /// Applies the configuration value.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
-            using (var cnn = await OpenConnectionAsync(cancellationToken))
+            using var cnn = await OpenConnectionAsync(cancellationToken);
+
+            // load existing information about value
+            var config = await cnn.ExecuteSpConfigure(Name, cancellationToken);
+            if (config == null)
+                throw new SqlDeploymentException("Unknown configuration name.");
+
+            // check for range
+            if (Value < config.Minimum || Value > config.Maximum)
+                throw new SqlDeploymentException("Configuration value out of range.");
+
+            // has the value changed?
+            if (config.ConfigValue != Value || config.RunValue != Value)
             {
-                await cnn.ExecuteNonQueryAsync((string)$"EXEC sp_configure '{Name}', {Value}");
-                await cnn.ExecuteNonQueryAsync($"RECONFIGURE");
+                // apply change
+                await cnn.ExecuteSpConfigure(Name, Value, cancellationToken);
+                await cnn.ExecuteNonQueryAsync($"RECONFIGURE", cancellationToken: cancellationToken);
             }
         }
 

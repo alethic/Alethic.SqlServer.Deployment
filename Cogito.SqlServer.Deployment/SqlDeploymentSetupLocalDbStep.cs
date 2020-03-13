@@ -27,12 +27,6 @@ namespace Cogito.SqlServer.Deployment
 
         }
 
-        public override Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
-        {
-            var instanceName = InstanceName.Replace(@"(localdb)\", "");
-            return Task.FromResult(Api.GetInstanceNames().Contains(instanceName) == false);
-        }
-
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             var instanceName = InstanceName.Replace(@"(localdb)\", "");

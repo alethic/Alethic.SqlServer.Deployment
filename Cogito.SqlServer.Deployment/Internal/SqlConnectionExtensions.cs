@@ -263,6 +263,16 @@ namespace Cogito.SqlServer.Deployment.Internal
         }
 
         /// <summary>
+        /// Gets the name of the server.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        public static Task<string> GetServerNameAsync(this SqlConnection connection)
+        {
+            return connection.GetServerPropertyAsync("SERVERNAME");
+        }
+
+        /// <summary>
         /// Gets the domain name of the connected server.
         /// </summary>
         /// <param name="connection"></param>

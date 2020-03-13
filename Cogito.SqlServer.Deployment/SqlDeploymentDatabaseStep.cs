@@ -30,18 +30,6 @@ namespace Cogito.SqlServer.Deployment
         public string Name { get; }
 
         /// <summary>
-        /// Returns <c>true</c> if the database is to be created.
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public override async Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
-        {
-            using (var cnn = await OpenConnectionAsync(cancellationToken))
-                return (string)await cnn.ExecuteScalarAsync($"SELECT name FROM sys.databases WHERE name = {Name}") == null;
-        }
-
-        /// <summary>
         /// Creates the database.
         /// </summary>
         /// <param name="context"></param>
@@ -50,7 +38,8 @@ namespace Cogito.SqlServer.Deployment
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using (var cnn = await OpenConnectionAsync(cancellationToken))
-                await cnn.ExecuteNonQueryAsync((string)$"CREATE DATABASE [{Name}]");
+                if ((string)await cnn.ExecuteScalarAsync($"SELECT name FROM sys.databases WHERE name = {Name}") == null)
+                    await cnn.ExecuteNonQueryAsync((string)$"CREATE DATABASE [{Name}]");
         }
 
     }

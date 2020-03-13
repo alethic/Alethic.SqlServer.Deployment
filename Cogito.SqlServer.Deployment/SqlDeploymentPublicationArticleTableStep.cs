@@ -111,18 +111,6 @@ namespace Cogito.SqlServer.Deployment
                 .FirstOrDefault();
         }
 
-        public override async Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
-        {
-            using var connection = await OpenConnectionAsync(cancellationToken);
-            connection.ChangeDatabase(DatabaseName);
-
-            var table = await LoadTableArticle(connection, cancellationToken);
-            if (table == null)
-                throw new SqlDeploymentException($"Unable to locate table '{Name}'.");
-
-            return table.ArticleId == null;
-        }
-
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var connection = await OpenConnectionAsync(cancellationToken);

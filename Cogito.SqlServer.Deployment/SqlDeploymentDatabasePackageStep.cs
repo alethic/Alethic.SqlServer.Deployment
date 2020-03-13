@@ -182,13 +182,11 @@ namespace Cogito.SqlServer.Deployment
         /// <summary>
         /// Returns <c>true</c> if the database is to be deployed.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="cnn"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public override async Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
+        async Task<bool> ShouldExecute(SqlConnection cnn, CancellationToken cancellationToken)
         {
-            using var cnn = await OpenConnectionAsync(cancellationToken);
-
             // MD5SUM of the DACPAC is put onto the database to indicate no change
             var tag = GetDacTag(Source);
             if (tag == await GetDacTag(cnn, cancellationToken))
@@ -206,6 +204,11 @@ namespace Cogito.SqlServer.Deployment
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
         {
             using var cnn = await OpenConnectionAsync(cancellationToken);
+
+            // check that existing database does not already exist with tag
+            if (await ShouldExecute(cnn, cancellationToken) == false)
+                return;
+
             using var dac = LoadDacPackage(Source);
 
             // load up the DAC services

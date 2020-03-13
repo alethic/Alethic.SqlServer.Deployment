@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -68,6 +69,25 @@ namespace Cogito.SqlServer.Deployment.Internal
 
         }
 
+        public class HelpSubscriptionResults
+        {
+
+            public string Subscriber { get; set; }
+
+            public string Publication { get; set; }
+
+            public string Article { get; set; }
+
+            public string DestinationDatabase { get; set; }
+
+            public int SubscriptionStatus { get; set; }
+
+            public int SynchronizationType { get; set; }
+
+            public int SubscriptionType { get; set; }
+
+        }
+
         public class HelpReplicationDbOption
         {
 
@@ -83,6 +103,86 @@ namespace Cogito.SqlServer.Deployment.Internal
 
             public bool DbReadOnly { get; set; }
 
+        }
+
+        public class ConfigureResults
+        {
+
+            public string Name { get; set; }
+
+            public int Minimum { get; set; }
+
+            public int Maximum { get; set; }
+
+            public int ConfigValue { get; set; }
+
+            public int RunValue { get; set; }
+
+        }
+
+        /// <summary>
+        /// Executes the 'sp_configure' stored procedure.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <returns></returns>
+        public static async Task<ConfigureResults[]> ExecuteSpConfigure(
+            this SqlConnection connection,
+            CancellationToken cancellationToken = default)
+        {
+            var t = await connection.LoadDataTableAsync($@"EXEC sp_configure", cancellationToken: cancellationToken);
+
+            return t.Rows.Cast<DataRow>()
+                .Select(i => new ConfigureResults()
+                {
+                    Name = (string)i["name"],
+                    Minimum = (int)i["minimum"],
+                    Maximum = (int)i["maximum"],
+                    ConfigValue = (int)i["config_value"],
+                    RunValue = (int)i["run_value"],
+                })
+                .ToArray();
+        }
+
+        /// <summary>
+        /// Executes the 'sp_configure' stored procedure.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="configname"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static async Task<ConfigureResults> ExecuteSpConfigure(
+            this SqlConnection connection,
+            string configname,
+            CancellationToken cancellationToken = default)
+        {
+            var t = await connection.LoadDataTableAsync($@"EXEC sp_configure @configname = {configname}", cancellationToken: cancellationToken);
+
+            return t.Rows.Cast<DataRow>()
+                .Select(i => new ConfigureResults()
+                {
+                    Name = (string)i["name"],
+                    Minimum = (int)i["minimum"],
+                    Maximum = (int)i["maximum"],
+                    ConfigValue = (int)i["config_value"],
+                    RunValue = (int)i["run_value"],
+                })
+                .FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Executes the 'sp_configure' stored procedure.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="configname"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static async Task ExecuteSpConfigure(
+            this SqlConnection connection,
+            string configname,
+            int configvalue,
+            CancellationToken cancellationToken = default)
+        {
+            await connection.LoadDataTableAsync($@"EXEC sp_configure @configname = {configname}, @configvalue = {configvalue}", cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -190,6 +290,55 @@ namespace Cogito.SqlServer.Deployment.Internal
                 SnapshotInDefaultFolder = t.Rows[0]["snapshot_in_defaultfolder"] is bool snapshot_in_defaultfolder ? (bool?)snapshot_in_defaultfolder : null,
                 AltSnapshotFolder = t.Rows[0]["alt_snapshot_folder"] is string alt_snapshot_folder ? alt_snapshot_folder : null
             };
+        }
+
+        /// <summary>
+        /// Executes the 'sp_helpsubscription' stored procedure.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="publication"></param>
+        /// <returns></returns>
+        public static async Task<HelpSubscriptionResults[]> ExecuteSpHelpSubscriptionAsync(
+            this SqlConnection connection,
+            string publication = null,
+            string article = null,
+            string subscriber = null,
+            string destinationDb = null,
+            string publisher = null)
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.CommandText = "sp_helpsubscription";
+
+            if (publication != null)
+                cmd.Parameters.AddWithValue("@publication", publication);
+            if (article != null)
+                cmd.Parameters.AddWithValue("@article", article);
+            if (subscriber != null)
+                cmd.Parameters.AddWithValue("@subscriber", subscriber);
+            if (destinationDb != null)
+                cmd.Parameters.AddWithValue("@destination_db", destinationDb);
+            if (publisher != null)
+                cmd.Parameters.AddWithValue("@publisher", publisher);
+
+            using var r = await cmd.ExecuteReaderAsync();
+            var t = new DataTable();
+            t.Load(r);
+
+            var l = t.Rows.Cast<DataRow>()
+                .Select(i => new HelpSubscriptionResults()
+                {
+                    Subscriber = (string)i["subscriber"],
+                    Publication = (string)i["publication"],
+                    Article = i["article"] is string article ? article : null,
+                    DestinationDatabase = (string)i["destination database"],
+                    SubscriptionStatus = (int)i["subscription status"],
+                    SynchronizationType = (int)i["synchronization type"],
+                    SubscriptionType = (int)i["subscription type"],
+                })
+                .ToArray();
+
+            return l;
         }
 
         /// <summary>

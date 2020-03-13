@@ -20,11 +20,6 @@ namespace Cogito.SqlServer.Deployment
 
         }
 
-        public override Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public override Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();

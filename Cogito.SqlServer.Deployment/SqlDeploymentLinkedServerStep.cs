@@ -73,39 +73,46 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public string Catalog { get; }
 
-        public override async Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cnn"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        async Task<bool> ShouldExecute(SqlConnection cnn, CancellationToken cancellationToken)
         {
-            using (var cnn = await OpenConnectionAsync(cancellationToken))
-            {
-                var t = await cnn.LoadDataTableAsync(@$"
-                    SELECT      *
-                    FROM        sys.servers
-                    WHERE       name = {Name}");
-                if (t.Rows.Count == 0)
-                    return true;
+            var t = await cnn.LoadDataTableAsync(@$"
+                SELECT      *
+                FROM        sys.servers
+                WHERE       name = {Name}");
+            if (t.Rows.Count == 0)
+                return true;
 
-                var r = t.Rows[0];
-                if (Product != null && (string)r["product"] != Product)
-                    return true;
-                if (Provider != null && (string)r["provider"] != Provider)
-                    return true;
-                if (ProviderString != null && (string)r["provider_string"] != ProviderString)
-                    return true;
-                if (DataSource != null && (string)r["data_source"] != DataSource)
-                    return true;
-                if (Location != null && (string)r["location"] != Location)
-                    return true;
-                if (Catalog != null && (string)r["catalog"] != Catalog)
-                    return true;
+            var r = t.Rows[0];
+            if (Product != null && (string)r["product"] != Product)
+                return true;
+            if (Provider != null && (string)r["provider"] != Provider)
+                return true;
+            if (ProviderString != null && (string)r["provider_string"] != ProviderString)
+                return true;
+            if (DataSource != null && (string)r["data_source"] != DataSource)
+                return true;
+            if (Location != null && (string)r["location"] != Location)
+                return true;
+            if (Catalog != null && (string)r["catalog"] != Catalog)
+                return true;
 
-                return false;
-            }
+            return false;
         }
 
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using (var cnn = await OpenConnectionAsync(cancellationToken))
             {
+                // check that server already exists
+                if (await ShouldExecute(cnn, cancellationToken) == false)
+                    return;
+
                 await cnn.ExecuteNonQueryAsync($@"
                     IF EXISTS ( SELECT * FROM sys.servers WHERE name = {Name} )
                     BEGIN

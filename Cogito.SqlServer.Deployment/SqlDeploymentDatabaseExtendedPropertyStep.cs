@@ -31,11 +31,6 @@ namespace Cogito.SqlServer.Deployment
 
         public string Value { get; }
 
-        public override Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(true);
-        }
-
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var cnn = await OpenConnectionAsync(cancellationToken);

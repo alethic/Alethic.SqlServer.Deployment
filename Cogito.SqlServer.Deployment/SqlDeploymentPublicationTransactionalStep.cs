@@ -40,11 +40,6 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public SqlDeploymentSnapshotAgentConfig SnapshotAgent { get; set; }
 
-        public override Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(true);
-        }
-
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var publish = await OpenConnectionAsync(cancellationToken);

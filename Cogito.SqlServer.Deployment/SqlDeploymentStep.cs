@@ -28,14 +28,6 @@ namespace Cogito.SqlServer.Deployment
         public string InstanceName { get; }
 
         /// <summary>
-        /// Returns <c>true</c> if the execute method should be called.
-        /// </summary>
-        /// <param name="context"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public abstract Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Applies the step to the instance.
         /// </summary>
         /// <param name="context"></param>

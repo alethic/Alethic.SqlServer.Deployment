@@ -46,26 +46,21 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public string PublicationName { get; internal set; }
 
-        public override Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(true);
-        }
-
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var sub = await OpenConnectionAsync(cancellationToken);
             sub.ChangeDatabase(DatabaseName);
-            var subInstanceName = await sub.GetServerPropertyAsync("SERVERNAME");
+            var subServerName = await sub.GetServerNameAsync();
 
             using var pub = await OpenConnectionAsync(PublisherInstanceName, cancellationToken);
             pub.ChangeDatabase(PublisherDatabaseName);
-            var pubInstanceName = await pub.GetServerPropertyAsync("SERVERNAME");
+            var pubServerName = await pub.GetServerNameAsync();
 
             await pub.ExecuteNonQueryAsync($@"
-                IF NOT EXISTS ( SELECT * FROM syssubscriptions WHERE srvname = {subInstanceName} AND dest_db = {DatabaseName} )
+                IF NOT EXISTS ( SELECT * FROM syssubscriptions WHERE srvname = {subServerName} AND dest_db = {DatabaseName} )
                     EXEC sp_addsubscription
                         @publication = {PublicationName},
-                        @subscriber = {subInstanceName},
+                        @subscriber = {subServerName},
                         @destination_db = {DatabaseName},
                         @subscription_type = N'Push',
                         @sync_type = N'automatic',
@@ -87,7 +82,7 @@ namespace Cogito.SqlServer.Deployment
                     ON      s.schema_id = t.schema_id
                 LEFT JOIN   syssubscriptions u
                     ON      u.artid = a.artid
-                    AND     u.srvname = {subInstanceName}
+                    AND     u.srvname = {subServerName}
                 WHERE       p.name = {PublicationName}"))
                 .Rows.Cast<DataRow>()
                 .Select(i => new
@@ -102,7 +97,7 @@ namespace Cogito.SqlServer.Deployment
                 if (!string.IsNullOrEmpty(article.ArticleName) && string.IsNullOrEmpty(article.SubscriberName))
                     await pub.ExecuteSpAddSubscriptionAsync(
                         publication: PublicationName,
-                        subscriber: subInstanceName,
+                        subscriber: subServerName,
                         subscriberType: 0,
                         subscriptionType: "Push",
                         destinationDb: DatabaseName,
@@ -114,7 +109,7 @@ namespace Cogito.SqlServer.Deployment
             {
                 await pub.ExecuteSpAddPushSubscriptionAgentAsync(
                     publication: PublicationName,
-                    subscriber: subInstanceName,
+                    subscriber: subServerName,
                     subscriberDb: DatabaseName,
                     subscriberSecurityMode: 1);
             }
