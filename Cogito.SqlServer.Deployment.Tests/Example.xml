@@ -59,7 +59,7 @@
         <DependsOn Name="SQL" />
         <DependsOn Name="SQL_TO_EFM" />
         <Instance Name="[SQL_InstanceName]">
-            <Database Name="JCMS">
+            <Database Name="JCMS" Owner="sa">
                 <Package Source="[PathToJcmsDacPac]" />
             </Database>
         </Instance>
@@ -67,7 +67,9 @@
     <Target Name="SQL_Conversion">
         <DependsOn Name="SQL" />
         <Instance Name="[SQL_InstanceName]">
-            <Database Name="Conversion" Package="[PathToConversionDacPac]" />
+            <Database Name="Conversion" Owner="sa">
+                <Package Source="[PathToConversionDacPac]" />
+            </Database>
         </Instance>
     </Target>
     <Target Name="EFM_JCMS">

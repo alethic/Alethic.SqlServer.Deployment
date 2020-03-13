@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Data;
 using System.IO;
+using System.Linq;
 using System.Security.AccessControl;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Cogito.Collections;
 using Cogito.SqlServer.Deployment.Internal;
 
 using Microsoft.Data.SqlClient;
@@ -66,35 +68,47 @@ namespace Cogito.SqlServer.Deployment
             cnn.ChangeDatabase("master");
 
             // find proper name of server
-            var distributorName = await cnn.GetServerPropertyAsync("SERVERNAME");
+            var distributorName = await cnn.GetServerNameAsync();
 
-            // check that we aren't alrady configured
+            // configure as distributor if required
             var currentDistributorName = (string)await cnn.ExecuteScalarAsync($"SELECT name FROM sys.servers WHERE is_distributor = 1");
-            if (currentDistributorName == "repl_distributor")
-                return;
+            if (currentDistributorName != "repl_distributor")
+                await cnn.ExecuteNonQueryAsync($@"
+                    EXEC sp_adddistributor
+                        @distributor = {distributorName},
+                        @password = {AdminPassword}");
 
-            // configure instance as distributor
-            await cnn.ExecuteNonQueryAsync($@"
-                EXEC sp_adddistributor
-                    @distributor = {distributorName},
-                    @password = {AdminPassword}");
+            // reset distributor password, if specified
+            if (AdminPassword != null)
+                await cnn.ExecuteNonQueryAsync($@"
+                    EXEC sp_changedistributor_password
+                        @password = {AdminPassword}");
 
-            // add distribution database
-            await cnn.ExecuteNonQueryAsync($@"
-                EXEC sp_adddistributiondb
-                    @database = {DatabaseName ?? "distribution"},
-                    @security_mode = 1");
+            // confgiure distribution database if required
+            var databaseName = DatabaseName ?? "distribution";
+            var currentDistributionDb = await cnn.ExecuteSpHelpDistributionDbAsync(databaseName, cancellationToken);
+            if (currentDistributionDb == null)
+                await cnn.ExecuteNonQueryAsync($@"
+                    EXEC sp_adddistributiondb
+                        @database = {databaseName},
+                        @security_mode = 1");
 
             // should be derived from information on server
-            var snapshotFolder = SnapshotPath ?? @"C:\Program Files\Microsoft SQL Server\MSSQL15.DST\MSSQL\ReplData";
+            var defaultDataRootTable = await cnn.LoadDataTableAsync(@"EXEC master.dbo.xp_instance_regread N'HKEY_LOCAL_MACHINE', N'Software\Microsoft\MSSQLServer\Setup', N'SQLDataRoot'");
+            var defaultDataRootMap = defaultDataRootTable.Rows.Cast<DataRow>().ToDictionary(i => (string)i["Value"], i => i["Data"]);
+            var defaultDataRoot = (string)defaultDataRootMap.GetOrDefault("SQLDataRoot");
+            var defaultReplData = defaultDataRoot != null ? Path.Combine(defaultDataRoot, "ReplData") : null;
 
-            await cnn.ExecuteNonQueryAsync($@"
-                IF (NOT EXISTS (SELECT * from sysobjects where name = 'UIProperties' and type = 'U '))
-                    CREATE TABLE UIProperties(id int)
-                IF (EXISTS (SELECT * from ::fn_listextendedproperty('SnapshotFolder', 'user', 'dbo', 'table', 'UIProperties', null, null))) 
-                    EXEC sp_updateextendedproperty N'SnapshotFolder', {snapshotFolder}, 'user', dbo, 'table', 'UIProperties' 
-                ELSE 
-                    EXEC sp_addextendedproperty N'SnapshotFolder', {snapshotFolder}, 'user', dbo, 'table', 'UIProperties'");
+            // update snapshot folder if determined
+            var snapshotFolder = SnapshotPath ?? defaultReplData;
+            if (snapshotFolder != null)
+                await cnn.ExecuteNonQueryAsync($@"
+                    IF (NOT EXISTS (SELECT * from sysobjects where name = 'UIProperties' and type = 'U '))
+                        CREATE TABLE UIProperties(id int)
+                    IF (EXISTS (SELECT * from ::fn_listextendedproperty('SnapshotFolder', 'user', 'dbo', 'table', 'UIProperties', null, null))) 
+                        EXEC sp_updateextendedproperty N'SnapshotFolder', {snapshotFolder}, 'user', dbo, 'table', 'UIProperties' 
+                    ELSE 
+                        EXEC sp_addextendedproperty N'SnapshotFolder', {snapshotFolder}, 'user', dbo, 'table', 'UIProperties'");
         }
 
         /// <summary>

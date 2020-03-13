@@ -12,10 +12,10 @@ namespace Cogito.SqlServer.Deployment
         /// <summary>
         /// Generates the steps required to ensure the subscription.
         /// </summary>
-        /// <param name="databaseName"></param>
         /// <param name="context"></param>
+        /// <param name="databaseName"></param>
         /// <returns></returns>
-        public override IEnumerable<SqlDeploymentStep> Compile(string databaseName, SqlDeploymentCompileContext context)
+        public override IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context, string databaseName)
         {
             yield return new SqlDeploymentPullSubscriptionStep(context.InstanceName, databaseName)
             {

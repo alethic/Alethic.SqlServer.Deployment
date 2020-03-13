@@ -185,7 +185,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="cnn"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task<bool> ShouldExecute(SqlConnection cnn, CancellationToken cancellationToken)
+        async Task<bool> IsOutOfDate(SqlConnection cnn, CancellationToken cancellationToken)
         {
             // MD5SUM of the DACPAC is put onto the database to indicate no change
             var tag = GetDacTag(Source);
@@ -206,12 +206,11 @@ namespace Cogito.SqlServer.Deployment
             using var cnn = await OpenConnectionAsync(cancellationToken);
 
             // check that existing database does not already exist with tag
-            if (await ShouldExecute(cnn, cancellationToken) == false)
+            if (await IsOutOfDate(cnn, cancellationToken) == false)
                 return;
 
-            using var dac = LoadDacPackage(Source);
-
             // load up the DAC services
+            using var dac = LoadDacPackage(Source);
             var svc = new DacServices(cnn.ConnectionString);
             var prf = Profile ?? new DacProfile();
             var opt = prf.DeployOptions;
@@ -245,13 +244,6 @@ namespace Cogito.SqlServer.Deployment
 
             // deploy database
             svc.Deploy(dac, Name, true, opt, cancellationToken);
-
-            //// generate files for file groups
-            //foreach (var group in await GetFileGroupsWithMissingFiles(instance.DbInstance, databaseName))
-            //    await CreateDefaultFilesForFileGroup(instance.DbInstance, databaseName, group);
-
-            // change database owner for test environment
-            await SetDatabaseOwner(cnn, cancellationToken);
 
             // record that the version we just deployed
             await SetDacTag(cnn, GetDacTag(Source), cancellationToken);
@@ -337,22 +329,6 @@ namespace Cogito.SqlServer.Deployment
 
             foreach (var row in articles.Rows.Cast<DataRow>())
                 await cnn.ExecuteNonQueryAsync($@"EXEC sp_droparticle @publication = {row["pubname"]}, @article = {row["artname"]}", cancellationToken: cancellationToken);
-        }
-
-        /// <summary>
-        /// Sets the database owner.
-        /// </summary>
-        /// <param name="cnn"></param>
-        /// <param name="databaseName"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        async Task SetDatabaseOwner(SqlConnection cnn, CancellationToken cancellationToken)
-        {
-            cnn.ChangeDatabase(Name);
-
-            var owner = (string)await cnn.ExecuteScalarAsync($"SELECT SUSER_SNAME(owner_sid) owner_name FROM sys.databases WHERE name = {Name}", cancellationToken: cancellationToken);
-            if (owner != "sa")
-                await cnn.ExecuteNonQueryAsync((string)$@"ALTER AUTHORIZATION ON DATABASE::[{Name}] TO [sa]", cancellationToken: cancellationToken);
         }
 
     }

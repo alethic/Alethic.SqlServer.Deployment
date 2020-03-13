@@ -28,6 +28,31 @@ namespace Cogito.SqlServer.Deployment.Internal
 
         }
 
+        public class HelpDistributionDbResults
+        {
+
+            public string Name { get; set; }
+
+            public int MinDistRetention { get; set; }
+
+            public int MaxDistRetention { get; set; }
+
+            public int HistoryRetention { get; set; }
+
+            public string HistoryCleanupAgent { get; set; }
+
+            public int Status { get; set; }
+
+            public string DataFolder { get; set; }
+
+            public string DataFile { get; set; }
+
+            public string LogFolder { get; set; }
+
+            public string LogFile { get; set; }
+
+        }
+
         public class HelpLogReaderAgentResults
         {
 
@@ -246,6 +271,37 @@ namespace Cogito.SqlServer.Deployment.Internal
                     @property = {property},
                     @value = {value},
                     @force_reinit_subscription = {forceReinitSubscription}");
+        }
+
+        /// <summary>
+        /// Executes the 'sp_helpdistributiondb' stored procedure.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="database"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static async Task<HelpDistributionDbResults> ExecuteSpHelpDistributionDbAsync(
+            this SqlConnection connection,
+            string database,
+            CancellationToken cancellationToken = default)
+        {
+            var t = await connection.LoadDataTableAsync($"EXEC sp_helpdistributiondb @database = {database}", cancellationToken: cancellationToken);
+            if (t.Rows.Count < 1)
+                return null;
+
+            return new HelpDistributionDbResults()
+            {
+                Name = (string)t.Rows[0]["name"],
+                MinDistRetention = (int)t.Rows[0]["min_distretention"],
+                MaxDistRetention = (int)t.Rows[0]["max_distretention"],
+                HistoryRetention = (int)t.Rows[0]["history_retention"],
+                HistoryCleanupAgent = (string)t.Rows[0]["history_cleanup_agent"],
+                Status = (int)t.Rows[0]["status"],
+                DataFolder = (string)t.Rows[0]["data_folder"],
+                DataFile = (string)t.Rows[0]["data_file"],
+                LogFolder = (string)t.Rows[0]["log_folder"],
+                LogFile = (string)t.Rows[0]["log_file"],
+            };
         }
 
         /// <summary>

@@ -22,10 +22,10 @@ namespace Cogito.SqlServer.Deployment
         /// <summary>
         /// Generates the steps required to ensure the subscription.
         /// </summary>
-        /// <param name="databaseName"></param>
         /// <param name="context"></param>
+        /// <param name="databaseName"></param>
         /// <returns></returns>
-        public abstract IEnumerable<SqlDeploymentStep> Compile(string databaseName, SqlDeploymentCompileContext context);
+        public abstract IEnumerable<SqlDeploymentStep> Compile( SqlDeploymentCompileContext context, string databaseName);
 
     }
 

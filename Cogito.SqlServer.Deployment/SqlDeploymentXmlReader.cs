@@ -135,6 +135,7 @@ namespace Cogito.SqlServer.Deployment
         {
             var p = new SqlDeploymentDatabase();
             p.Name = (string)element.Attribute("Name");
+            p.Owner = (string)element.Attribute("Owner");
 
             if (element.Element(Xmlns + "Package") is XElement packageElement)
             {

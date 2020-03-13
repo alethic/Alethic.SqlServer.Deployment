@@ -20,6 +20,11 @@ namespace Cogito.SqlServer.Deployment
         public SqlDeploymentDatabasePackage Package { get; set; }
 
         /// <summary>
+        /// Gets or sets the owner of the database.
+        /// </summary>
+        public SqlDeploymentExpression? Owner { get; set; }
+
+        /// <summary>
         /// Extended properties to be set on the database.
         /// </summary>
         public ICollection<SqlDeploymentDatabaseExtendedProperty> ExtendedProperties { get; } = new List<SqlDeploymentDatabaseExtendedProperty>();
@@ -49,6 +54,10 @@ namespace Cogito.SqlServer.Deployment
                 foreach (var s in Package.Compile(context, Name))
                     yield return s;
 
+            // potentially alter the owner
+            if (Owner != null)
+                yield return new SqlDeploymentDatabaseOwnerStep(context.InstanceName, Name.Expand(context), Owner?.Expand(context));
+
             // apply any extended properties
             foreach (var extendedProperty in ExtendedProperties)
                 foreach (var s in extendedProperty.Compile(context, Name))
@@ -56,12 +65,12 @@ namespace Cogito.SqlServer.Deployment
 
             // apply any publications
             foreach (var publication in Publications)
-                foreach (var s in publication.Compile(Name, context))
+                foreach (var s in publication.Compile(context, Name))
                     yield return s;
 
             // apply any subscriptions
             foreach (var subscription in Subscriptions)
-                foreach (var s in subscription.Compile(Name, context))
+                foreach (var s in subscription.Compile(context, Name))
                     yield return s;
         }
 
