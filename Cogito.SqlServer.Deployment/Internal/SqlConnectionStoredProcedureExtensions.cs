@@ -484,6 +484,30 @@ namespace Cogito.SqlServer.Deployment.Internal
         }
 
         /// <summary>
+        /// Executes the 'sp_addpushsubscription_agent' stored procedure.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="publication"></param>
+        /// <param name="subscriber"></param>
+        /// <param name="subscriberDb"></param>
+        /// <param name="subscriberSecurityMode"></param>
+        /// <returns></returns>
+        public static async Task ExecuteSpAddPullSubscriptionAgentAsync(
+            this SqlConnection connection,
+            string publication,
+            string subscriber,
+            string subscriberDb,
+            int subscriberSecurityMode)
+        {
+            await connection.ExecuteNonQueryAsync($@"
+                EXEC sp_addpullsubscription_agent
+                    @publication = {publication},
+                    @subscriber = {subscriber},
+                    @subscriber_db = {subscriberDb},
+                    @subscriber_security_mode = {subscriberSecurityMode}");
+        }
+
+        /// <summary>
         /// Executes the 'sp_addarticle' stored procedure.
         /// </summary>
         /// <param name="connection"></param>

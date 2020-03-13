@@ -58,6 +58,6 @@
     <Folder Include="Properties" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="LinkedServer1.sql" />
+    <Build Include="Foo.sql" />
   </ItemGroup>
 </Project>

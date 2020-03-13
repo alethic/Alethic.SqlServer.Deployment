@@ -19,11 +19,11 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public SqlDeploymentLogReaderAgent LogReaderAgent { get; } = new SqlDeploymentLogReaderAgent();
 
-        public override IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context)
+        public override IEnumerable<SqlDeploymentStep> Compile(string databaseName, SqlDeploymentCompileContext context)
         {
-            yield return new SqlDeploymentPublicationTransactionalStep(context.InstanceName, Name, DatabaseName);
+            yield return new SqlDeploymentPublicationTransactionalStep(context.InstanceName, databaseName, Name);
 
-            foreach (var s in base.Compile(context))
+            foreach (var s in base.Compile(databaseName, context))
                 yield return s;
         }
 

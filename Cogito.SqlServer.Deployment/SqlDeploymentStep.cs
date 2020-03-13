@@ -52,6 +52,7 @@ namespace Cogito.SqlServer.Deployment
         {
             var b = new SqlConnectionStringBuilder();
             b.DataSource = instanceName;
+            b.IntegratedSecurity = true;
 
             var c = new SqlConnection(b.ToString());
             await c.OpenAsync(cancellationToken);

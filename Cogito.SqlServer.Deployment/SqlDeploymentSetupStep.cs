@@ -147,11 +147,8 @@ namespace Cogito.SqlServer.Deployment
             if (instanceName == null)
                 throw new ArgumentNullException(nameof(instanceName));
 
-            // try to generate a connection string from instance name
-            var dataSource = new SqlConnectionStringBuilder() { DataSource = instanceName }.ConnectionString;
-
             // attempt to refresh server name
-            var serverName = await TryGetServerName(dataSource) ?? instanceName;
+            var serverName = await TryGetServerName(instanceName) ?? instanceName;
 
             // parse instance name
             var m = serverName.Split('\\');
@@ -174,13 +171,13 @@ namespace Cogito.SqlServer.Deployment
                     await InstallSqlServer(name);
 
                 // test connection and return instance
-                if (await TryGetServerName(dataSource) is string s)
+                if (await TryGetServerName(instanceName) is string s)
                 {
                     // required for deployment
-                    if (await IsSysAdmin(dataSource) != true)
+                    if (await IsSysAdmin(instanceName) != true)
                         throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
 
-                    await ConfigureSqlAgent(dataSource);
+                    await ConfigureSqlAgent(instanceName);
                     return;
                 }
 
@@ -189,13 +186,13 @@ namespace Cogito.SqlServer.Deployment
             else
             {
                 // test connection and return instance
-                if (await TryGetServerName(dataSource) is string s)
+                if (await TryGetServerName(instanceName) is string s)
                 {
                     // required for deployment
-                    if (await IsSysAdmin(dataSource) != true)
+                    if (await IsSysAdmin(instanceName) != true)
                         throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
 
-                    await ConfigureSqlAgent(dataSource);
+                    await ConfigureSqlAgent(instanceName);
                     return;
                 }
 

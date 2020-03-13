@@ -10,14 +10,14 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Configures the instance to refer to a remote distributor.
     /// </summary>
-    public class SqlDeploymentRemoteDistributorStep : SqlDeploymentStep
+    public class SqlDeploymentPublisherStep : SqlDeploymentStep
     {
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="instanceName"></param>
-        public SqlDeploymentRemoteDistributorStep(string instanceName) :
+        public SqlDeploymentPublisherStep(string instanceName) :
             base(instanceName)
         {
 
@@ -46,7 +46,7 @@ namespace Cogito.SqlServer.Deployment
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var publisher = await OpenConnectionAsync(cancellationToken);
-            using var distributor = await OpenConnectionAsync(DistributorInstanceName, cancellationToken);
+            using var distributor = DistributorInstanceName != null ? await OpenConnectionAsync(DistributorInstanceName, cancellationToken) : publisher;
 
             // load name of publisher
             var publisherName = await publisher.GetServerPropertyAsync("SERVERNAME");
@@ -67,10 +67,12 @@ namespace Cogito.SqlServer.Deployment
 
             // ensure server is enabled with the distributor
             await publisher.ExecuteNonQueryAsync($@"
-                    IF NOT EXISTS ( SELECT * from sys.servers WHERE is_distributor = 1 )
-                        EXEC sp_adddistributor
-                            @distributor = {await distributor.GetServerPropertyAsync("SERVERNAME")},
-                            @password = {DistributorAdminPassword}");
+                IF NOT EXISTS ( SELECT * from sys.servers WHERE is_distributor = 1 )
+                BEGIN
+                    EXEC sp_adddistributor
+                        @distributor = {await distributor.GetServerPropertyAsync("SERVERNAME")},
+                        @password = {DistributorAdminPassword}
+                END");
         }
 
     }

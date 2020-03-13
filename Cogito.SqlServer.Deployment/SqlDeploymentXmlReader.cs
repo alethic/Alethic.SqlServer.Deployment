@@ -120,9 +120,7 @@ namespace Cogito.SqlServer.Deployment
             p.Databases.AddRange(element.Elements(Xmlns + "Database").Select(i => LoadDatabase(context, i)));
             p.LinkedServers.AddRange(element.Elements(Xmlns + "LinkedServer").Select(i => LoadLinkedServer(context, i)));
             p.Distributor = element.Element(Xmlns + "Distributor") is XElement distributor ? LoadDistributor(context, distributor) : null;
-            p.Distribution = element.Element(Xmlns + "Distribution") is XElement distribution ? LoadDistribution(context, distribution) : null;
-            p.Publications.AddRange(LoadPublications(context, element));
-            p.Subscriptions.AddRange(element.Elements(Xmlns + "Subscription").Select(i => LoadSubscription(context, i)));
+            p.Publisher = element.Element(Xmlns + "Publisher") is XElement publisher ? LoadPublisher(context, publisher) : null;
             return p;
         }
 
@@ -151,6 +149,12 @@ namespace Cogito.SqlServer.Deployment
 
             foreach (var extendedPropertyElement in element.Elements(Xmlns + "ExtendedProperty"))
                 p.ExtendedProperties.Add(LoadExtendedProperty(context, extendedPropertyElement));
+
+            if (element.Element(Xmlns + "Publications") is XElement publicationsElement)
+                p.Publications.AddRange(LoadPublications(context, publicationsElement));
+
+            if (element.Element(Xmlns + "Subscriptions") is XElement subscriptionsElement)
+                p.Subscriptions.AddRange(LoadSubscriptions(context, subscriptionsElement));
 
             return p;
         }
@@ -187,6 +191,7 @@ namespace Cogito.SqlServer.Deployment
         {
             var p = new SqlDeploymentDistributor();
             p.DatabaseName = (string)element.Attribute("DatabaseName");
+            p.AdminPassword = (string)element.Attribute("AdminPassword");
             p.DataPath = (string)element.Attribute("DataPath");
             p.LogsPath = (string)element.Attribute("LogsPath");
             p.LogFileSize = (string)element.Attribute("LogFileSize");
@@ -197,22 +202,23 @@ namespace Cogito.SqlServer.Deployment
             return p;
         }
 
-        static SqlDeploymentRemoteDistributor LoadDistribution(ReaderContext context, XElement element)
+        static SqlDeploymentPublisher LoadPublisher(ReaderContext context, XElement element)
         {
-            var p = new SqlDeploymentRemoteDistributor();
-            p.InstanceName = (string)element.Attribute("InstanceName");
+            var p = new SqlDeploymentPublisher();
+            p.DistributorInstanceName = (string)element.Attribute("DistributorInstanceName");
+            p.DistributorAdminPassword = (string)element.Attribute("DistributorAdminPassword");
             return p;
         }
 
         static IEnumerable<SqlDeploymentPublication> LoadPublications(ReaderContext context, XElement element)
         {
-            foreach (var i in element.Elements(Xmlns + "SnapshotPublication"))
+            foreach (var i in element.Elements(Xmlns + "Snapshot"))
                 yield return LoadSnapshotPublication(context, i);
 
-            foreach (var i in element.Elements(Xmlns + "TransactionalPublication"))
+            foreach (var i in element.Elements(Xmlns + "Transactional"))
                 yield return LoadTransactionalPublication(context, i);
 
-            foreach (var i in element.Elements(Xmlns + "MergePublication"))
+            foreach (var i in element.Elements(Xmlns + "Merge"))
                 yield return LoadMergePublication(context, i);
         }
 
@@ -220,7 +226,6 @@ namespace Cogito.SqlServer.Deployment
         {
             var p = new SqlDeploymentSnapshotPublication();
             p.Name = (string)element.Attribute("Name");
-            p.DatabaseName = (string)element.Attribute("DatabaseName");
 
             if (element.Element(Xmlns + "SnapshotAgent") is XElement snapshotAgentElement)
                 LoadSnapshotAgent(p.SnapshotAgent, context, snapshotAgentElement);
@@ -235,7 +240,6 @@ namespace Cogito.SqlServer.Deployment
         {
             var p = new SqlDeploymentTransactionalPublication();
             p.Name = (string)element.Attribute("Name");
-            p.DatabaseName = (string)element.Attribute("DatabaseName");
 
             if (element.Element(Xmlns + "SnapshotAgent") is XElement snapshotAgentElement)
                 LoadSnapshotAgent(p.SnapshotAgent, context, snapshotAgentElement);
@@ -253,7 +257,6 @@ namespace Cogito.SqlServer.Deployment
         {
             var p = new SqlDeploymentMergePublication();
             p.Name = (string)element.Attribute("Name");
-            p.DatabaseName = (string)element.Attribute("DatabaseName");
 
             if (element.Element(Xmlns + "SnapshotAgent") is XElement snapshotAgentElement)
                 LoadSnapshotAgent(p.SnapshotAgent, context, snapshotAgentElement);
@@ -305,10 +308,28 @@ namespace Cogito.SqlServer.Deployment
             return p;
         }
 
-        static SqlDeploymentSubscription LoadSubscription(ReaderContext context, XElement element)
+        static IEnumerable<SqlDeploymentSubscription> LoadSubscriptions(ReaderContext context, XElement element)
         {
-            var p = new SqlDeploymentSubscription();
-            p.Name = (string)element.Attribute("Name");
+            foreach (var i in element.Elements(Xmlns + "Push"))
+                yield return LoadPushSubscription(context, i);
+
+            foreach (var i in element.Elements(Xmlns + "Pull"))
+                yield return LoadPullSubscription(context, i);
+        }
+
+        static SqlDeploymentPushSubscription LoadPushSubscription(ReaderContext context, XElement element)
+        {
+            var p = new SqlDeploymentPushSubscription();
+            p.PublisherInstanceName = (string)element.Attribute("PublisherInstanceName");
+            p.PublicationName = (string)element.Attribute("PublicationName");
+            return p;
+        }
+
+        static SqlDeploymentPullSubscription LoadPullSubscription(ReaderContext context, XElement element)
+        {
+            var p = new SqlDeploymentPullSubscription();
+            p.PublisherInstanceName = (string)element.Attribute("PublisherInstanceName");
+            p.PublicationName = (string)element.Attribute("PublicationName");
             return p;
         }
 

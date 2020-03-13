@@ -15,11 +15,6 @@ namespace Cogito.SqlServer.Deployment
         public SqlDeploymentExpression Name { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the database to be published.
-        /// </summary>
-        public SqlDeploymentExpression DatabaseName { get; set; }
-
-        /// <summary>
         /// Gets the set of articles to configure for this publication.
         /// </summary>
         public SqlDeploymentPublicationArticleCollection Articles { get; } = new SqlDeploymentPublicationArticleCollection();
@@ -27,12 +22,13 @@ namespace Cogito.SqlServer.Deployment
         /// <summary>
         /// Generates the steps required to ensure the publication.
         /// </summary>
+        /// <param name="databaseName"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public virtual IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context)
+        public virtual IEnumerable<SqlDeploymentStep> Compile(string databaseName, SqlDeploymentCompileContext context)
         {
             foreach (var article in Articles)
-                foreach (var step in article.Compile(context))
+                foreach (var step in article.Compile(databaseName, Name, context))
                     yield return step;
         }
 

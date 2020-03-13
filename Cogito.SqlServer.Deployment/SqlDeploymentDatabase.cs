@@ -25,6 +25,16 @@ namespace Cogito.SqlServer.Deployment
         public ICollection<SqlDeploymentDatabaseExtendedProperty> ExtendedProperties { get; } = new List<SqlDeploymentDatabaseExtendedProperty>();
 
         /// <summary>
+        /// Gets the publications configured for this database.
+        /// </summary>
+        public ICollection<SqlDeploymentPublication> Publications { get; } = new List<SqlDeploymentPublication>();
+
+        /// <summary>
+        /// Gets the subscriptions configured for this database.
+        /// </summary>
+        public ICollection<SqlDeploymentSubscription> Subscriptions { get; } = new List<SqlDeploymentSubscription>();
+
+        /// <summary>
         /// Generates the steps required to ensure the database.
         /// </summary>
         /// <param name="context"></param>
@@ -42,6 +52,16 @@ namespace Cogito.SqlServer.Deployment
             // apply any extended properties
             foreach (var extendedProperty in ExtendedProperties)
                 foreach (var s in extendedProperty.Compile(context, Name))
+                    yield return s;
+
+            // apply any publications
+            foreach (var publication in Publications)
+                foreach (var s in publication.Compile(Name, context))
+                    yield return s;
+
+            // apply any subscriptions
+            foreach (var subscription in Subscriptions)
+                foreach (var s in subscription.Compile(Name, context))
                     yield return s;
         }
 

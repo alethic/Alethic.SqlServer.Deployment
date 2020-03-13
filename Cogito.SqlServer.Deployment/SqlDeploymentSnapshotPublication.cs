@@ -14,11 +14,11 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public SqlDeploymentSnapshotAgent SnapshotAgent { get; } = new SqlDeploymentSnapshotAgent();
 
-        public override IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context)
+        public override IEnumerable<SqlDeploymentStep> Compile(string databaseName, SqlDeploymentCompileContext context)
         {
-            yield return new SqlDeploymentPublicationSnapshotStep(context.InstanceName, Name, DatabaseName);
+            yield return new SqlDeploymentPublicationSnapshotStep(context.InstanceName, databaseName, Name);
 
-            foreach (var s in base.Compile(context))
+            foreach (var s in base.Compile(databaseName, context))
                 yield return s;
         }
 

@@ -30,7 +30,7 @@ namespace Cogito.SqlServer.Deployment
         /// <summary>
         /// Gets the name of the distribution database to create.
         /// </summary>
-        public string DatabaseName { get; internal set; }
+        public string DatabaseName { get; internal set; } = "distribution";
 
         /// <summary>
         /// Gets the admin password to be configured on the distributor.
@@ -63,26 +63,17 @@ namespace Cogito.SqlServer.Deployment
         public override async Task<bool> ShouldExecute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var cnn = await OpenConnectionAsync(cancellationToken);
-            var distributorName = (string)await cnn.ExecuteScalarAsync("SELECT name FROM sys.servers WHERE is_distributor = 1");
-            return distributorName == null;
+            var distributorName = await cnn.GetServerPropertyAsync("SERVERNAME");
+            var currentDistributorName = (string)await cnn.ExecuteScalarAsync($"SELECT name FROM sys.servers WHERE is_distributor = 1");
+            return currentDistributorName != "repl_distributor";
         }
 
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var cnn = await OpenConnectionAsync(cancellationToken);
-            await ConfigureDistributor(cnn);
-        }
-
-        /// <summary>
-        /// Configures the specified instance as a distributor.
-        /// </summary>
-        /// <param name="instance"></param>
-        /// <returns></returns>
-        async Task ConfigureDistributor(SqlConnection cnn)
-        {
-            await cnn.OpenAsync();
             cnn.ChangeDatabase("master");
 
+            // find proper name of server
             var distributorName = await cnn.GetServerPropertyAsync("SERVERNAME");
 
             // configure instance as distributor
@@ -94,18 +85,19 @@ namespace Cogito.SqlServer.Deployment
             // add distribution database
             await cnn.ExecuteNonQueryAsync($@"
                 EXEC sp_adddistributiondb
-                    @database = {DatabaseName},
+                    @database = {DatabaseName ?? "distribution"},
                     @security_mode = 1");
 
-            // enable self as publisher
-            var knownPublisherName = (string)await cnn.ExecuteScalarAsync($@"
-                SELECT  name
-                FROM    msdb.dbo.MSdistpublishers
-                WHERE   name = {distributorName}");
-            if (knownPublisherName == null)
-                await cnn.ExecuteSpAddDistPublisherAsync(distributorName, DatabaseName, 1, "false", 0, "MSSQLSERVER");
+            // should be derived from information on server
+            var snapshotFolder = SnapshotPath ?? @"C:\Program Files\Microsoft SQL Server\MSSQL15.DST\MSSQL\ReplData";
 
-            await UpdateDirectoryAcl(cnn);
+            await cnn.ExecuteNonQueryAsync($@"
+                IF (NOT EXISTS (SELECT * from sysobjects where name = 'UIProperties' and type = 'U '))
+                    CREATE TABLE UIProperties(id int)
+                IF (EXISTS (SELECT * from ::fn_listextendedproperty('SnapshotFolder', 'user', 'dbo', 'table', 'UIProperties', null, null))) 
+                    EXEC sp_updateextendedproperty N'SnapshotFolder', {snapshotFolder}, 'user', dbo, 'table', 'UIProperties' 
+                ELSE 
+                    EXEC sp_addextendedproperty N'SnapshotFolder', {snapshotFolder}, 'user', dbo, 'table', 'UIProperties'");
         }
 
         /// <summary>
@@ -145,8 +137,8 @@ namespace Cogito.SqlServer.Deployment
                 {
                     try
                     {
-                    // grant permissions to directory to distributor agent account
-                    var acl = d.GetAccessControl();
+                        // grant permissions to directory to distributor agent account
+                        var acl = d.GetAccessControl();
                         acl.AddAccessRule(new FileSystemAccessRule(
                             distributorInfo.Account,
                             FileSystemRights.FullControl,
@@ -157,8 +149,8 @@ namespace Cogito.SqlServer.Deployment
                     }
                     catch (Exception e)
                     {
-                    //logger.Error(e, "Unable to update distribution directory ACLs.");
-                }
+                        //logger.Error(e, "Unable to update distribution directory ACLs.");
+                    }
                 });
             }
         }

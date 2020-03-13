@@ -1,0 +1,5 @@
+﻿CREATE TABLE Foo
+(
+[Id] int IDENTITY, 
+    CONSTRAINT [PK_Foo] PRIMARY KEY ([Id])
+)

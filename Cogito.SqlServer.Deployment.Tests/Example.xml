@@ -24,8 +24,9 @@
         </Instance>
     </Target>
     <Target Name="SQL_REPL">
+        <DependsOn Name="DST" />
         <Instance Name="[SQL_InstanceName]">
-            <RemoteDistributor InstanceName="[DST_InstanceName]" AdminPassword="[DistributorAdminPassword]" />
+            <Publisher DistributorInstanceName="[DST_InstanceName]" DistributorAdminPassword="[DistributorAdminPassword]" />
         </Instance>
     </Target>
     <Target Name="EFM">
@@ -35,8 +36,9 @@
         </Instance>
     </Target>
     <Target Name="EFM_REPL">
+        <DependsOn Name="DST" />
         <Instance Name="[EFM_InstanceName]">
-            <RemoteDistributor InstanceName="[DST_InstanceName]" AdminPassword="[DistributorAdminPassword]" />
+            <Publisher DistributorInstanceName="[DST_InstanceName]" DistributorAdminPassword="[DistributorAdminPassword]" />
         </Instance>
     </Target>
     <Target Name="SQL_TO_EFM">
@@ -74,17 +76,28 @@
         <DependsOn Name="SQL_REPL" />
         <DependsOn Name="EFM_REPL" />
         <Instance Name="[SQL_InstanceName]">
-            <TransactionalPublication Name="JCMS" DatabaseName="JCMS">
-                <SnapshotAgent>
-                    <ProcessCredentials UserName="[SnapshotAgentUserName]" Password="[SnapshotAgentPassword]" />
-                </SnapshotAgent>
-                <LogReaderAgent>
-                    <ProcessCredentials UserName="[LogReaderAgentUserName]" Password="[LogReaderAgentPassword]" />
-                </LogReaderAgent>
-            </TransactionalPublication>
+            <Database Name="JCMS" >
+                <Publications>
+                    <Transactional Name="JCMS">
+                        <SnapshotAgent>
+                            <ProcessCredentials UserName="[SnapshotAgentUserName]" Password="[SnapshotAgentPassword]" />
+                        </SnapshotAgent>
+                        <LogReaderAgent>
+                            <ProcessCredentials UserName="[LogReaderAgentUserName]" Password="[LogReaderAgentPassword]" />
+                        </LogReaderAgent>
+                        <Articles>
+                            <Table Name="Foo" />
+                        </Articles>
+                    </Transactional>
+                </Publications>
+            </Database>
         </Instance>
         <Instance Name="[EFM_InstanceName]">
-            <Subscription Name="JCMS" Publisher="[SQL_InstanceName]" Publication="JCMS" />
+            <Database Name="JCMS">
+                <Subscriptions>
+                    <Push PublisherInstanceName="[SQL_InstanceName]" PublicationName="JCMS" SyncType="Automatic" UpdateMode="ReadOnly" />
+                </Subscriptions>
+            </Database>
         </Instance>
     </Target>
     <Target Name="EFM_Exchange">

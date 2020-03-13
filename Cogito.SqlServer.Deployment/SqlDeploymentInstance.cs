@@ -42,17 +42,7 @@ namespace Cogito.SqlServer.Deployment
         /// <summary>
         /// If provided ensures the instance is configured to refer to a remote distributor.
         /// </summary>
-        public SqlDeploymentRemoteDistributor Distribution { get; set; }
-
-        /// <summary>
-        /// Gets the information regarding any publications to be configurd on the instance.
-        /// </summary>
-        public ICollection<SqlDeploymentPublication> Publications { get; } = new List<SqlDeploymentPublication>();
-
-        /// <summary>
-        /// Gets the information regarding any publications to be configurd on the instance.
-        /// </summary>
-        public ICollection<SqlDeploymentSubscription> Subscriptions { get; } = new List<SqlDeploymentSubscription>();
+        public SqlDeploymentPublisher Publisher { get; set; }
 
         /// <summary>
         /// Generates the steps required to ensure the instance.
@@ -72,22 +62,18 @@ namespace Cogito.SqlServer.Deployment
                     yield return s;
 
             foreach (var i in LinkedServers)
-                foreach (var s in i.Generate(context))
+                foreach (var s in i.Compile(context))
                     yield return s;
 
             if (Distributor != null)
                 foreach (var s in Distributor.Compile(context))
                     yield return s;
 
-            foreach (var i in Subscriptions)
-                foreach (var s in i.Compile(context))
+            if (Publisher != null)
+                foreach (var s in Publisher.Compile(context))
                     yield return s;
 
             foreach (var i in Databases)
-                foreach (var s in i.Compile(context))
-                    yield return s;
-
-            foreach (var i in Publications)
                 foreach (var s in i.Compile(context))
                     yield return s;
         }

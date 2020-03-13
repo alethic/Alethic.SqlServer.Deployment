@@ -12,12 +12,12 @@ namespace Cogito.SqlServer.Deployment
         /// <summary>
         /// Gets or sets the name of the distribution database.
         /// </summary>
-        public SqlDeploymentExpression? DatabaseName { get; set; }
+        public SqlDeploymentExpression? DatabaseName { get; set; } = "distribution";
 
         /// <summary>
         /// Specifies the administrator password to configure on the distributor.
         /// </summary>
-        public SqlDeploymentExpression? AdminPassword { get; private set; }
+        public SqlDeploymentExpression? AdminPassword { get; set; }
 
         /// <summary>
         /// Gets or sets the path to the distribution database data files.

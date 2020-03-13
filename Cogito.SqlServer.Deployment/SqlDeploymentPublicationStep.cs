@@ -13,24 +13,24 @@ namespace Cogito.SqlServer.Deployment
         /// Initializes a new instnace.
         /// </summary>
         /// <param name="instanceName"></param>
-        /// <param name="name"></param>
         /// <param name="databaseName"></param>
-        public SqlDeploymentPublicationStep(string instanceName, string name, string databaseName) :
+        /// <param name="name"></param>
+        public SqlDeploymentPublicationStep(string instanceName, string databaseName, string name) :
             base(instanceName)
         {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
             DatabaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
+            Name = name ?? throw new ArgumentNullException(nameof(name));
         }
-
-        /// <summary>
-        /// Gets the name of the publication to deploy.
-        /// </summary>
-        public string Name { get; }
 
         /// <summary>
         /// Gets the name of the database to be published.
         /// </summary>
         public string DatabaseName { get; }
+
+        /// <summary>
+        /// Gets the name of the publication to deploy.
+        /// </summary>
+        public string Name { get; }
 
     }
 

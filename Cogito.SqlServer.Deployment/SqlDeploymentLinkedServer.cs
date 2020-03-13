@@ -31,7 +31,7 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public IEnumerable<SqlDeploymentStep> Generate(SqlDeploymentCompileContext context)
+        public IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context)
         {
             var product = Product?.Expand(context);
             var provider = Provider?.Expand(context);
