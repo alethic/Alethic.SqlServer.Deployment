@@ -1,4 +1,4 @@
-﻿<Deployment xmlns="https://cogito.cx/schemas/SqlServer/Deployment/2020">
+﻿<Deployment xmlns="https://cogito.cx/schemas/SqlServer.Deployment/manifest/2020">
     <Parameter Name="SetupExePath" DefaultValue="D:\setup.exe" />
     <Parameter Name="SQL_InstanceName" DefaultValue="(local)\SQL" />
     <Parameter Name="EFM_InstanceName" DefaultValue="(local)\EFM" />

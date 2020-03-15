@@ -8,6 +8,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		appveyor.yml = appveyor.yml
 		Directory.Build.props = Directory.Build.props
 		GitVersion.yml = GitVersion.yml
+		LICENSE = LICENSE
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cogito.SqlServer.Deployment", "Cogito.SqlServer.Deployment\Cogito.SqlServer.Deployment.csproj", "{7FB1B797-E231-4258-9EBC-AC36841E21F9}"

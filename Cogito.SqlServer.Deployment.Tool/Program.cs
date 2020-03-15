@@ -21,8 +21,8 @@ namespace Cogito.SqlServer.Deployment.Tool
             {
                 deploy.HelpOption("-? | -h | --help");
                 deploy.Description = "Execute SQL Server Deployment";
-                var input = deploy.Argument("input", "Deployment XML file");
-                var properties = deploy.Option("-p | --parameter", "Parameter value", CommandOptionType.MultipleValue);
+                var input = deploy.Argument("manifest", "deployment manifest file");
+                var properties = deploy.Option("-p | --parameter", "parameter value", CommandOptionType.MultipleValue);
                 deploy.OnExecute(async () => await InvokeDeployAsync(input, properties));
             });
 
@@ -41,7 +41,7 @@ namespace Cogito.SqlServer.Deployment.Tool
 
             if (File.Exists(input.Value) == false)
             {
-                l.LogError("Could not find SQL Deployment XML file.", input.Value);
+                l.LogError("Could not find SQL Deployment manifest file.", input.Value);
                 return 1;
             }
 
