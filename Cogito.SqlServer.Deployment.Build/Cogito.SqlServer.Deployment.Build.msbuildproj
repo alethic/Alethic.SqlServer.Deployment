@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.Build.NoTargets/1.0.94">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="build\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+    <None Include="build\Cogito.SqlServer.Build.props" />
+    <None Include="build\Cogito.SqlServer.Build.targets" />
+  </ItemGroup>
+</Project>

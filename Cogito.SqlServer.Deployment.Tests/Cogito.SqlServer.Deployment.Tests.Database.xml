@@ -1,11 +1,11 @@
 ﻿<Deployment xmlns="https://cogito.cx/schemas/SqlServer/Deployment/2020">
     <Parameter Name="SetupExePath" DefaultValue="D:\setup.exe" />
-    <Parameter Name="SQL_InstanceName" DefaultValue="(localdb)\SQL" />
-    <Parameter Name="EFM_InstanceName" DefaultValue="(localdb)\EFM" />
-    <Parameter Name="DST_InstanceName" DefaultValue="(localdb)\DST" />
-    <Parameter Name="PathToJcmsDacPac" DefaultValue="C:\dev\Cogito.SqlServer.Deployment\Database1\bin\Debug\Database1.dacpac" />
-    <Parameter Name="PathToConversionDacPac" DefaultValue="C:\dev\Cogito.SqlServer.Deployment\Database1\bin\Debug\Database1.dacpac" />
-    <Parameter Name="PathToExchangeDacPac" DefaultValue="C:\dev\Cogito.SqlServer.Deployment\Database1\bin\Debug\Database1.dacpac" />
+    <Parameter Name="SQL_InstanceName" DefaultValue="(local)\SQL" />
+    <Parameter Name="EFM_InstanceName" DefaultValue="(local)\EFM" />
+    <Parameter Name="DST_InstanceName" DefaultValue="(local)\DST" />
+    <Parameter Name="PathToJcmsDacPac" DefaultValue="Cogito.SqlServer.Deployment.Tests.Database.dacpac" />
+    <Parameter Name="PathToConversionDacPac" DefaultValue="Cogito.SqlServer.Deployment.Tests.Database.dacpac" />
+    <Parameter Name="PathToExchangeDacPac" DefaultValue="Cogito.SqlServer.Deployment.Tests.Database.dacpac" />
     <Parameter Name="DistributorAdminPassword" DefaultValue="distributor_admin" />
     <Parameter Name="SnapshotAgentUserName" DefaultValue="" />
     <Parameter Name="SnapshotAgentPassword" DefaultValue="" />

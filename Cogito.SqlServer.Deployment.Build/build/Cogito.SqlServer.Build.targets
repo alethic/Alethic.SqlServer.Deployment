@@ -1,0 +1,26 @@
+<Project>
+
+    <Target
+        Name="GetSqlProjectOutputItems"
+        BeforeTargets="GetCopyToOutputDirectoryItems">
+        <MSBuild
+            Condition="'%(Extension)' == '.sqlproj' AND '%(ProjectReferenceWithConfiguration.CopySqlProjectOutput)' == 'true'"
+            Projects="@(ProjectReferenceWithConfiguration)"
+            Targets="SqlBuild;GetTargetPath;GetSqlTargetPath;GetSqlReferenceCopyLocalPaths"
+            BuildInParallel="$(BuildInParallel)"
+            Properties="
+                %(ProjectReferenceWithConfiguration.SetConfiguration);
+                %(ProjectReferenceWithConfiguration.SetPlatform);
+                SQLDBExtensionsRefPath=$(MSBuildThisFileDirectory)">
+            <Output TaskParameter="TargetOutputs" ItemName="_SqlProjectOutput" />
+        </MSBuild>
+        <ItemGroup>
+            <ContentWithTargetPath Include="@(_SqlProjectOutput)">
+                <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                <TargetPath>%(Filename)%(Extension)</TargetPath>
+            </ContentWithTargetPath>
+        </ItemGroup>
+        <Message Text="@(_SqlProjectOutput)" Importance="high" />
+    </Target>
+
+</Project>

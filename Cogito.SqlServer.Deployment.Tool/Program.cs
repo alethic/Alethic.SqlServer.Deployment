@@ -19,9 +19,10 @@ namespace Cogito.SqlServer.Deployment.Tool
 
             cmd.Command("deploy", deploy =>
             {
-                deploy.Description = "Run SQL Server Deployment";
+                deploy.HelpOption("-? | -h | --help");
+                deploy.Description = "Execute SQL Server Deployment";
                 var input = deploy.Argument("input", "Deployment XML file");
-                var properties = deploy.Option("-p | --property", "Parameter value", CommandOptionType.MultipleValue);
+                var properties = deploy.Option("-p | --parameter", "Parameter value", CommandOptionType.MultipleValue);
                 deploy.OnExecute(async () => await InvokeDeployAsync(input, properties));
             });
 

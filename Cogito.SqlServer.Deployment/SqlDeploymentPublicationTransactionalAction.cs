@@ -113,28 +113,29 @@ namespace Cogito.SqlServer.Deployment
                 logReaderInfo?.JobLogin == null)
                 return;
 
-            var d = new DirectoryInfo(await GetSnapshotFolder(connection, publication, cancellationToken));
-            if (d.Exists == false)
-            {
-                // attempt to determine domain name of SQL instance and use to append to path
-                var u = new Uri(d.FullName);
-                if (u.IsUnc && u.Host.Contains(".") == false)
-                {
-                    var n = await connection.GetServerDomainName(cancellationToken);
-                    if (string.IsNullOrWhiteSpace(n) == false)
-                    {
-                        var b = new UriBuilder(u);
-                        b.Host += "." + n;
-                        d = new DirectoryInfo(b.Uri.LocalPath);
-                    }
-                }
-
-                if (d.Exists == false)
-                    return;
-            }
-
             // file access security only functions on Windows
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var d = new DirectoryInfo(await GetSnapshotFolder(connection, publication, cancellationToken));
+                if (d.Exists == false)
+                {
+                    // attempt to determine domain name of SQL instance and use to append to path
+                    var u = new Uri(d.FullName);
+                    if (u.IsUnc && u.Host.Contains(".") == false)
+                    {
+                        var n = await connection.GetServerDomainName(cancellationToken);
+                        if (string.IsNullOrWhiteSpace(n) == false)
+                        {
+                            var b = new UriBuilder(u);
+                            b.Host += "." + n;
+                            d = new DirectoryInfo(b.Uri.LocalPath);
+                        }
+                    }
+
+                    if (d.Exists == false)
+                        return;
+                }
+
                 await Task.Run(() =>
                 {
                     try
@@ -165,6 +166,7 @@ namespace Cogito.SqlServer.Deployment
                         context.Logger.LogError(e, "Unexpected exception updating snapshot directory permissions.");
                     }
                 });
+            }
         }
 
         /// <summary>

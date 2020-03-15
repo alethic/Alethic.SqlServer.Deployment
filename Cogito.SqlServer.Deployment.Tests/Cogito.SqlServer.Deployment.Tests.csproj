@@ -1,17 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\Cogito.SqlServer.Deployment.Build\build\Cogito.SqlServer.Build.props" />
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net47</TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="Test.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Test.xml" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.2" />
@@ -27,8 +20,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Cogito.SqlServer.Deployment.Tests.Database\Cogito.SqlServer.Deployment.Tests.Database.sqlproj" />
+    <ProjectReference Include="..\Cogito.SqlServer.Deployment.Tests.Database\Cogito.SqlServer.Deployment.Tests.Database.sqlproj">
+      <CopySqlProjectOutput>true</CopySqlProjectOutput>
+    </ProjectReference>
     <ProjectReference Include="..\Cogito.SqlServer.Deployment\Cogito.SqlServer.Deployment.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Cogito.SqlServer.Deployment.Tests.Database.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Import Project="..\Cogito.SqlServer.Deployment.Build\build\Cogito.SqlServer.Build.targets" />
 </Project>

@@ -1,0 +1,103 @@
+<Project>
+    <!-- Extends the SSDT target files to include extra steps for exporting DACPACs. -->
+
+    <!-- import original SSDT targets -->
+    <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
+
+    <!-- callable to return output including DACPAC -->
+    <Target
+        Name="GetSqlReferenceCopyLocalPaths"
+        DependsOnTargets="ResolveArtifactReferences;ResolveAssemblyReferences"
+        Returns="@(ReferenceCopyLocalPaths)" />
+
+    <!-- modifies data inside the DACPAC which is build-location relative -->
+    <Target Name="UpdateDacPacModelReferencePaths" AfterTargets="SqlBuild">
+        <UpdateDacPacModelReferencePathsToRelative Target="$(SqlTargetPath)" />
+    </Target>
+
+    <UsingTask
+        TaskName="UpdateDacPacModelReferencePathsToRelative"
+        TaskFactory="CodeTaskFactory"
+        AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+        <ParameterGroup>
+            <Target />
+        </ParameterGroup>
+        <Task>
+            <Reference Include="System.Xml" />
+            <Reference Include="System.Xml.Linq" />
+            <Reference Include="WindowsBase" />
+            <Using Namespace="System" />
+            <Using Namespace="System.IO" />
+            <Using Namespace="System.IO.Packaging" />
+            <Using Namespace="System.Linq" />
+            <Using Namespace="System.Security.Cryptography" />
+            <Using Namespace="System.Xml" />
+            <Using Namespace="System.Xml.Linq" />
+            <Code Type="Fragment" Language="cs">
+                <![CDATA[
+                
+                XNamespace xns = XNamespace.Get("http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02");
+                Package pkg = Package.Open(Target);
+                
+                XmlWriterSettings xmlWriterSettings = new XmlWriterSettings()
+                {
+                    Indent = true,
+                    IndentChars = "\t",
+                    CloseOutput = true,
+                };
+                
+                Uri originUri = new Uri("/Origin.xml", UriKind.Relative);
+                PackagePart originPart = pkg.GetPart(originUri);
+                Stream originStream = originPart.GetStream();
+                XDocument origin = XDocument.Load(originStream);
+                originStream.Close();
+
+                Uri modelUri = new Uri("/model.xml", UriKind.Relative);
+                PackagePart modelPart = pkg.GetPart(modelUri);
+                Stream modelStream = modelPart.GetStream(FileMode.Open);
+                XDocument model = XDocument.Load(modelStream);
+                modelStream.Close();
+
+                foreach (XElement fileName in model
+                    .Elements(xns + "DataSchemaModel")
+                    .Elements(xns + "Header")
+                    .Elements(xns + "CustomData")
+                    .Where(i => (string)i.Attribute("Category") == "Reference")
+                    .Elements(xns + "Metadata")
+                    .Where(i => (string)i.Attribute("Name") == "FileName" || (string)i.Attribute("Name") == "AssemblySymbolsName"))
+                    if ((string)fileName.Attribute("Value") != null)
+                        if (Path.IsPathRooted((string)fileName.Attribute("Value")))
+                            fileName.SetAttributeValue("Value", Path.GetFileName((string)fileName.Attribute("Value")));
+
+                pkg.DeletePart(modelUri);
+                modelPart = pkg.CreatePart(modelUri, "text/xml", CompressionOption.Maximum);
+                using (XmlWriter wrt = XmlWriter.Create(modelPart.GetStream(), xmlWriterSettings))
+                    model.Save(wrt);
+
+                pkg.Flush();
+                var hash = BitConverter.ToString(SHA256.Create().ComputeHash(pkg.GetPart(modelUri).GetStream())).Replace("-", "");
+
+                var modelChecksum = origin
+                    .Elements(xns + "DacOrigin")
+                    .Elements(xns + "Checksums")
+                    .Elements(xns + "Checksum")
+                    .FirstOrDefault(i => (string)i.Attribute("Uri") == modelUri.ToString());
+
+                if (modelChecksum == null)
+                    throw new InvalidOperationException("Could not locate model checksum.");
+                modelChecksum.Value = hash;
+
+                pkg.DeletePart(originUri);
+                originPart = pkg.CreatePart(originUri, "text/xml", CompressionOption.Maximum);
+                using (XmlWriter wrt = XmlWriter.Create(originPart.GetStream(), xmlWriterSettings))
+                    origin.Save(wrt);
+
+                pkg.Flush();
+                pkg.Close();
+                
+                ]]>
+            </Code>
+        </Task>
+    </UsingTask>
+
+</Project>
