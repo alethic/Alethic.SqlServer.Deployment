@@ -6,14 +6,14 @@ before_build:
   - nuget restore
   - dotnet restore
 
-install:
-  - cmd: appveyor DownloadFile https://download.microsoft.com/download/b/8/c/b8ce1000-2e0b-4bc8-b4e4-646e9a439525/SQL2019-SSEI-Dev.exe
-  - cmd: mkdir %CD%\SQL2019
-  - cmd: .\SQL2019-SSEI-Dev.exe /Quiet /Action=Download /MediaType=CAB /MediaPath=%CD%\SQL2019
-
 build:
   verbosity: minimal
   project: Cogito.SqlServer.Deployment.sln
+
+before_test:
+  - cmd: appveyor DownloadFile https://download.microsoft.com/download/b/8/c/b8ce1000-2e0b-4bc8-b4e4-646e9a439525/SQL2019-SSEI-Dev.exe
+  - cmd: mkdir %CD%\SQL2019
+  - cmd: .\SQL2019-SSEI-Dev.exe /Quiet /Action=Download /MediaType=CAB /MediaPath=%CD%\SQL2019
 
 artifacts:
   - path: pkg\*.nupkg
