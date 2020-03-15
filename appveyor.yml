@@ -11,11 +11,12 @@ build:
   project: Cogito.SqlServer.Deployment.sln
 
 before_test:
-  - cmd: cd %TEMP%
-  - cmd: appveyor DownloadFile https://download.microsoft.com/download/b/8/c/b8ce1000-2e0b-4bc8-b4e4-646e9a439525/SQL2019-SSEI-Dev.exe
-  - cmd: mkdir SQL2019
-  - cmd: .\SQL2019-SSEI-Dev.exe /Quiet /Action=Download /MediaType=CAB /MediaPath=%CD%\SQL2019
-  - cmd: .\SQL2019\SQLServer2019-DEV-x64-ENU.exe /q /x:%CD%\SQL2019\setup
+  - cmd: >-
+      cd %TEMP%
+      appveyor DownloadFile https://download.microsoft.com/download/b/8/c/b8ce1000-2e0b-4bc8-b4e4-646e9a439525/SQL2019-SSEI-Dev.exe
+      mkdir %TEMP%\SQL2019
+      %TEMP%\SQL2019-SSEI-Dev.exe /Quiet /Action=Download /MediaType=CAB /MediaPath=%TEMP%\SQL2019
+      %TEMP%\SQL2019\SQLServer2019-DEV-x64-ENU.exe /q /x:%TEMP%\SQL2019\setup
 
 artifacts:
   - path: pkg\*.nupkg
