@@ -11,8 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cogito.SqlServer.Deployment", "Cogito.SqlServer.Deployment\Cogito.SqlServer.Deployment.csproj", "{7FB1B797-E231-4258-9EBC-AC36841E21F9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cogito.SqlServer.Deployment.Tests.Framework", "Cogito.SqlServer.Deployment.Tests.Framework\Cogito.SqlServer.Deployment.Tests.Framework.csproj", "{94E1CBE2-32F8-4CC8-A275-7C7958752702}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cogito.SqlServer.Deployment.Tool", "Cogito.SqlServer.Deployment.Tool\Cogito.SqlServer.Deployment.Tool.csproj", "{181B6161-7166-4B9B-BBE0-75D72F205CE9}"
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Database1", "Database1\Database1.sqlproj", "{503A38A6-7E4D-42CB-BD26-D3406D603A1C}"
@@ -31,10 +29,6 @@ Global
 		{7FB1B797-E231-4258-9EBC-AC36841E21F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FB1B797-E231-4258-9EBC-AC36841E21F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FB1B797-E231-4258-9EBC-AC36841E21F9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{94E1CBE2-32F8-4CC8-A275-7C7958752702}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{94E1CBE2-32F8-4CC8-A275-7C7958752702}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{94E1CBE2-32F8-4CC8-A275-7C7958752702}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{94E1CBE2-32F8-4CC8-A275-7C7958752702}.Release|Any CPU.Build.0 = Release|Any CPU
 		{181B6161-7166-4B9B-BBE0-75D72F205CE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{181B6161-7166-4B9B-BBE0-75D72F205CE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{181B6161-7166-4B9B-BBE0-75D72F205CE9}.Release|Any CPU.ActiveCfg = Release|Any CPU

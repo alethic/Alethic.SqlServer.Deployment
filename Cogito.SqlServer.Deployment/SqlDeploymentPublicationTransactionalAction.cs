@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Threading;
 using System.Threading.Tasks;
@@ -129,45 +130,41 @@ namespace Cogito.SqlServer.Deployment
                 }
 
                 if (d.Exists == false)
-                {
                     return;
-                }
             }
 
-#if NET47
-
-            await Task.Run(() =>
-            {
-                try
+            // file access security only functions on Windows
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                await Task.Run(() =>
                 {
-                    // grant permissions to directory to snapshot agent account
-                    var acl = d.GetAccessControl();
+                    try
+                    {
+                        // grant permissions to directory to snapshot agent account
+                        var acl = d.GetAccessControl();
 
-                    if (publicationInfo?.JobLogin != null)
-                        acl.AddAccessRule(new FileSystemAccessRule(
-                            publicationInfo.JobLogin,
-                            FileSystemRights.ReadAndExecute | FileSystemRights.Write,
-                            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
-                            PropagationFlags.InheritOnly,
-                            AccessControlType.Allow));
+                        if (publicationInfo?.JobLogin != null)
+                            acl.AddAccessRule(new FileSystemAccessRule(
+                                publicationInfo.JobLogin,
+                                FileSystemRights.ReadAndExecute | FileSystemRights.Write,
+                                InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+                                PropagationFlags.InheritOnly,
+                                AccessControlType.Allow));
 
-                    if (logReaderInfo?.JobLogin != null)
-                        acl.AddAccessRule(new FileSystemAccessRule(
-                            logReaderInfo.JobLogin,
-                            FileSystemRights.ReadAndExecute,
-                            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
-                            PropagationFlags.InheritOnly,
-                            AccessControlType.Allow));
+                        if (logReaderInfo?.JobLogin != null)
+                            acl.AddAccessRule(new FileSystemAccessRule(
+                                logReaderInfo.JobLogin,
+                                FileSystemRights.ReadAndExecute,
+                                InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+                                PropagationFlags.InheritOnly,
+                                AccessControlType.Allow));
 
-                    d.SetAccessControl(acl);
-                }
-                catch (Exception e)
-                {
-                    context.Logger.LogError(e, "Unexpected exception updating snapshot directory permissions.");
-                }
-            });
-
-#endif
+                        d.SetAccessControl(acl);
+                    }
+                    catch (Exception e)
+                    {
+                        context.Logger.LogError(e, "Unexpected exception updating snapshot directory permissions.");
+                    }
+                });
         }
 
         /// <summary>

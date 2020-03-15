@@ -1,10 +1,8 @@
 ﻿using System.Threading.Tasks;
 using System.Xml.Linq;
+
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Logging.Console;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 
 namespace Cogito.SqlServer.Deployment.Tests
 {
