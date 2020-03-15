@@ -157,62 +157,6 @@ namespace Cogito.SqlServer.Deployment
                     ELSE 
                         EXEC sp_addextendedproperty N'SnapshotFolder', {snapshotFolder}, 'user', dbo, 'table', 'UIProperties'");
             }
-
-            //await UpdateDirectoryAcl(cnn);
-        }
-
-        /// <summary>
-        /// Updates the ACLs of the distributor directory.
-        /// </summary>
-        /// <param name="cnn"></param>
-        /// <returns></returns>
-        async Task UpdateDirectoryAcl(SqlConnection cnn)
-        {
-            var distributorInfo = await cnn.ExecuteSpHelpDistributorAsync();
-            if (distributorInfo.Directory != null &&
-                distributorInfo.Account != null)
-            {
-                // distributor directory?
-                var d = new DirectoryInfo(distributorInfo.Directory);
-                if (d.Exists == false)
-                {
-                    // path stored as local UNC, append default domain of distributor
-                    var u = new Uri(d.FullName);
-                    if (u.IsUnc &&
-                        u.Host.Contains(".") == false)
-                    {
-                        var b = new UriBuilder(u);
-                        if (await cnn.GetServerDomainName() is string domainName)
-                            b.Host += "." + domainName;
-                        d = new DirectoryInfo(b.Uri.LocalPath);
-                    }
-
-                    if (d.Exists == false)
-                    {
-                        return;
-                    }
-                }
-
-                await Task.Run(() =>
-                {
-                    try
-                    {
-                        // grant permissions to directory to distributor agent account
-                        var acl = d.GetAccessControl();
-                        acl.AddAccessRule(new FileSystemAccessRule(
-                            distributorInfo.Account,
-                            FileSystemRights.FullControl,
-                            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
-                            PropagationFlags.InheritOnly,
-                            AccessControlType.Allow));
-                        d.SetAccessControl(acl);
-                    }
-                    catch (Exception e)
-                    {
-                        //logger.Error(e, "Unable to update distribution directory ACLs.");
-                    }
-                });
-            }
         }
 
     }

@@ -134,6 +134,8 @@ namespace Cogito.SqlServer.Deployment
                 }
             }
 
+#if NET47
+
             await Task.Run(() =>
             {
                 try
@@ -164,6 +166,8 @@ namespace Cogito.SqlServer.Deployment
                     context.Logger.LogError(e, "Unexpected exception updating snapshot directory permissions.");
                 }
             });
+
+#endif
         }
 
         /// <summary>
