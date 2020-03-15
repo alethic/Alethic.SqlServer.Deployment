@@ -10,9 +10,9 @@ namespace Cogito.SqlServer.Deployment
 {
 
     /// <summary>
-    /// Ensures a subscription is in place at the publisher.
+    /// Ensures a push subscription is in place at the publisher.
     /// </summary>
-    public class SqlDeploymentPushSubscriptionStep : SqlDeploymentStep
+    public class SqlDeploymentPushSubscriptionAction : SqlDeploymentSubscriptionAction
     {
 
         /// <summary>
@@ -20,31 +20,19 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         /// <param name="instanceName"></param>
         /// <param name="databaseName"></param>
-        public SqlDeploymentPushSubscriptionStep(string instanceName, string databaseName) :
-            base(instanceName)
+        /// <param name="publisherInstanceName"></param>
+        /// <param name="publicationDatabaseName"></param>
+        /// <param name="publicationName"></param>
+        public SqlDeploymentPushSubscriptionAction(
+            string instanceName,
+            string databaseName,
+            string publisherInstanceName,
+            string publicationDatabaseName,
+            string publicationName) :
+            base(instanceName, databaseName, publisherInstanceName, publicationDatabaseName, publicationName)
         {
-            DatabaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
+
         }
-
-        /// <summary>
-        /// Gets the name of the subscriber database.
-        /// </summary>
-        public string DatabaseName { get; }
-
-        /// <summary>
-        /// Gets the name of the publisher instance on which the publication exists.
-        /// </summary>
-        public string PublisherInstanceName { get; internal set; }
-
-        /// <summary>
-        /// Gets the name of the publisher database.
-        /// </summary>
-        public string PublisherDatabaseName { get; internal set; }
-
-        /// <summary>
-        /// Gets the name of the publication.
-        /// </summary>
-        public string PublicationName { get; internal set; }
 
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
@@ -53,7 +41,7 @@ namespace Cogito.SqlServer.Deployment
             var subServerName = await sub.GetServerNameAsync();
 
             using var pub = await OpenConnectionAsync(PublisherInstanceName, cancellationToken);
-            pub.ChangeDatabase(PublisherDatabaseName);
+            pub.ChangeDatabase(PublicationDatabaseName);
             var pubServerName = await pub.GetServerNameAsync();
 
             await pub.ExecuteNonQueryAsync($@"

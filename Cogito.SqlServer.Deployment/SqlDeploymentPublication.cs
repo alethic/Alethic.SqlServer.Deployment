@@ -25,7 +25,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="context"></param>
         /// <param name="databaseName"></param>
         /// <returns></returns>
-        public virtual IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context, string databaseName)
+        public virtual IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context, string databaseName)
         {
             foreach (var article in Articles)
                 foreach (var step in article.Compile(databaseName, Name, context))

@@ -4,13 +4,16 @@ using System.Threading.Tasks;
 
 using Cogito.SqlServer.Deployment.Internal;
 
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
+
 namespace Cogito.SqlServer.Deployment
 {
 
     /// <summary>
-    /// 
+    /// Ensures the existence of a database.
     /// </summary>
-    public class SqlDeploymentDatabaseStep : SqlDeploymentStep
+    public class SqlDeploymentCreateDatabaseAction : SqlDeploymentAction
     {
 
         /// <summary>
@@ -18,7 +21,7 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         /// <param name="instanceName"></param>
         /// <param name="name"></param>
-        public SqlDeploymentDatabaseStep(string instanceName, string name) :
+        public SqlDeploymentCreateDatabaseAction(string instanceName, string name) :
             base(instanceName)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -39,7 +42,13 @@ namespace Cogito.SqlServer.Deployment
         {
             using (var cnn = await OpenConnectionAsync(cancellationToken))
                 if ((string)await cnn.ExecuteScalarAsync($"SELECT name FROM sys.databases WHERE name = {Name}") == null)
-                    await cnn.ExecuteNonQueryAsync((string)$"CREATE DATABASE [{Name}]");
+                    await CreateDatabase(context, cnn);
+        }
+
+        async Task CreateDatabase(SqlDeploymentExecuteContext context, SqlConnection cnn)
+        {
+            context.Logger.LogInformation("Creating database {DatabaseName}.", Name);
+            await cnn.ExecuteNonQueryAsync((string)$"CREATE DATABASE [{Name}]");
         }
 
     }

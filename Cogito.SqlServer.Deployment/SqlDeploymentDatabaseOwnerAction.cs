@@ -5,14 +5,15 @@ using System.Threading.Tasks;
 using Cogito.SqlServer.Deployment.Internal;
 
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 
 namespace Cogito.SqlServer.Deployment
 {
 
     /// <summary>
-    /// Applies a new database owner.
+    /// Applies a database owner.
     /// </summary>
-    public class SqlDeploymentDatabaseOwnerStep : SqlDeploymentStep
+    public class SqlDeploymentDatabaseOwnerAction : SqlDeploymentAction
     {
 
         /// <summary>
@@ -21,7 +22,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="instanceName"></param>
         /// <param name="databaseName"></param>
         /// <param name="login"></param>
-        public SqlDeploymentDatabaseOwnerStep(string instanceName, string databaseName, string login) :
+        public SqlDeploymentDatabaseOwnerAction(string instanceName, string databaseName, string login) :
             base(instanceName)
         {
             DatabaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
@@ -39,21 +40,6 @@ namespace Cogito.SqlServer.Deployment
         public string Login { get; }
 
         /// <summary>
-        /// Sets the database owner.
-        /// </summary>
-        /// <param name="cnn"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        async Task SetDatabaseOwner(SqlConnection cnn, CancellationToken cancellationToken)
-        {
-            cnn.ChangeDatabase(DatabaseName);
-
-            var owner = (string)await cnn.ExecuteScalarAsync($"SELECT SUSER_SNAME(owner_sid) owner_name FROM sys.databases WHERE name = {DatabaseName}", cancellationToken: cancellationToken);
-            if (owner != Login)
-                await cnn.ExecuteNonQueryAsync((string)$@"ALTER AUTHORIZATION ON DATABASE::[{DatabaseName}] TO [{Login}]", cancellationToken: cancellationToken);
-        }
-
-        /// <summary>
         /// Executes the step.
         /// </summary>
         /// <param name="context"></param>
@@ -62,7 +48,24 @@ namespace Cogito.SqlServer.Deployment
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var cnn = await OpenConnectionAsync(cancellationToken);
-            await SetDatabaseOwner(cnn, cancellationToken);
+            cnn.ChangeDatabase(DatabaseName);
+
+            var owner = (string)await cnn.ExecuteScalarAsync($"SELECT SUSER_SNAME(owner_sid) owner_name FROM sys.databases WHERE name = {DatabaseName}", cancellationToken: cancellationToken);
+            if (owner != Login)
+                await SetDatabaseOwner(context, cnn, cancellationToken);
+        }
+
+        /// <summary>
+        /// Sets the database owner.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="connection"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        async Task SetDatabaseOwner(SqlDeploymentExecuteContext context, SqlConnection connection, CancellationToken cancellationToken)
+        {
+            context.Logger.LogInformation("Changing database owner of {DatabaseName} to {Owner}.", DatabaseName, Login);
+            await connection.ExecuteNonQueryAsync((string)$@"ALTER AUTHORIZATION ON DATABASE::[{DatabaseName}] TO [{Login}]", cancellationToken: cancellationToken);
         }
 
     }

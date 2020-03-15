@@ -3,7 +3,7 @@
 namespace Cogito.SqlServer.Deployment
 {
 
-    public abstract class SqlDeploymentPublicationArticleStep : SqlDeploymentStep
+    public abstract class SqlDeploymentPublicationArticleAction : SqlDeploymentAction
     {
 
         /// <summary>
@@ -13,7 +13,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="databaseName"></param>
         /// <param name="publicationName"></param>
         /// <param name="name"></param>
-        public SqlDeploymentPublicationArticleStep(string instanceName, string databaseName, string publicationName, string name) :
+        public SqlDeploymentPublicationArticleAction(string instanceName, string databaseName, string publicationName, string name) :
             base(instanceName)
         {
             DatabaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));

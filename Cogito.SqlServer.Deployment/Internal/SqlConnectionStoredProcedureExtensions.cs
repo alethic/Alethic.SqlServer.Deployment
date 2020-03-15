@@ -235,18 +235,21 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// <param name="dbName"></param>
         /// <param name="optName"></param>
         /// <param name="value"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task ExecuteSpSetReplicationDbOptionAsync(
             this SqlConnection connection,
             string dbName,
             string optName,
-            string value)
+            string value,
+            CancellationToken cancellationToken = default)
         {
             await connection.ExecuteNonQueryAsync($@"
                 EXEC sp_replicationdboption
                     @dbname = {dbName},
                     @optname = {optName},
-                    @value = {value}");
+                    @value = {value}",
+                cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -257,20 +260,23 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// <param name="property"></param>
         /// <param name="value"></param>
         /// <param name="forceReinitSubscription"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task ExecuteSpChangePublicationAsync(
             this SqlConnection connection,
             string publication,
             string property,
             string value,
-            int forceReinitSubscription)
+            int forceReinitSubscription,
+            CancellationToken cancellationToken = default)
         {
             await connection.ExecuteNonQueryAsync($@"
                 EXEC sp_changepublication
                     @publication = {publication},
                     @property = {property},
                     @value = {value},
-                    @force_reinit_subscription = {forceReinitSubscription}");
+                    @force_reinit_subscription = {forceReinitSubscription}",
+                cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -308,11 +314,13 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// Executes the 'sp_helpdistributor' stored procedure.
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task<HelpDistributorResults> ExecuteSpHelpDistributorAsync(
-            this SqlConnection connection)
+            this SqlConnection connection,
+            CancellationToken cancellationToken = default)
         {
-            var t = await connection.LoadDataTableAsync("EXEC sp_helpdistributor");
+            var t = await connection.LoadDataTableAsync("EXEC sp_helpdistributor", cancellationToken: cancellationToken);
             if (t.Rows.Count < 1)
                 return null;
 
@@ -330,12 +338,14 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="publication"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task<HelpPublicationResults> ExecuteSpHelpPublicationAsync(
             this SqlConnection connection,
-            string publication)
+            string publication,
+            CancellationToken cancellationToken = default)
         {
-            var t = await connection.LoadDataTableAsync($@"EXEC sp_helppublication @publication = {publication}");
+            var t = await connection.LoadDataTableAsync($@"EXEC sp_helppublication @publication = {publication}", cancellationToken: cancellationToken);
             if (t.Rows.Count < 1)
                 return null;
 
@@ -401,12 +411,14 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// Executes the 'sp_helppublication_snapshot' stored procedure.
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task<HelpPublicationSnapshotResults> ExecuteSpHelpPublicationSnapshotAsync(
             this SqlConnection connection,
-            string publication)
+            string publication,
+            CancellationToken cancellationToken = default)
         {
-            var t = await connection.LoadDataTableAsync($@"EXEC sp_helppublication_snapshot @publication = {publication}");
+            var t = await connection.LoadDataTableAsync($@"EXEC sp_helppublication_snapshot @publication = {publication}", cancellationToken: cancellationToken);
             if (t.Rows.Count < 1)
                 return null;
 
@@ -447,11 +459,13 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// Executes the 'sp_helplogreader_agent' stored procedure.
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task<HelpLogReaderAgentResults> ExecuteSpHelpLogReaderAgentAsync(
-            this SqlConnection connection)
+            this SqlConnection connection,
+            CancellationToken cancellationToken = default)
         {
-            var t = await connection.LoadDataTableAsync("EXEC sp_helplogreader_agent");
+            var t = await connection.LoadDataTableAsync("EXEC sp_helplogreader_agent", cancellationToken: cancellationToken);
             if (t.Rows.Count < 1)
                 return null;
 
@@ -524,6 +538,7 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// <param name="allowPush"></param>
         /// <param name="allowPull"></param>
         /// <param name="independentAgent"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task ExecuteSpAddPublicationAsync(
             this SqlConnection connection,
@@ -531,7 +546,8 @@ namespace Cogito.SqlServer.Deployment.Internal
             string status,
             bool allowPush,
             bool allowPull,
-            bool independentAgent)
+            bool independentAgent,
+            CancellationToken cancellationToken = default)
         {
             await connection.ExecuteNonQueryAsync($@"
                 EXEC sp_addpublication
@@ -539,7 +555,8 @@ namespace Cogito.SqlServer.Deployment.Internal
                     @status = {status},
                     @allow_push = {(allowPush ? "true" : "false")},
                     @allow_pull = {(allowPull ? "true" : "false")},
-                    @independent_agent = {(independentAgent ? "true" : "false")}");
+                    @independent_agent = {(independentAgent ? "true" : "false")}",
+                cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -550,6 +567,9 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// <param name="jobLogin"></param>
         /// <param name="jobPassword"></param>
         /// <param name="publisherSecurityMode"></param>
+        /// <param name="publisherLogin"></param>
+        /// <param name="publisherPassword"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task ExecuteSpAddPublicationSnapshotAsync(
             this SqlConnection connection,
@@ -558,7 +578,8 @@ namespace Cogito.SqlServer.Deployment.Internal
             string jobPassword,
             int? publisherSecurityMode,
             string publisherLogin,
-            string publisherPassword)
+            string publisherPassword,
+            CancellationToken cancellationToken = default)
         {
             using (var cmd = connection.CreateCommand())
             {
@@ -582,7 +603,7 @@ namespace Cogito.SqlServer.Deployment.Internal
                 if (publisherPassword != null)
                     cmd.Parameters.AddWithValue("@publisher_password", publisherPassword);
 
-                await cmd.ExecuteNonQueryAsync();
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
             }
         }
 
@@ -631,6 +652,7 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// <param name="publisherSecurityMode"></param>
         /// <param name="publisherLogin"></param>
         /// <param name="publisherPassword"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task ExecuteSpAddLogReaderAgentAsync(
             this SqlConnection connection,
@@ -638,7 +660,8 @@ namespace Cogito.SqlServer.Deployment.Internal
             string jobPassword,
             int? publisherSecurityMode,
             string publisherLogin,
-            string publisherPassword)
+            string publisherPassword,
+            CancellationToken cancellationToken = default)
         {
             using (var cmd = connection.CreateCommand())
             {
@@ -660,7 +683,7 @@ namespace Cogito.SqlServer.Deployment.Internal
                 if (publisherPassword != null)
                     cmd.Parameters.AddWithValue("@publisher_password ", publisherPassword);
 
-                await cmd.ExecuteNonQueryAsync();
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
             }
         }
 

@@ -6,7 +6,7 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Step that ensures the existance and configuration of a publication.
     /// </summary>
-    public abstract class SqlDeploymentPublicationStep : SqlDeploymentStep
+    public abstract class SqlDeploymentPublicationAction : SqlDeploymentAction
     {
 
         /// <summary>
@@ -15,7 +15,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="instanceName"></param>
         /// <param name="databaseName"></param>
         /// <param name="name"></param>
-        public SqlDeploymentPublicationStep(string instanceName, string databaseName, string name) :
+        public SqlDeploymentPublicationAction(string instanceName, string databaseName, string name) :
             base(instanceName)
         {
             DatabaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));

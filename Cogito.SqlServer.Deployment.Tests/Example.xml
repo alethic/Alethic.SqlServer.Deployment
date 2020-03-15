@@ -101,7 +101,7 @@
         <Instance Name="[EFM_InstanceName]">
             <Database Name="JCMS">
                 <Subscriptions>
-                    <Push PublisherInstanceName="[SQL_InstanceName]" PublicationName="JCMS" SyncType="Automatic" UpdateMode="ReadOnly" />
+                    <Push PublisherInstanceName="[SQL_InstanceName]" PublicationDatabaseName="JCMS" PublicationName="JCMS" SyncType="Automatic" UpdateMode="ReadOnly" />
                 </Subscriptions>
             </Database>
         </Instance>

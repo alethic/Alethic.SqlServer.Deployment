@@ -4,6 +4,9 @@ using System.Collections.Generic;
 namespace Cogito.SqlServer.Deployment
 {
 
+    /// <summary>
+    /// Describes configuration properties to be configured on the database.
+    /// </summary>
     public class SqlDeploymentConfiguration : Dictionary<string, SqlDeploymentExpression>
     {
 
@@ -13,10 +16,10 @@ namespace Cogito.SqlServer.Deployment
             set => base[name] = value ?? throw new ArgumentNullException(nameof(value));
         }
 
-        public IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context)
+        public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context)
         {
             foreach (var kvp in this)
-                yield return new SqlDeploymentConfigurationStep(context.InstanceName, kvp.Key, kvp.Value.Expand<int>(context));
+                yield return new SqlDeploymentConfigurationAction(context.InstanceName, kvp.Key, kvp.Value.Expand<int>(context));
         }
 
     }

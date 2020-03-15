@@ -32,10 +32,10 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="context"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context, string name)
+        public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context, string name)
         {
             if (Source != null)
-                yield return new SqlDeploymentDatabasePackageStep(context.InstanceName, name, Source.Expand(context), LoadProfile(context));
+                yield return new SqlDeploymentDatabasePackageAction(context.InstanceName, name, Source.Expand(context), LoadProfile(context));
         }
 
         /// <summary>

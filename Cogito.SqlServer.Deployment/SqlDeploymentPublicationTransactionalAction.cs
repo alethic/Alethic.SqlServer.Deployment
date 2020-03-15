@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Cogito.SqlServer.Deployment.Internal;
 
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 
 namespace Cogito.SqlServer.Deployment
 {
@@ -15,7 +16,7 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Step to configure a transactional publication.
     /// </summary>
-    public class SqlDeploymentPublicationTransactionalStep : SqlDeploymentPublicationStep
+    public class SqlDeploymentPublicationTransactionalAction : SqlDeploymentPublicationAction
     {
 
         /// <summary>
@@ -24,7 +25,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="instanceName"></param>
         /// <param name="publicationName"></param>
         /// <param name="databaseName"></param>
-        public SqlDeploymentPublicationTransactionalStep(string instanceName, string publicationName, string databaseName) :
+        public SqlDeploymentPublicationTransactionalAction(string instanceName, string publicationName, string databaseName) :
             base(instanceName, publicationName, databaseName)
         {
 
@@ -51,22 +52,23 @@ namespace Cogito.SqlServer.Deployment
             await publish.ExecuteSpSetReplicationDbOptionAsync(DatabaseName, "publish", "true");
 
             // configure log reader agent
-            var logReaderAgent = await publish.ExecuteSpHelpLogReaderAgentAsync();
+            var logReaderAgent = await publish.ExecuteSpHelpLogReaderAgentAsync(cancellationToken);
             if (logReaderAgent?.JobId == null)
                 await publish.ExecuteSpAddLogReaderAgentAsync(
                     LogReaderAgent?.ProcessCredentials?.UserName,
                     LogReaderAgent?.ProcessCredentials?.Password,
                     LogReaderAgent?.ConnectCredentials == null ? 1 : 0,
                     LogReaderAgent?.ConnectCredentials?.UserId,
-                    LogReaderAgent?.ConnectCredentials?.Password != null ? new NetworkCredential("", LogReaderAgent.ConnectCredentials.Password).Password : null);
+                    LogReaderAgent?.ConnectCredentials?.Password != null ? new NetworkCredential("", LogReaderAgent.ConnectCredentials.Password).Password : null,
+                    cancellationToken);
 
             // add publication if it does not exist
-            var existingPublication1 = await publish.LoadDataTableAsync($"SELECT * from syspublications WHERE name = {Name}");
+            var existingPublication1 = await publish.LoadDataTableAsync($"SELECT * from syspublications WHERE name = {Name}", cancellationToken: cancellationToken);
             if (existingPublication1.Rows.Count == 0)
-                await publish.ExecuteSpAddPublicationAsync(Name, "active", true, true, true);
+                await publish.ExecuteSpAddPublicationAsync(Name, "active", true, true, true, cancellationToken);
 
             // add publication snapshot if it does not exist
-            var existingPublication2 = await publish.LoadDataTableAsync($"SELECT * from syspublications WHERE name = {Name} AND snapshot_jobid IS NOT NULL");
+            var existingPublication2 = await publish.LoadDataTableAsync($"SELECT * from syspublications WHERE name = {Name} AND snapshot_jobid IS NOT NULL", cancellationToken: cancellationToken);
             if (existingPublication2.Rows.Count == 0)
                 await publish.ExecuteSpAddPublicationSnapshotAsync(
                     Name,
@@ -74,15 +76,16 @@ namespace Cogito.SqlServer.Deployment
                     SnapshotAgent?.ProcessCredentials?.Password,
                     SnapshotAgent?.ConnectCredentials == null ? 1 : 0,
                     SnapshotAgent?.ConnectCredentials?.UserId,
-                    SnapshotAgent?.ConnectCredentials?.Password != null ? new NetworkCredential("", SnapshotAgent.ConnectCredentials.Password).Password : null);
+                    SnapshotAgent?.ConnectCredentials?.Password != null ? new NetworkCredential("", SnapshotAgent.ConnectCredentials.Password).Password : null,
+                    cancellationToken);
 
             // update the snapshot directory ACLs
-            await UpdateSnapshotDirectoryAcl(publish, Name);
+            await UpdateSnapshotDirectoryAcl(context, publish, Name, cancellationToken);
 
             // change publication options
-            await publish.ExecuteSpChangePublicationAsync(Name, "allow_anonymous", "false", 1);
-            await publish.ExecuteSpChangePublicationAsync(Name, "immediate_sync", "false", 1);
-            await publish.ExecuteSpChangePublicationAsync(Name, "sync_method", "database snapshot", 1);
+            await publish.ExecuteSpChangePublicationAsync(Name, "allow_anonymous", "false", 1, cancellationToken);
+            await publish.ExecuteSpChangePublicationAsync(Name, "immediate_sync", "false", 1, cancellationToken);
+            await publish.ExecuteSpChangePublicationAsync(Name, "sync_method", "database snapshot", 1, cancellationToken);
         }
 
         /// <summary>
@@ -91,7 +94,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="cnn"></param>
         /// <param name="publication"></param>
         /// <returns></returns>
-        async Task UpdateSnapshotDirectoryAcl(SqlConnection cnn, string publication)
+        async Task UpdateSnapshotDirectoryAcl(SqlDeploymentExecuteContext context, SqlConnection cnn, string publication, CancellationToken cancellationToken)
         {
             if (cnn == null)
                 throw new ArgumentNullException(nameof(cnn));
@@ -99,22 +102,22 @@ namespace Cogito.SqlServer.Deployment
                 throw new ArgumentNullException(nameof(publication));
 
             // find login of publiation
-            var publicationInfo = await cnn.ExecuteSpHelpPublicationSnapshotAsync(publication);
-            var logReaderInfo = await cnn.ExecuteSpHelpLogReaderAgentAsync();
+            var publicationInfo = await cnn.ExecuteSpHelpPublicationSnapshotAsync(publication, cancellationToken);
+            var logReaderInfo = await cnn.ExecuteSpHelpLogReaderAgentAsync(cancellationToken);
 
             // nothing to update
             if (publicationInfo?.JobLogin == null &&
                 logReaderInfo?.JobLogin == null)
                 return;
 
-            var d = new DirectoryInfo(await GetSnapshotFolder(cnn, publication));
+            var d = new DirectoryInfo(await GetSnapshotFolder(cnn, publication, cancellationToken));
             if (d.Exists == false)
             {
                 // attempt to determine domain name of SQL instance and use to append to path
                 var u = new Uri(d.FullName);
                 if (u.IsUnc && u.Host.Contains(".") == false)
                 {
-                    var n = await GetDomainName(cnn);
+                    var n = await cnn.GetServerDomainName(cancellationToken);
                     if (string.IsNullOrWhiteSpace(n) == false)
                     {
                         var b = new UriBuilder(u);
@@ -156,7 +159,7 @@ namespace Cogito.SqlServer.Deployment
                 }
                 catch (Exception e)
                 {
-                    //logger.Error(e, "Unable to update snapshot directory ACLs.");
+                    context.Logger.LogError(e, "Unexpected exception updating snapshot directory permissions.");
                 }
             });
         }
@@ -165,16 +168,18 @@ namespace Cogito.SqlServer.Deployment
         /// Gets the snapshot folder for the publication.
         /// </summary>
         /// <param name="cnn"></param>
+        /// <param name="publication"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task<string> GetSnapshotFolder(SqlConnection cnn, string publication)
+        async Task<string> GetSnapshotFolder(SqlConnection cnn, string publication, CancellationToken cancellationToken)
         {
-            var publicationInfo = await cnn.ExecuteSpHelpPublicationAsync(publication);
+            var publicationInfo = await cnn.ExecuteSpHelpPublicationAsync(publication, cancellationToken);
 
             // uses default distributor folder
             if (publicationInfo?.SnapshotInDefaultFolder == true)
             {
                 // fix permissions on replication directory
-                var distributorInfo = await cnn.ExecuteSpHelpDistributorAsync();
+                var distributorInfo = await cnn.ExecuteSpHelpDistributorAsync(cancellationToken);
                 if (distributorInfo.Directory != null)
                     return distributorInfo.Directory;
             }
@@ -184,21 +189,6 @@ namespace Cogito.SqlServer.Deployment
                 return publicationInfo.AltSnapshotFolder;
 
             return null;
-        }
-
-        /// <summary>
-        /// Gets the fully qualified name of the connected server.
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <returns></returns>
-        async Task<string> GetDomainName(SqlConnection connection)
-        {
-            var d = (string)await connection.ExecuteScalarAsync($@"
-                DECLARE @DomainName nvarchar(256)
-                EXEC    master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\Services\Tcpip\Parameters', N'Domain', @DomainName OUTPUT
-                SELECT  @DomainName");
-
-            return d;
         }
 
     }

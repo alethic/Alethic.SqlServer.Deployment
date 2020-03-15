@@ -14,9 +14,9 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public SqlDeploymentSnapshotAgent SnapshotAgent { get; } = new SqlDeploymentSnapshotAgent();
 
-        public override IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context, string databaseName)
+        public override IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context, string databaseName)
         {
-            yield return new SqlDeploymentPublicationMergeStep(context.InstanceName, databaseName, Name);
+            yield return new SqlDeploymentPublicationMergeAction(context.InstanceName, databaseName, Name);
 
             foreach (var s in base.Compile(context, databaseName))
                 yield return s;

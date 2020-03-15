@@ -7,7 +7,10 @@ using Cogito.SqlServer.Deployment.Internal;
 namespace Cogito.SqlServer.Deployment
 {
 
-    public class SqlDeploymentDatabaseExtendedPropertyStep : SqlDeploymentStep
+    /// <summary>
+    /// Ensures the value of an extended property.
+    /// </summary>
+    public class SqlDeploymentDatabaseExtendedPropertyAction : SqlDeploymentAction
     {
 
         /// <summary>
@@ -17,7 +20,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="databaseName"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
-        public SqlDeploymentDatabaseExtendedPropertyStep(string instanceName, string databaseName, string name, string value) :
+        public SqlDeploymentDatabaseExtendedPropertyAction(string instanceName, string databaseName, string name, string value) :
             base(instanceName)
         {
             DatabaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
@@ -25,10 +28,19 @@ namespace Cogito.SqlServer.Deployment
             Value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
+        /// <summary>
+        /// Gets the database name upon which to set the extended property.
+        /// </summary>
         public string DatabaseName { get; }
 
+        /// <summary>
+        /// Gets the name of the extended property.
+        /// </summary>
         public string Name { get; }
 
+        /// <summary>
+        /// Gets the value of the extended property.
+        /// </summary>
         public string Value { get; }
 
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)

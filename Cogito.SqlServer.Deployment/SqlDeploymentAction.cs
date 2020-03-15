@@ -10,14 +10,14 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Describes a potential step during a deployment plan.
     /// </summary>
-    public abstract class SqlDeploymentStep
+    public abstract class SqlDeploymentAction
     {
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="instanceName"></param>
-        protected SqlDeploymentStep(string instanceName)
+        protected SqlDeploymentAction(string instanceName)
         {
             InstanceName = instanceName ?? throw new ArgumentNullException(nameof(instanceName));
         }

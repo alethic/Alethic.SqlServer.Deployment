@@ -15,6 +15,11 @@ namespace Cogito.SqlServer.Deployment
         public SqlDeploymentExpression PublisherInstanceName { get; set; }
 
         /// <summary>
+        /// Gets the name of the database that holds the publication.
+        /// </summary>
+        public SqlDeploymentExpression PublicationDatabaseName { get; set; }
+
+        /// <summary>
         /// Gets or sets the name of the publication to subscribe to.
         /// </summary>
         public SqlDeploymentExpression PublicationName { get; set; }
@@ -25,7 +30,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="context"></param>
         /// <param name="databaseName"></param>
         /// <returns></returns>
-        public abstract IEnumerable<SqlDeploymentStep> Compile( SqlDeploymentCompileContext context, string databaseName);
+        public abstract IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context, string databaseName);
 
     }
 

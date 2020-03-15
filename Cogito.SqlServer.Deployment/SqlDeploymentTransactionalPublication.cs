@@ -19,9 +19,9 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public SqlDeploymentLogReaderAgent LogReaderAgent { get; } = new SqlDeploymentLogReaderAgent();
 
-        public override IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context, string databaseName)
+        public override IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context, string databaseName)
         {
-            yield return new SqlDeploymentPublicationTransactionalStep(context.InstanceName, databaseName, Name);
+            yield return new SqlDeploymentPublicationTransactionalAction(context.InstanceName, databaseName, Name);
 
             foreach (var s in base.Compile(context, databaseName))
                 yield return s;

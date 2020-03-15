@@ -11,7 +11,7 @@ using Microsoft.Data.SqlClient;
 namespace Cogito.SqlServer.Deployment
 {
 
-    public class SqlDeploymentPublicationArticleTableStep : SqlDeploymentPublicationArticleStep
+    public class SqlDeploymentPublicationArticleTableAction : SqlDeploymentPublicationArticleAction
     {
 
         class TableArticle
@@ -65,7 +65,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="databaseName"></param>
         /// <param name="publicationName"></param>
         /// <param name="name"></param>
-        public SqlDeploymentPublicationArticleTableStep(string instanceName, string databaseName, string publicationName, string name) :
+        public SqlDeploymentPublicationArticleTableAction(string instanceName, string databaseName, string publicationName, string name) :
             base(instanceName, databaseName, publicationName, name)
         {
 

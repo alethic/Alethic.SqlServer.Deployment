@@ -1,7 +1,10 @@
 ﻿using System.Threading.Tasks;
 using System.Xml.Linq;
-
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging.Console;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 
 namespace Cogito.SqlServer.Deployment.Tests
 {
@@ -22,16 +25,18 @@ namespace Cogito.SqlServer.Deployment.Tests
         {
             var x = XDocument.Load(typeof(SqlDeploymentTests).Assembly.GetManifestResourceStream("Cogito.SqlServer.Deployment.Tests.Example.xml"));
             var d = SqlDeployment.Load(x);
-            var l = d.Compile();
+            var p = d.Compile();
         }
 
         [TestMethod]
         public async Task Can_execute_example()
         {
+            using var l = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Trace));
             var x = XDocument.Load(typeof(SqlDeploymentTests).Assembly.GetManifestResourceStream("Cogito.SqlServer.Deployment.Tests.Example.xml"));
             var d = SqlDeployment.Load(x);
-            var l = d.Compile();
-            await l.CreateExecutor().ExecuteAsync("EFM_JCMS");
+            var p = d.Compile();
+
+            await new SqlDeploymentSequentialExecutor(p, l.CreateLogger<SqlDeploymentSequentialExecutor>()).ExecuteAsync();
         }
 
     }

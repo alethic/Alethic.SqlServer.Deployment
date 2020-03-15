@@ -49,7 +49,7 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        internal IEnumerable<SqlDeploymentStep> Compile(IDictionary<string, string> arguments)
+        internal IEnumerable<SqlDeploymentAction> Compile(IDictionary<string, string> arguments)
         {
             var context = new SqlDeploymentCompileContext(arguments, Name.Expand<string>(arguments));
 

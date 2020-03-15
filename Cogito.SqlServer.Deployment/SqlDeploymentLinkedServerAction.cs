@@ -12,7 +12,7 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Ensures the deployment of a linked server.
     /// </summary>
-    public class SqlDeploymentLinkedServerStep : SqlDeploymentStep
+    public class SqlDeploymentLinkedServerAction : SqlDeploymentAction
     {
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="dataSource"></param>
         /// <param name="location"></param>
         /// <param name="catalog"></param>
-        public SqlDeploymentLinkedServerStep(string instanceName, string name, string product, string provider, string providerString, string dataSource, string location, string catalog) :
+        public SqlDeploymentLinkedServerAction(string instanceName, string name, string product, string provider, string providerString, string dataSource, string location, string catalog) :
             base(instanceName)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));

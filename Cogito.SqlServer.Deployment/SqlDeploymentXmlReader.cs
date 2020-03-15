@@ -408,6 +408,7 @@ namespace Cogito.SqlServer.Deployment
         {
             var p = new SqlDeploymentPushSubscription();
             p.PublisherInstanceName = (string)element.Attribute("PublisherInstanceName");
+            p.PublicationDatabaseName = (string)element.Attribute("PublicationDatabaseName");
             p.PublicationName = (string)element.Attribute("PublicationName");
             return p;
         }
@@ -416,6 +417,7 @@ namespace Cogito.SqlServer.Deployment
         {
             var p = new SqlDeploymentPullSubscription();
             p.PublisherInstanceName = (string)element.Attribute("PublisherInstanceName");
+            p.PublicationDatabaseName = (string)element.Attribute("PublicationDatabaseName");
             p.PublicationName = (string)element.Attribute("PublicationName");
             return p;
         }

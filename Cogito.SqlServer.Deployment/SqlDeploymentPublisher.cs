@@ -19,9 +19,9 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public SqlDeploymentExpression? DistributorAdminPassword { get; set; }
 
-        public IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context)
+        public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context)
         {
-            yield return new SqlDeploymentPublisherStep(context.InstanceName)
+            yield return new SqlDeploymentPublisherAction(context.InstanceName)
             {
                 DistributorInstanceName = DistributorInstanceName?.Expand(context),
                 DistributorAdminPassword = DistributorAdminPassword?.Expand(context),

@@ -15,12 +15,12 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public SqlDeploymentExpression? Exe { get; set; }
 
-        public IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context)
+        public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context)
         {
             if (context.InstanceName.StartsWith(@"(localdb)\", StringComparison.OrdinalIgnoreCase))
-                yield return new SqlDeploymentSetupLocalDbStep(context.InstanceName);
+                yield return new SqlDeploymentSetupLocalDbAction(context.InstanceName);
             else
-                yield return new SqlDeploymentSetupStep(context.InstanceName, Exe?.Expand(context));
+                yield return new SqlDeploymentSetupAction(context.InstanceName, Exe?.Expand(context));
         }
 
     }

@@ -31,7 +31,7 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context)
+        public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context)
         {
             var product = Product?.Expand(context);
             var provider = Provider?.Expand(context);
@@ -40,7 +40,7 @@ namespace Cogito.SqlServer.Deployment
             if (product == null || provider == null)
                 provider = "MSOLEDBSQL";
 
-            yield return new SqlDeploymentLinkedServerStep(
+            yield return new SqlDeploymentLinkedServerAction(
                 context.InstanceName,
                 Name.Expand(context),
                 product,

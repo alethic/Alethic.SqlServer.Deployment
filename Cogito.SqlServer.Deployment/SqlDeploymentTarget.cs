@@ -29,7 +29,7 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         /// <param name="arguments"></param>
         /// <returns></returns>
-        public IEnumerable<SqlDeploymentStep> Compile(IDictionary<string, string> arguments)
+        public IEnumerable<SqlDeploymentAction> Compile(IDictionary<string, string> arguments)
         {
             foreach (var instance in Instances)
                 foreach (var step in instance.Compile(arguments))

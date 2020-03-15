@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace Cogito.SqlServer.Deployment
 {
 
-    public class SqlDeploymentPublicationArticleViewStep : SqlDeploymentPublicationArticleStep
+    public class SqlDeploymentPublicationArticleViewAction : SqlDeploymentPublicationArticleAction
     {
 
         /// <summary>
@@ -14,7 +14,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="databaseName"></param>
         /// <param name="publicationName"></param>
         /// <param name="name"></param>
-        public SqlDeploymentPublicationArticleViewStep(string instanceName, string databaseName, string publicationName, string name) :
+        public SqlDeploymentPublicationArticleViewAction(string instanceName, string databaseName, string publicationName, string name) :
             base(instanceName, databaseName, publicationName, name)
         {
 

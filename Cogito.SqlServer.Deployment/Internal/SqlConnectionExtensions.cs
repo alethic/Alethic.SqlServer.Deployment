@@ -250,15 +250,16 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="serverPropertyName"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<string> GetServerPropertyAsync(this SqlConnection connection, string serverPropertyName)
+        public static async Task<string> GetServerPropertyAsync(this SqlConnection connection, string serverPropertyName, CancellationToken cancellationToken = default)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
             if (serverPropertyName == null)
                 throw new ArgumentNullException(nameof(serverPropertyName));
 
-            var r = await connection.ExecuteScalarAsync($"SELECT SERVERPROPERTY({serverPropertyName})");
+            var r = await connection.ExecuteScalarAsync($"SELECT SERVERPROPERTY({serverPropertyName})", cancellationToken: cancellationToken);
             return r != DBNull.Value ? (string)r : null;
         }
 
@@ -266,18 +267,20 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// Gets the name of the server.
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static Task<string> GetServerNameAsync(this SqlConnection connection)
+        public static Task<string> GetServerNameAsync(this SqlConnection connection, CancellationToken cancellationToken = default)
         {
-            return connection.GetServerPropertyAsync("SERVERNAME");
+            return connection.GetServerPropertyAsync("SERVERNAME", cancellationToken);
         }
 
         /// <summary>
         /// Gets the domain name of the connected server.
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<string> GetServerDomainName(this SqlConnection connection)
+        public static async Task<string> GetServerDomainName(this SqlConnection connection, CancellationToken cancellationToken = default)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
@@ -285,7 +288,8 @@ namespace Cogito.SqlServer.Deployment.Internal
             var d = (string)await connection.ExecuteScalarAsync($@"
                 DECLARE @DomainName nvarchar(256)
                 EXEC    master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\Services\Tcpip\Parameters', N'Domain', @DomainName OUTPUT
-                SELECT  @DomainName");
+                SELECT  @DomainName",
+                cancellationToken: cancellationToken);
 
             return d?.TrimOrNull();
         }
@@ -322,6 +326,68 @@ namespace Cogito.SqlServer.Deployment.Internal
             var n = (await connection.GetServerPropertyAsync("InstanceName"))?.TrimOrNull() ?? "MSSQLSERVER";
             var s = n == "MSSQLSERVER" ? null : n;
             return s;
+        }
+
+        /// <summary>
+        /// Begins a database application lock.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="resource"></param>
+        /// <param name="mode"></param>
+        /// <param name="owner"></param>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
+        public static async Task<int> GetAppLock(this SqlConnection connection, string resource, string mode = "Exclusive", string owner = "Session", int timeout = 30)
+        {
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "sp_getapplock";
+                cmd.CommandTimeout = (int)TimeSpan.FromMilliseconds(timeout).TotalSeconds + 1;
+
+                cmd.Parameters.AddWithValue("Resource", resource);
+                cmd.Parameters.AddWithValue("LockMode", mode);
+                cmd.Parameters.AddWithValue("LockOwner", owner);
+                cmd.Parameters.AddWithValue("LockTimeout", timeout);
+
+                var result = cmd.CreateParameter();
+                result.DbType = DbType.Int32;
+                result.Direction = ParameterDirection.ReturnValue;
+                cmd.Parameters.Add(result);
+
+                await cmd.ExecuteNonQueryAsync();
+
+                return (int)result.Value;
+            }
+        }
+        /// <summary>
+        /// Begins a database application lock.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="resource"></param>
+        /// <param name="mode"></param>
+        /// <param name="owner"></param>
+        /// <param name="timeout"></param>
+        /// <returns></returns>
+        public static async Task<int> ReleaseAppLock(this SqlConnection connection, string resource, string owner = "Session")
+        {
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "sp_releaseapplock";
+
+                cmd.Parameters.AddWithValue("Resource", resource);
+                cmd.Parameters.AddWithValue("LockOwner", owner);
+
+                var result = cmd.CreateParameter();
+                result.DbType = DbType.Int32;
+                result.Direction = ParameterDirection.ReturnValue;
+                cmd.Parameters.Add(result);
+
+                await cmd.ExecuteNonQueryAsync();
+
+                return (int)result.Value;
+            }
         }
 
     }

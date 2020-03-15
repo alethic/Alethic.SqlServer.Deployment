@@ -18,7 +18,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="publicationName"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public abstract IEnumerable<SqlDeploymentStep> Compile(string databaseName, string publicationName, SqlDeploymentCompileContext context);
+        public abstract IEnumerable<SqlDeploymentAction> Compile(string databaseName, string publicationName, SqlDeploymentCompileContext context);
 
     }
 

@@ -25,9 +25,9 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="context"></param>
         /// <param name="databaseName"></param>
         /// <returns></returns>
-        public IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context, string databaseName)
+        public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context, string databaseName)
         {
-            yield return new SqlDeploymentDatabaseExtendedPropertyStep(context.InstanceName, databaseName, Name, Value);
+            yield return new SqlDeploymentDatabaseExtendedPropertyAction(context.InstanceName, databaseName, Name, Value);
         }
 
     }

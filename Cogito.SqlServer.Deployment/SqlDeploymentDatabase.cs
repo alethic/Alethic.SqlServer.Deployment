@@ -44,10 +44,10 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        public IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context)
+        public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context)
         {
             // creates the database if it does not exist
-            yield return new SqlDeploymentDatabaseStep(context.InstanceName, Name.Expand(context));
+            yield return new SqlDeploymentCreateDatabaseAction(context.InstanceName, Name.Expand(context));
 
             // potentially deploy a DAC package
             if (Package != null)
@@ -56,7 +56,7 @@ namespace Cogito.SqlServer.Deployment
 
             // potentially alter the owner
             if (Owner != null)
-                yield return new SqlDeploymentDatabaseOwnerStep(context.InstanceName, Name.Expand(context), Owner?.Expand(context));
+                yield return new SqlDeploymentDatabaseOwnerAction(context.InstanceName, Name.Expand(context), Owner?.Expand(context));
 
             // apply any extended properties
             foreach (var extendedProperty in ExtendedProperties)

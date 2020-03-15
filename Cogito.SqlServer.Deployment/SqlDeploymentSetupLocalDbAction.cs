@@ -11,7 +11,7 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Ensures that a SQL server local DB instance is properly configured.
     /// </summary>
-    public class SqlDeploymentSetupLocalDbStep : SqlDeploymentStep
+    public class SqlDeploymentSetupLocalDbAction : SqlDeploymentAction
     {
 
         static readonly ISqlLocalDbApi Api = new SqlLocalDbApi();
@@ -21,7 +21,7 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         /// <param name="instanceName"></param>
         /// <param name="exe"></param>
-        public SqlDeploymentSetupLocalDbStep(string instanceName) :
+        public SqlDeploymentSetupLocalDbAction(string instanceName) :
             base(instanceName)
         {
 
@@ -56,8 +56,8 @@ namespace Cogito.SqlServer.Deployment
             }
 
             // retry get and create with synchronous region
-            using (new Mutex(true, typeof(SqlDeploymentSetupLocalDbStep).FullName))
-            using (new Mutex(true, typeof(SqlDeploymentSetupLocalDbStep).FullName + "::" + instanceName))
+            using (new Mutex(true, typeof(SqlDeploymentSetupLocalDbAction).FullName))
+            using (new Mutex(true, typeof(SqlDeploymentSetupLocalDbAction).FullName + "::" + instanceName))
             {
                 i = GetLocalDbInstance(api, instanceName) ?? CreateLocalDbInstance(api, instanceName);
                 if (i.IsRunning == false)

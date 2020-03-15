@@ -15,14 +15,14 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="context"></param>
         /// <param name="databaseName"></param>
         /// <returns></returns>
-        public override IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context, string databaseName)
+        public override IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context, string databaseName)
         {
-            yield return new SqlDeploymentPullSubscriptionStep(context.InstanceName, databaseName)
-            {
-                PublisherInstanceName = PublisherInstanceName.Expand(context),
-                PublisherDatabaseName = databaseName,
-                PublicationName = PublicationName.Expand(context),
-            };
+            yield return new SqlDeploymentPullSubscriptionAction(
+                context.InstanceName,
+                databaseName,
+                PublisherInstanceName.Expand(context),
+                PublicationDatabaseName.Expand(context),
+                PublicationName.Expand(context));
         }
 
     }

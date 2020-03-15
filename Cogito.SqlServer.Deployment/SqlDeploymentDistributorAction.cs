@@ -17,14 +17,14 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Configures the instance as a distributor.
     /// </summary>
-    public class SqlDeploymentDistributorStep : SqlDeploymentStep
+    public class SqlDeploymentDistributorAction : SqlDeploymentAction
     {
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="instanceName"></param>
-        public SqlDeploymentDistributorStep(string instanceName) :
+        public SqlDeploymentDistributorAction(string instanceName) :
             base(instanceName)
         {
 
@@ -148,6 +148,7 @@ namespace Cogito.SqlServer.Deployment
             // update snapshot folder if determined
             var snapshotFolder = SnapshotPath ?? defaultReplData;
             if (snapshotFolder != null)
+            {
                 await cnn.ExecuteNonQueryAsync($@"
                     IF (NOT EXISTS (SELECT * from sysobjects where name = 'UIProperties' and type = 'U '))
                         CREATE TABLE UIProperties(id int)
@@ -155,6 +156,9 @@ namespace Cogito.SqlServer.Deployment
                         EXEC sp_updateextendedproperty N'SnapshotFolder', {snapshotFolder}, 'user', dbo, 'table', 'UIProperties' 
                     ELSE 
                         EXEC sp_addextendedproperty N'SnapshotFolder', {snapshotFolder}, 'user', dbo, 'table', 'UIProperties'");
+            }
+
+            //await UpdateDirectoryAcl(cnn);
         }
 
         /// <summary>
@@ -164,7 +168,6 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         async Task UpdateDirectoryAcl(SqlConnection cnn)
         {
-            // fix permissions on replication directory
             var distributorInfo = await cnn.ExecuteSpHelpDistributorAsync();
             if (distributorInfo.Directory != null &&
                 distributorInfo.Account != null)

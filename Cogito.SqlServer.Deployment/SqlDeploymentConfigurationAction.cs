@@ -3,13 +3,15 @@ using System.Threading.Tasks;
 
 using Cogito.SqlServer.Deployment.Internal;
 
+using Microsoft.Extensions.Logging;
+
 namespace Cogito.SqlServer.Deployment
 {
 
     /// <summary>
     /// Sets the value of a SQL server property.
     /// </summary>
-    public class SqlDeploymentConfigurationStep : SqlDeploymentStep
+    public class SqlDeploymentConfigurationAction : SqlDeploymentAction
     {
 
         /// <summary>
@@ -18,7 +20,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="instanceName"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
-        public SqlDeploymentConfigurationStep(string instanceName, string name, int value) :
+        public SqlDeploymentConfigurationAction(string instanceName, string name, int value) :
             base(instanceName)
         {
             Name = name;
@@ -57,7 +59,7 @@ namespace Cogito.SqlServer.Deployment
             // has the value changed?
             if (config.ConfigValue != Value || config.RunValue != Value)
             {
-                // apply change
+                context.Logger.LogInformation("Setting server configuration '{Name}' to {Value}.", Name, Value);
                 await cnn.ExecuteSpConfigure(Name, Value, cancellationToken);
                 await cnn.ExecuteNonQueryAsync($"RECONFIGURE", cancellationToken: cancellationToken);
             }

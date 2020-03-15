@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using Microsoft.Extensions.Logging;
+
 namespace Cogito.SqlServer.Deployment
 {
 
@@ -25,12 +27,6 @@ namespace Cogito.SqlServer.Deployment
         /// Gets the plan targets available within the plan.
         /// </summary>
         internal Dictionary<string, SqlDeploymentPlanTarget> Targets => targets;
-
-        /// <summary>
-        /// Creates a new executor for the plan.
-        /// </summary>
-        /// <returns></returns>
-        public SqlDeploymentExecutor CreateExecutor() => new SqlDeploymentExecutor(this);
 
     }
 

@@ -10,17 +10,17 @@ namespace Cogito.SqlServer.Deployment
     {
 
         readonly string[] dependsOn;
-        readonly SqlDeploymentStep[] steps;
+        readonly SqlDeploymentAction[] actions;
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="dependsOn"></param>
-        /// <param name="steps"></param>
-        public SqlDeploymentPlanTarget(string[] dependsOn, SqlDeploymentStep[] steps)
+        /// <param name="actions"></param>
+        public SqlDeploymentPlanTarget(string[] dependsOn, SqlDeploymentAction[] actions)
         {
             this.dependsOn = dependsOn ?? throw new ArgumentNullException(nameof(dependsOn));
-            this.steps = steps ?? throw new ArgumentNullException(nameof(steps));
+            this.actions = actions ?? throw new ArgumentNullException(nameof(actions));
         }
 
         /// <summary>
@@ -29,9 +29,9 @@ namespace Cogito.SqlServer.Deployment
         public string[] DependsOn => dependsOn;
 
         /// <summary>
-        /// Gets the steps that make up the body of the target.
+        /// Gets the actions that make up the body of the target.
         /// </summary>
-        public SqlDeploymentStep[] Steps => steps;
+        public SqlDeploymentAction[] Actions => actions;
 
     }
 

@@ -19,17 +19,29 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public SqlDeploymentExpression? AdminPassword { get; set; }
 
+        /// <summary>
+        /// Gets the minimum amount to retail transactions.
+        /// </summary>
         public SqlDeploymentExpression? MinimumRetention { get; set; }
 
+        /// <summary>
+        /// Gets the maximum amount to retain transactions.
+        /// </summary>
         public SqlDeploymentExpression? MaximumRetention { get; set; }
 
+        /// <summary>
+        /// Gets the maximum amount to retain history.
+        /// </summary>
         public SqlDeploymentExpression? HistoryRetention { get; set; }
 
+        /// <summary>
+        /// Gets the path to the distributor snapshots.
+        /// </summary>
         public SqlDeploymentExpression? SnapshotPath { get; set; }
 
-        public IEnumerable<SqlDeploymentStep> Compile(SqlDeploymentCompileContext context)
+        public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context)
         {
-            yield return new SqlDeploymentDistributorStep(context.InstanceName)
+            yield return new SqlDeploymentDistributorAction(context.InstanceName)
             {
                 DatabaseName = DatabaseName?.Expand(context),
                 AdminPassword = AdminPassword?.Expand(context),

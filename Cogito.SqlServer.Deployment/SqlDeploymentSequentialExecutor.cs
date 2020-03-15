@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Cogito.Linq;
 using Cogito.Threading;
+
+using Microsoft.Extensions.Logging;
 
 namespace Cogito.SqlServer.Deployment
 {
@@ -12,10 +15,12 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Maintains an execution context over a plan.
     /// </summary>
-    public class SqlDeploymentExecutor
+    public class SqlDeploymentSequentialExecutor : ISqlDeploymentExecutor
     {
 
         readonly SqlDeploymentPlan plan;
+        readonly ILogger logger;
+
         readonly object sync = new object();
         readonly ConcurrentDictionary<SqlDeploymentPlanTarget, AsyncLock> locks = new ConcurrentDictionary<SqlDeploymentPlanTarget, AsyncLock>();
         readonly HashSet<SqlDeploymentPlanTarget> completed = new HashSet<SqlDeploymentPlanTarget>();
@@ -24,9 +29,10 @@ namespace Cogito.SqlServer.Deployment
         /// Initializes a new instance.
         /// </summary>
         /// <param name="plan"></param>
-        public SqlDeploymentExecutor(SqlDeploymentPlan plan)
+        public SqlDeploymentSequentialExecutor(SqlDeploymentPlan plan, ILogger logger)
         {
             this.plan = plan ?? throw new ArgumentNullException(nameof(plan));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -37,7 +43,7 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         public async Task ExecuteAsync(string targetName = null, CancellationToken cancellationToken = default)
         {
-            var context = new SqlDeploymentExecuteContext();
+            var context = new SqlDeploymentExecuteContext(logger);
 
             // execute steps involed in target or all targets
             foreach (var target in targetName != null ? CollectTargets(targetName) : CollectTargets())
@@ -48,7 +54,7 @@ namespace Cogito.SqlServer.Deployment
                     // only execute target if not already completed
                     if (IsComplete(target) == false)
                     {
-                        foreach (var step in target.Steps)
+                        foreach (var step in target.Actions)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
                             await step.Execute(context, cancellationToken);
@@ -95,12 +101,7 @@ namespace Cogito.SqlServer.Deployment
             if (plan.Targets.TryGetValue(targetName, out var target) == false)
                 throw new SqlDeploymentException($"Could not resolve target '{targetName}'.");
 
-            // collect list of steps for target
-            var l = new List<SqlDeploymentPlanTarget>(plan.Targets.Count);
-            Visit(target, l);
-
-            // return collected targets
-            return l;
+            return CollectTargets(target.Yield());
         }
 
         /// <summary>
@@ -109,9 +110,19 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         IEnumerable<SqlDeploymentPlanTarget> CollectTargets()
         {
+            return CollectTargets(plan.Targets.Values);
+        }
+
+        /// <summary>
+        /// Collections the dependencies of the given target.
+        /// </summary>
+        /// <param name="targets"></param>
+        /// <returns></returns>
+        IEnumerable<SqlDeploymentPlanTarget> CollectTargets(IEnumerable<SqlDeploymentPlanTarget> targets)
+        {
             // collect list of all steps
             var l = new List<SqlDeploymentPlanTarget>(plan.Targets.Count);
-            foreach (var target in plan.Targets.Values)
+            foreach (var target in targets)
                 Visit(target, l);
 
             // return collected targets

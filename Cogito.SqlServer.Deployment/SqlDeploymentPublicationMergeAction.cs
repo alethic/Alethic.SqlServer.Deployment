@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Cogito.SqlServer.Deployment
 {
 
-    public class SqlDeploymentPublicationMergeStep : SqlDeploymentPublicationStep
+    public class SqlDeploymentPublicationMergeAction : SqlDeploymentPublicationAction
     {
 
         /// <summary>
@@ -14,7 +14,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="instanceName"></param>
         /// <param name="databaseName"></param>
         /// <param name="name"></param>
-        public SqlDeploymentPublicationMergeStep(string instanceName, string databaseName, string name) :
+        public SqlDeploymentPublicationMergeAction(string instanceName, string databaseName, string name) :
             base(instanceName, databaseName, name)
         {
 

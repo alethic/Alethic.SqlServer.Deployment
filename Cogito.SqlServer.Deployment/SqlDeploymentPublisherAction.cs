@@ -10,14 +10,14 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Configures the instance to refer to a remote distributor.
     /// </summary>
-    public class SqlDeploymentPublisherStep : SqlDeploymentStep
+    public class SqlDeploymentPublisherAction : SqlDeploymentAction
     {
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="instanceName"></param>
-        public SqlDeploymentPublisherStep(string instanceName) :
+        public SqlDeploymentPublisherAction(string instanceName) :
             base(instanceName)
         {
 
