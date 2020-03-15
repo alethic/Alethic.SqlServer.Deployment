@@ -91,33 +91,35 @@ namespace Cogito.SqlServer.Deployment
         /// <summary>
         /// Updates the ACLs of the snapshot directory.
         /// </summary>
-        /// <param name="cnn"></param>
+        /// <param name="context"></param>
+        /// <param name="connection"></param>
         /// <param name="publication"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task UpdateSnapshotDirectoryAcl(SqlDeploymentExecuteContext context, SqlConnection cnn, string publication, CancellationToken cancellationToken)
+        async Task UpdateSnapshotDirectoryAcl(SqlDeploymentExecuteContext context, SqlConnection connection, string publication, CancellationToken cancellationToken)
         {
-            if (cnn == null)
-                throw new ArgumentNullException(nameof(cnn));
+            if (connection == null)
+                throw new ArgumentNullException(nameof(connection));
             if (publication == null)
                 throw new ArgumentNullException(nameof(publication));
 
             // find login of publiation
-            var publicationInfo = await cnn.ExecuteSpHelpPublicationSnapshotAsync(publication, cancellationToken);
-            var logReaderInfo = await cnn.ExecuteSpHelpLogReaderAgentAsync(cancellationToken);
+            var publicationInfo = await connection.ExecuteSpHelpPublicationSnapshotAsync(publication, cancellationToken);
+            var logReaderInfo = await connection.ExecuteSpHelpLogReaderAgentAsync(cancellationToken);
 
             // nothing to update
             if (publicationInfo?.JobLogin == null &&
                 logReaderInfo?.JobLogin == null)
                 return;
 
-            var d = new DirectoryInfo(await GetSnapshotFolder(cnn, publication, cancellationToken));
+            var d = new DirectoryInfo(await GetSnapshotFolder(connection, publication, cancellationToken));
             if (d.Exists == false)
             {
                 // attempt to determine domain name of SQL instance and use to append to path
                 var u = new Uri(d.FullName);
                 if (u.IsUnc && u.Host.Contains(".") == false)
                 {
-                    var n = await cnn.GetServerDomainName(cancellationToken);
+                    var n = await connection.GetServerDomainName(cancellationToken);
                     if (string.IsNullOrWhiteSpace(n) == false)
                     {
                         var b = new UriBuilder(u);
@@ -167,19 +169,19 @@ namespace Cogito.SqlServer.Deployment
         /// <summary>
         /// Gets the snapshot folder for the publication.
         /// </summary>
-        /// <param name="cnn"></param>
+        /// <param name="connection"></param>
         /// <param name="publication"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task<string> GetSnapshotFolder(SqlConnection cnn, string publication, CancellationToken cancellationToken)
+        async Task<string> GetSnapshotFolder(SqlConnection connection, string publication, CancellationToken cancellationToken)
         {
-            var publicationInfo = await cnn.ExecuteSpHelpPublicationAsync(publication, cancellationToken);
+            var publicationInfo = await connection.ExecuteSpHelpPublicationAsync(publication, cancellationToken);
 
             // uses default distributor folder
             if (publicationInfo?.SnapshotInDefaultFolder == true)
             {
                 // fix permissions on replication directory
-                var distributorInfo = await cnn.ExecuteSpHelpDistributorAsync(cancellationToken);
+                var distributorInfo = await connection.ExecuteSpHelpDistributorAsync(cancellationToken);
                 if (distributorInfo.Directory != null)
                     return distributorInfo.Directory;
             }

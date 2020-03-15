@@ -15,13 +15,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cogito.SqlServer.Deployment
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cogito.SqlServer.Deployment.Tool", "Cogito.SqlServer.Deployment.Tool\Cogito.SqlServer.Deployment.Tool.csproj", "{181B6161-7166-4B9B-BBE0-75D72F205CE9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cogito.SqlServer.Deployment.Console", "Cogito.SqlServer.Deployment.Console\Cogito.SqlServer.Deployment.Console.csproj", "{38F4C63B-4CA9-47D3-A173-9B7BC39BCA3B}"
-EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Database1", "Database1\Database1.sqlproj", "{503A38A6-7E4D-42CB-BD26-D3406D603A1C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{D2752861-E9C1-4E1E-A5E2-B0C2FB7C7B2B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{D2752861-E9C1-4E1E-A5E2-B0C2FB7C7B2B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cogito.SqlServer.Deployment.Tests", "Cogito.SqlServer.Deployment.Tests\Cogito.SqlServer.Deployment.Tests.csproj", "{111BB047-2B87-4276-9C1D-5107687607A3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cogito.SqlServer.Deployment.Tests", "Cogito.SqlServer.Deployment.Tests\Cogito.SqlServer.Deployment.Tests.csproj", "{111BB047-2B87-4276-9C1D-5107687607A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +39,6 @@ Global
 		{181B6161-7166-4B9B-BBE0-75D72F205CE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{181B6161-7166-4B9B-BBE0-75D72F205CE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{181B6161-7166-4B9B-BBE0-75D72F205CE9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{38F4C63B-4CA9-47D3-A173-9B7BC39BCA3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{38F4C63B-4CA9-47D3-A173-9B7BC39BCA3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{38F4C63B-4CA9-47D3-A173-9B7BC39BCA3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{38F4C63B-4CA9-47D3-A173-9B7BC39BCA3B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{503A38A6-7E4D-42CB-BD26-D3406D603A1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{503A38A6-7E4D-42CB-BD26-D3406D603A1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{503A38A6-7E4D-42CB-BD26-D3406D603A1C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU

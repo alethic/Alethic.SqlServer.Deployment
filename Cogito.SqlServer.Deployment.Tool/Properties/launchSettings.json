@@ -2,7 +2,7 @@
   "profiles": {
     "Cogito.SqlServer.Deployment.Tool": {
       "commandName": "Project",
-      "commandLineArgs": "deploy -s D:\\"
+      "commandLineArgs": "deploy C:\\dev\\Cogito.SqlServer.Deployment\\Cogito.SqlServer.Deployment.Tests\\Example.xml -p:Foo=Bar"
     }
   }
 }
