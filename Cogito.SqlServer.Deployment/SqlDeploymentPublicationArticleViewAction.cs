@@ -20,7 +20,7 @@ namespace Cogito.SqlServer.Deployment
 
         }
 
-        public override Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
+        public override Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             throw new System.NotImplementedException();
         }

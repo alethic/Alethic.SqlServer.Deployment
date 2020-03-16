@@ -64,7 +64,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="context"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
+        public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var cnn = await OpenConnectionAsync(cancellationToken);
             cnn.ChangeDatabase("master");

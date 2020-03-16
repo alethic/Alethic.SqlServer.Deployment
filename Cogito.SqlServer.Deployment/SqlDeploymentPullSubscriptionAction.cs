@@ -34,7 +34,7 @@ namespace Cogito.SqlServer.Deployment
 
         }
 
-        public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
+        public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var sub = await OpenConnectionAsync(cancellationToken);
             sub.ChangeDatabase(DatabaseName);

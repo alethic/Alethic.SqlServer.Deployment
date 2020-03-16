@@ -84,7 +84,7 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// <param name="cancellationToken"></param>
         void LockThread(TaskCompletionSource<AsyncMutexLock> tcs, CancellationToken cancellationToken)
         {
-            var x = (Exception)null; // disposer exception
+            var captured = (Exception)null; // disposer exception
             var disposer = new ManualResetEvent(false); // signals disposal
             var disposed = new ManualResetEvent(false); // signals completion of disposal; resuming disposer
 
@@ -103,7 +103,7 @@ namespace Cogito.SqlServer.Deployment.Internal
                     // wait a bit for the mutex before trying again
                     if (mutex.WaitOne(TimeSpan.FromSeconds(2)))
                     {
-                        tcs.SetResult(new AsyncMutexLock(() => { disposer.Set(); disposed.WaitOne(); if (x != null) ExceptionDispatchInfo.Capture(x).Throw(); }));
+                        tcs.SetResult(new AsyncMutexLock(() => { disposer.Set(); disposed.WaitOne(); if (captured != null) ExceptionDispatchInfo.Capture(captured).Throw(); }));
                         break;
                     }
                 }
@@ -121,7 +121,7 @@ namespace Cogito.SqlServer.Deployment.Internal
                     tcs.SetException(e);
                 else
                     // otherwise schedule exception to disposer
-                    x = e;
+                    captured = e;
             }
             finally
             {

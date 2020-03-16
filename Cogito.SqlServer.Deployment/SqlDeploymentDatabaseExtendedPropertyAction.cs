@@ -43,7 +43,7 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public string Value { get; }
 
-        public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
+        public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var cnn = await OpenConnectionAsync(cancellationToken);
             await cnn.ExecuteNonQueryAsync($@"EXEC sys.sp_addextendedproperty @name = {Name}, @value = {Value}", cancellationToken: cancellationToken);

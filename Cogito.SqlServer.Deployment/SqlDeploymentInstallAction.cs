@@ -14,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Cogito.SqlServer.Deployment.Internal;
-using Cogito.Threading;
 
 using Microsoft.Data.SqlClient;
 using Microsoft.Win32;
@@ -131,62 +130,70 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="context"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
+        public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
         {
-            // only allow one installation task to proceed at a time
-            using (await Mutex.WaitOneAsync())
+            using (await Mutex.WaitOneAsync(cancellationToken))
+                await ExecuteAsyncInternal(context, cancellationToken);
+        }
+
+        /// <summary>
+        /// Does the work of installing SQL server.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        async Task ExecuteAsyncInternal(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
+        {
+            // attempt to refresh server name
+            var serverName = await TryGetServerName(InstanceName) ?? InstanceName;
+
+            // parse instance name
+            var m = serverName.Split('\\');
+            var host = m.Length >= 1 ? m[0].TrimOrNull() : null;
+            var name = m.Length >= 2 ? m[1].TrimOrNull() : null;
+
+            // instance requires host name
+            if (host == null)
+                throw new InvalidOperationException("Missing host name for instance.");
+
+            // fallback to default
+            if (name == null)
+                name = DEFAULT_INSTANCE_NAME;
+
+            // instance is local
+            if (GetLocalServerNames().Any(i => host.Equals(i, StringComparison.OrdinalIgnoreCase)))
             {
-                // attempt to refresh server name
-                var serverName = await TryGetServerName(InstanceName) ?? InstanceName;
+                // install instance if missing
+                if (GetLocalInstances().Contains(serverName, StringComparer.OrdinalIgnoreCase) == false)
+                    await InstallSqlServer(name);
 
-                // parse instance name
-                var m = serverName.Split('\\');
-                var host = m.Length >= 1 ? m[0].TrimOrNull() : null;
-                var name = m.Length >= 2 ? m[1].TrimOrNull() : null;
-
-                // instance requires host name
-                if (host == null)
-                    throw new InvalidOperationException("Missing host name for instance.");
-
-                // fallback to default
-                if (name == null)
-                    name = DEFAULT_INSTANCE_NAME;
-
-                // instance is local
-                if (GetLocalServerNames().Any(i => host.Equals(i, StringComparison.OrdinalIgnoreCase)))
+                // test connection and return instance
+                if (await TryGetServerName(InstanceName) is string s)
                 {
-                    // install instance if missing
-                    if (GetLocalInstances().Contains(serverName, StringComparer.OrdinalIgnoreCase) == false)
-                        await InstallSqlServer(name);
+                    // required for deployment
+                    if (await IsSysAdmin(InstanceName) != true)
+                        throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
 
-                    // test connection and return instance
-                    if (await TryGetServerName(InstanceName) is string s)
-                    {
-                        // required for deployment
-                        if (await IsSysAdmin(InstanceName) != true)
-                            throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
-
-                        await ConfigureSqlAgent(InstanceName);
-                        return;
-                    }
-
-                    throw new InvalidOperationException("Could not establish connection to local server.");
+                    await ConfigureSqlAgent(InstanceName);
+                    return;
                 }
-                else
+
+                throw new InvalidOperationException("Could not establish connection to local server.");
+            }
+            else
+            {
+                // test connection and return instance
+                if (await TryGetServerName(InstanceName) is string s)
                 {
-                    // test connection and return instance
-                    if (await TryGetServerName(InstanceName) is string s)
-                    {
-                        // required for deployment
-                        if (await IsSysAdmin(InstanceName) != true)
-                            throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
+                    // required for deployment
+                    if (await IsSysAdmin(InstanceName) != true)
+                        throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
 
-                        await ConfigureSqlAgent(InstanceName);
-                        return;
-                    }
-
-                    throw new NotSupportedException("Unable to connect to remote instance, and creation of remote instance is not supported.");
+                    await ConfigureSqlAgent(InstanceName);
+                    return;
                 }
+
+                throw new NotSupportedException("Unable to connect to remote instance, and creation of remote instance is not supported.");
             }
         }
 

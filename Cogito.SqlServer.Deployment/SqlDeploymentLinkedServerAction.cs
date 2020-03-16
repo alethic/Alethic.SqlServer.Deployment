@@ -105,7 +105,7 @@ namespace Cogito.SqlServer.Deployment
             return false;
         }
 
-        public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
+        public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using (var cnn = await OpenConnectionAsync(cancellationToken))
             {

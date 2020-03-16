@@ -38,7 +38,7 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public string DistributorDatabaseName { get; internal set; } = "distribution";
 
-        public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
+        public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var publisher = await OpenConnectionAsync(cancellationToken);
             using var distributor = DistributorInstanceName != null ? await OpenConnectionAsync(DistributorInstanceName, cancellationToken) : publisher;

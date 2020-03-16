@@ -111,7 +111,7 @@ namespace Cogito.SqlServer.Deployment
                 .FirstOrDefault();
         }
 
-        public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
+        public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var connection = await OpenConnectionAsync(cancellationToken);
             connection.ChangeDatabase(DatabaseName);

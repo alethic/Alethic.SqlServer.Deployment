@@ -32,7 +32,7 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         /// <param name="context"></param>
         /// <param name="cancellationToken"></param>
-        public abstract Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken);
+        public abstract Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Opens a new connection to the targeted SQL instance.

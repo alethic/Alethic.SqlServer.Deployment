@@ -26,7 +26,7 @@ namespace Cogito.SqlServer.Deployment
 
         }
 
-        public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
+        public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             var instanceName = InstanceName.Replace(@"(localdb)\", "");
             var instance = await Task.Run(() => GetOrCreateLocalDbInstance(Api, instanceName));

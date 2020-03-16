@@ -111,7 +111,7 @@ namespace Cogito.SqlServer.Deployment
             foreach (var step in actions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await step.Execute(context, cancellationToken);
+                await step.ExecuteAsync(context, cancellationToken);
             }
         }
 
