@@ -6,11 +6,7 @@
     <Parameter Name="PathToJcmsDacPac" DefaultValue="Cogito.SqlServer.Deployment.Tests.Database.dacpac" />
     <Parameter Name="PathToConversionDacPac" DefaultValue="Cogito.SqlServer.Deployment.Tests.Database.dacpac" />
     <Parameter Name="PathToExchangeDacPac" DefaultValue="Cogito.SqlServer.Deployment.Tests.Database.dacpac" />
-    <Parameter Name="DistributorAdminPassword" DefaultValue="distributor_admin" />
-    <Parameter Name="SnapshotAgentUserName" DefaultValue="" />
-    <Parameter Name="SnapshotAgentPassword" DefaultValue="" />
-    <Parameter Name="LogReaderAgentUserName" DefaultValue="" />
-    <Parameter Name="LogReaderAgentPassword" DefaultValue="" />
+    <Parameter Name="DistributorAdminPassword" DefaultValue="gDQKUCn558LCC0mwv4LAVw12WMhchIRy" />
     <Target Name="DST">
         <Instance Name="[DST_InstanceName]">
             <Setup Exe="[SetupExePath]" />
@@ -85,12 +81,6 @@
             <Database Name="JCMS" >
                 <Publications>
                     <Transactional Name="JCMS">
-                        <SnapshotAgent>
-                            <ProcessCredentials UserName="[SnapshotAgentUserName]" Password="[SnapshotAgentPassword]" />
-                        </SnapshotAgent>
-                        <LogReaderAgent>
-                            <ProcessCredentials UserName="[LogReaderAgentUserName]" Password="[LogReaderAgentPassword]" />
-                        </LogReaderAgent>
                         <Articles>
                             <Table Name="Foo" />
                         </Articles>
