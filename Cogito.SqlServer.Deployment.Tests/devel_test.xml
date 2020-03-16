@@ -20,6 +20,7 @@
         </Instance>
     </Target>
     <Target Name="SQL_REPL">
+        <DependsOn Name="SQL" />
         <DependsOn Name="DST" />
         <Instance Name="[SQL_InstanceName]">
             <Publisher DistributorInstanceName="[DST_InstanceName]" DistributorAdminPassword="[DistributorAdminPassword]" />
@@ -32,6 +33,7 @@
         </Instance>
     </Target>
     <Target Name="EFM_REPL">
+        <DependsOn Name="EFM" />
         <DependsOn Name="DST" />
         <Instance Name="[EFM_InstanceName]">
             <Publisher DistributorInstanceName="[DST_InstanceName]" DistributorAdminPassword="[DistributorAdminPassword]" />

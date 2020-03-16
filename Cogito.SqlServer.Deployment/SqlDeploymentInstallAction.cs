@@ -30,6 +30,7 @@ namespace Cogito.SqlServer.Deployment
         const string DEFAULT_INSTANCE_NAME = @"MSSQLSERVER";
         const string SQL_EXPRESS_URI = @"https://download.microsoft.com/download/2/1/6/216eb471-e637-4517-97a6-b247d8051759/SQL2019-SSEI-Expr.exe";
         const string SQL_EXPRESS_MD5 = "5B232C8BB56935B9E99A09D97D3494EA";
+        const string SQL_EXPRESS_EXE = "SQL2019-SSEI-Expr.exe";
 
         static readonly AsyncMutex Mutex = new AsyncMutex("Cogito.SqlServer.Deployment.SqlDeploymentInstallAction");
         static readonly Lazy<Task<string>> SetupTask = new Lazy<Task<string>>(() => Task.Run(() => GetSqlExpressInstaller()), true);
@@ -43,7 +44,7 @@ namespace Cogito.SqlServer.Deployment
         static async Task<string> GetSqlExpressInstaller()
         {
             // temporary file
-            var f = Path.Combine(Path.GetTempPath(), "SQL2019-SSEI-Expr.exe");
+            var f = Path.Combine(Path.GetTempPath(), SQL_EXPRESS_EXE);
 
             // if file does not match delete
             if (File.Exists(f))
@@ -55,7 +56,7 @@ namespace Cogito.SqlServer.Deployment
                 // download new file
                 using (var http = new HttpClient())
                 {
-                    using (var s = await new HttpClient().GetStreamAsync(SQL_EXPRESS_URI))
+                    using (var s = await http.GetStreamAsync(SQL_EXPRESS_URI))
                     using (var o = File.OpenWrite(f))
                         await s.CopyToAsync(o);
                 }
@@ -158,10 +159,17 @@ namespace Cogito.SqlServer.Deployment
             if (name == null)
                 name = DEFAULT_INSTANCE_NAME;
 
-            // target is current machine, but missing: install
+            // target machine is localhost
             if (GetLocalServerNames().Contains(host, StringComparer.OrdinalIgnoreCase))
+            {
+                // but not yet installed
                 if (GetLocalInstanceNames().Contains(name, StringComparer.OrdinalIgnoreCase) == false)
                     await InstallSqlServer(name, cancellationToken);
+            }
+            else
+            {
+                throw new NotImplementedException("Remote installation of SQL Server is not yet implemented.");
+            }
 
             // test connection now that installation has completed
             if (await TryGetServerName(cancellationToken) is string s)
@@ -278,7 +286,7 @@ namespace Cogito.SqlServer.Deployment
             {
                 // lets run the setup
                 var setup = await SetupTask.Value;
-                var media = Path.Combine(Path.GetTempPath(), "SQLServer2019Media");
+                var media = Path.Combine(Path.GetTempPath(), "SQLServerMedia");
 
                 // run setup to download installer files
                 var downloadExitCode = await RunSqlExeAsync(setup, new Dictionary<string, string>()
@@ -389,7 +397,7 @@ namespace Cogito.SqlServer.Deployment
                 if (h.EndsWith(d) == false)
                     h += d;
 
-                return h;
+                return h.ToLower();
             }
             catch
             {
