@@ -63,11 +63,11 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         static IEnumerable<Stream> GetStreamsToHashForDacTag(string file)
         {
-            using (var pkg = Package.Open(file, FileMode.Open))
+            using (var pkg = Package.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 if (GetPart(pkg, "/Origin.xml") is PackagePart origin)
                     foreach (var checksum in
-                        XDocument.Load(origin.GetStream())
+                        XDocument.Load(origin.GetStream(FileMode.Open, FileAccess.Read))
                             .Elements(dacSrsNs + "DacOrigin")
                             .Elements(dacSrsNs + "Checksums")
                             .Elements(dacSrsNs + "Checksum")
@@ -76,11 +76,11 @@ namespace Cogito.SqlServer.Deployment
                         yield return new MemoryStream(ParseHex(checksum));
 
                 if (GetPart(pkg, "/predeploy.sql") is PackagePart predeploy)
-                    using (var stream = predeploy.GetStream())
+                    using (var stream = predeploy.GetStream(FileMode.Open, FileAccess.Read))
                         yield return stream;
 
                 if (GetPart(pkg, "/postdeploy.sql") is PackagePart postdeploy)
-                    using (var stream = postdeploy.GetStream())
+                    using (var stream = postdeploy.GetStream(FileMode.Open, FileAccess.Read))
                         yield return stream;
             }
         }
@@ -169,7 +169,7 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         DacPackage LoadDacPackage(string relativeFileName)
         {
-            return DacPackage.Load(GetFullPath(relativeFileName), DacSchemaModelStorageType.Memory);
+            return DacPackage.Load(GetFullPath(relativeFileName), DacSchemaModelStorageType.Memory, FileAccess.Read);
         }
 
         /// <summary>

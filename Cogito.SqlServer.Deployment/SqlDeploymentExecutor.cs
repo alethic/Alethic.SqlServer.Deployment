@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Cogito.Collections;
 using Cogito.Linq;
 using Cogito.Threading;
 
@@ -21,9 +22,7 @@ namespace Cogito.SqlServer.Deployment
         readonly SqlDeploymentPlan plan;
         readonly ILogger logger;
 
-        readonly object sync = new object();
-        readonly ConcurrentDictionary<SqlDeploymentPlanTarget, AsyncLock> locks = new ConcurrentDictionary<SqlDeploymentPlanTarget, AsyncLock>();
-        readonly HashSet<SqlDeploymentPlanTarget> completed = new HashSet<SqlDeploymentPlanTarget>();
+        readonly ConcurrentDictionary<SqlDeploymentPlanTarget, Task> tasks = new ConcurrentDictionary<SqlDeploymentPlanTarget, Task>();
 
         /// <summary>
         /// Initializes a new instance.
@@ -41,108 +40,79 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="targetName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task ExecuteAsync(string targetName = null, CancellationToken cancellationToken = default)
+        public Task ExecuteAsync(string targetName = null, CancellationToken cancellationToken = default)
         {
-            var context = new SqlDeploymentExecuteContext(logger);
-
-            // execute steps involed in target or all targets
-            foreach (var target in targetName != null ? CollectTargets(targetName) : CollectTargets())
-            {
-                // ensure target does not run twice at the same time
-                using (await locks.GetOrAdd(target, _ => new AsyncLock()).LockAsync())
-                {
-                    // only execute target if not already completed
-                    if (IsComplete(target) == false)
-                    {
-                        foreach (var step in target.Actions)
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-                            await step.Execute(context, cancellationToken);
-                        }
-
-                        Complete(target);
-                    }
-                }
-            }
+            if (targetName != null)
+                return ExecuteAsync(new SqlDeploymentExecuteContext(logger), targetName, cancellationToken);
+            else
+                return ExecuteAsync(new SqlDeploymentExecuteContext(logger), plan.Targets.Values, cancellationToken);
         }
 
         /// <summary>
-        /// Returns <c>true</c> if the specified target has been completed.
+        /// Executes the given target by name.
         /// </summary>
-        /// <param name="target"></param>
-        /// <returns></returns>
-        bool IsComplete(SqlDeploymentPlanTarget target)
-        {
-            lock (sync)
-                return completed.Contains(target);
-        }
-
-        /// <summary>
-        /// Marks the specified target as completed.
-        /// </summary>
-        /// <param name="target"></param>
-        /// <returns></returns>
-        bool Complete(SqlDeploymentPlanTarget target)
-        {
-            lock (sync)
-                return completed.Add(target);
-        }
-
-        /// <summary>
-        /// Collects the steps necessary for executing the specified target.
-        /// </summary>
+        /// <param name="context"></param>
         /// <param name="targetName"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        IEnumerable<SqlDeploymentPlanTarget> CollectTargets(string targetName)
+        Task ExecuteAsync(SqlDeploymentExecuteContext context, string targetName, CancellationToken cancellationToken)
         {
-            if (targetName == null)
-                throw new ArgumentNullException(nameof(targetName));
-
             if (plan.Targets.TryGetValue(targetName, out var target) == false)
                 throw new SqlDeploymentException($"Could not resolve target '{targetName}'.");
 
-            return CollectTargets(target.Yield());
+            return ExecuteAsync(context, target, cancellationToken);
         }
 
         /// <summary>
-        /// Collects the steps necessary for executing all of the targets.
+        /// Executes the given targets in parallel.
         /// </summary>
-        /// <returns></returns>
-        IEnumerable<SqlDeploymentPlanTarget> CollectTargets()
-        {
-            return CollectTargets(plan.Targets.Values);
-        }
-
-        /// <summary>
-        /// Collections the dependencies of the given target.
-        /// </summary>
+        /// <param name="context"></param>
         /// <param name="targets"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        IEnumerable<SqlDeploymentPlanTarget> CollectTargets(IEnumerable<SqlDeploymentPlanTarget> targets)
+        Task ExecuteAsync(SqlDeploymentExecuteContext context, IEnumerable<SqlDeploymentPlanTarget> targets, CancellationToken cancellationToken)
         {
-            // collect list of all steps
-            var l = new List<SqlDeploymentPlanTarget>(plan.Targets.Count);
-            foreach (var target in targets)
-                Visit(target, l);
-
-            // return collected targets
-            return l;
+            return Task.WhenAll(targets.Select(i => ExecuteAsync(context, i, cancellationToken)));
         }
 
         /// <summary>
-        /// Recursive call that adds the dependencies to the list.
+        /// Executes the given target.
         /// </summary>
+        /// <param name="context"></param>
         /// <param name="target"></param>
-        /// <param name="build"></param>
-        void Visit(SqlDeploymentPlanTarget target, List<SqlDeploymentPlanTarget> build)
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        async Task ExecuteAsync(SqlDeploymentExecuteContext context, SqlDeploymentPlanTarget target, CancellationToken cancellationToken)
         {
-            // recurse into dependency targets
-            foreach (var targetName in target.DependsOn)
-                Visit(plan.Targets.TryGetValue(targetName, out var dep) ? dep : throw new SqlDeploymentException($"Could not resolve target '{targetName}'."), build);
+            await Task.WhenAll(target.DependsOn.Select(i => ExecuteAsync(context, i, cancellationToken)));
+            await GetExecuteTaskAsync(context, target, cancellationToken);
+        }
 
-            // not already in recursed list
-            if (build.Contains(target) == false)
-                build.Add(target);
+        /// <summary>
+        /// Gets the task that executes the actions of a target.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="target"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task GetExecuteTaskAsync(SqlDeploymentExecuteContext context, SqlDeploymentPlanTarget target, CancellationToken cancellationToken)
+        {
+            return tasks.GetOrAdd(target, _ => ExecuteAsync(context, _.Actions, cancellationToken));
+        }
+
+        /// <summary>
+        /// Executes each of the given actions in order.
+        /// </summary>
+        /// <param name="actions"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        async Task ExecuteAsync(SqlDeploymentExecuteContext context, SqlDeploymentAction[] actions, CancellationToken cancellationToken)
+        {
+            foreach (var step in actions)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await step.Execute(context, cancellationToken);
+            }
         }
 
     }
