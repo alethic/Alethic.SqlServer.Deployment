@@ -20,7 +20,6 @@ before_test:
       $p = Resolve-Path 'Cogito.SqlServer.Deployment.runsettings'
       $x = Select-Xml -Path $p -XPath '//RunSettings/TestRunParameters/Parameter[@name="SqlSetupExePath"]'
       $x.Node.value = "$env:TEMP\SQL2019\media\setup.exe"
-      $x.Node.value
       $x.Node.OwnerDocument.Save($p)
       gc $p
 
