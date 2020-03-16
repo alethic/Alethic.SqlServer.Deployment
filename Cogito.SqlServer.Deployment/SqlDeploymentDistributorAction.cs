@@ -58,17 +58,18 @@ namespace Cogito.SqlServer.Deployment
             var currentDistributorName = (string)await cnn.ExecuteScalarAsync($"SELECT name FROM sys.servers WHERE is_distributor = 1");
             if (currentDistributorName != "repl_distributor")
             {
+                if (AdminPassword == null)
+                    throw new SqlDeploymentException("Cannot configure distributor: missing AdminPassword.");
+
                 context.Logger?.LogInformation("Creating distributor on {InstanceName}.", InstanceName);
                 await cnn.ExecuteNonQueryAsync($@"
                     EXEC sp_adddistributor
                         @distributor = {distributorName},
                         @password = {AdminPassword}");
             }
-
-            // reset distributor password, if specified
-            if (AdminPassword != null)
+            else if (AdminPassword != null)
             {
-                context.Logger?.LogInformation("Setting distributor password on {InstanceName}.", InstanceName);
+                context.Logger?.LogInformation("Changing distributor password on {InstanceName}.", InstanceName);
                 await cnn.ExecuteNonQueryAsync($@"
                     EXEC sp_changedistributor_password
                         @password = {AdminPassword}");
@@ -153,16 +154,16 @@ namespace Cogito.SqlServer.Deployment
             var defaultReplData = defaultDataRoot != null ? Path.Combine(defaultDataRoot, "ReplData") : null;
 
             // update snapshot folder if determined
-            var snapshotFolder = SnapshotPath ?? defaultReplData;
-            if (snapshotFolder != null)
+            var snapshotPath = SnapshotPath ?? defaultReplData;
+            if (snapshotPath != null)
             {
                 await cnn.ExecuteNonQueryAsync($@"
-                    IF (NOT EXISTS (SELECT * from sysobjects where name = 'UIProperties' and type = 'U '))
+                    IF NOT EXISTS (SELECT * from sysobjects where name = 'UIProperties' and type = 'U')
                         CREATE TABLE UIProperties(id int)
-                    IF (EXISTS (SELECT * from ::fn_listextendedproperty('SnapshotFolder', 'user', 'dbo', 'table', 'UIProperties', null, null))) 
-                        EXEC sp_updateextendedproperty N'SnapshotFolder', {snapshotFolder}, 'user', dbo, 'table', 'UIProperties' 
+                    IF EXISTS (SELECT * from ::fn_listextendedproperty('SnapshotFolder', 'user', 'dbo', 'table', 'UIProperties', null, null))
+                        EXEC sp_updateextendedproperty N'SnapshotFolder', {snapshotPath}, 'user', dbo, 'table', 'UIProperties' 
                     ELSE 
-                        EXEC sp_addextendedproperty N'SnapshotFolder', {snapshotFolder}, 'user', dbo, 'table', 'UIProperties'");
+                        EXEC sp_addextendedproperty N'SnapshotFolder', {snapshotPath}, 'user', dbo, 'table', 'UIProperties'");
             }
         }
 
