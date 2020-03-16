@@ -22,7 +22,7 @@ namespace Cogito.SqlServer.Deployment
         readonly SqlDeploymentPlan plan;
         readonly ILogger logger;
 
-        readonly ConcurrentDictionary<SqlDeploymentPlanTarget, Task> tasks = new ConcurrentDictionary<SqlDeploymentPlanTarget, Task>();
+        readonly ConcurrentDictionary<SqlDeploymentPlanTarget, Lazy<Task>> tasks = new ConcurrentDictionary<SqlDeploymentPlanTarget, Lazy<Task>>();
 
         /// <summary>
         /// Initializes a new instance.
@@ -97,7 +97,7 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         Task GetExecuteTaskAsync(SqlDeploymentExecuteContext context, SqlDeploymentPlanTarget target, CancellationToken cancellationToken)
         {
-            return tasks.GetOrAdd(target, _ => ExecuteAsync(context, _.Actions, cancellationToken));
+            return tasks.GetOrAdd(target, _ => new Lazy<Task>(() => ExecuteAsync(context, _.Actions, cancellationToken))).Value;
         }
 
         /// <summary>
