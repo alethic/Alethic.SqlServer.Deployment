@@ -27,7 +27,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Cogito.SqlServer.Deployment.Tests.Database.xml">
+    <None Update="local_test.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="devel_test.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
