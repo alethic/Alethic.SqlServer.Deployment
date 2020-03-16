@@ -4,9 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Cogito.Collections;
-using Cogito.Linq;
-using Cogito.Threading;
 
 using Microsoft.Extensions.Logging;
 
@@ -22,7 +19,7 @@ namespace Cogito.SqlServer.Deployment
         readonly SqlDeploymentPlan plan;
         readonly ILogger logger;
 
-        readonly ConcurrentDictionary<SqlDeploymentPlanTarget, Lazy<Task>> tasks = new ConcurrentDictionary<SqlDeploymentPlanTarget, Lazy<Task>>();
+        readonly ConcurrentDictionary<SqlDeploymentAction, Lazy<Task>> tasks = new ConcurrentDictionary<SqlDeploymentAction, Lazy<Task>>();
 
         /// <summary>
         /// Initializes a new instance.
@@ -97,22 +94,33 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         Task GetExecuteTaskAsync(SqlDeploymentExecuteContext context, SqlDeploymentPlanTarget target, CancellationToken cancellationToken)
         {
-            return tasks.GetOrAdd(target, _ => new Lazy<Task>(() => ExecuteAsync(context, _.Actions, cancellationToken))).Value;
+            return ExecuteAsync(context, target.Actions, cancellationToken);
         }
 
         /// <summary>
         /// Executes each of the given actions in order.
         /// </summary>
         /// <param name="actions"></param>
-        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         async Task ExecuteAsync(SqlDeploymentExecuteContext context, SqlDeploymentAction[] actions, CancellationToken cancellationToken)
         {
-            foreach (var step in actions)
+            foreach (var action in actions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                await step.ExecuteAsync(context, cancellationToken);
+                await ExecuteAsync(context, action, cancellationToken);
             }
+        }
+
+        /// <summary>
+        /// Returns a task that is completed when the specified action is complete.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="action"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task ExecuteAsync(SqlDeploymentExecuteContext context, SqlDeploymentAction action, CancellationToken cancellationToken)
+        {
+            return tasks.GetOrAdd(action, _ => new Lazy<Task>(() => _.ExecuteAsync(context, CancellationToken.None))).Value;
         }
 
     }
