@@ -23,9 +23,6 @@ before_test:
       $x.Node.OwnerDocument.Save('Cogito.SqlServer.Deployment.runsettings')
       gc Cogito.SqlServer.Deployment.runsettings
 
-test_script:
-  - cmd: dotnet test Cogito.SqlServer.Deployment.sln 
-
 artifacts:
   - path: pkg\*.nupkg
     name: Cogito.SqlServer.Deployment
