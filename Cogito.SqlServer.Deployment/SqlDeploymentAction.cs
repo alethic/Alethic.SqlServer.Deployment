@@ -42,14 +42,21 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         protected async Task<SqlConnection> OpenConnectionAsync(string instanceName, CancellationToken cancellationToken)
         {
-            var b = new SqlConnectionStringBuilder();
-            b.DataSource = instanceName;
-            b.IntegratedSecurity = true;
+            try
+            {
+                var b = new SqlConnectionStringBuilder();
+                b.DataSource = instanceName;
+                b.IntegratedSecurity = true;
 
-            var c = new SqlConnection(b.ToString());
-            await c.OpenAsync(cancellationToken);
+                var c = new SqlConnection(b.ToString());
+                await c.OpenAsync(cancellationToken);
 
-            return c;
+                return c;
+            }
+            catch (SqlException e)
+            {
+                throw new SqlDeploymentException($"Could not open a connection to '{instanceName}'.", e);
+            }
         }
 
         /// <summary>
