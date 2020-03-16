@@ -56,7 +56,7 @@ namespace Cogito.SqlServer.Deployment.Tool
             try
             {
                 var plan = dply.Compile(args);
-                await new SqlDeploymentSequentialExecutor(plan, l).ExecuteAsync();
+                await new SqlDeploymentExecutor(plan, l).ExecuteAsync();
             }
             catch (SqlDeploymentException e)
             {

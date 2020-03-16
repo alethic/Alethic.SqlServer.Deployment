@@ -115,17 +115,17 @@ namespace Cogito.SqlServer.Deployment
         /// Initializes a new instance.
         /// </summary>
         /// <param name="instanceName"></param>
-        /// <param name="exe"></param>
-        public SqlDeploymentInstallAction(string instanceName, string exe = null) :
+        /// <param name="setupExe"></param>
+        public SqlDeploymentInstallAction(string instanceName, string setupExe = null) :
             base(instanceName)
         {
-            Exe = exe;
+            SetupExe = setupExe;
         }
 
         /// <summary>
         /// Gets the path to the SQL server setup binary.
         /// </summary>
-        public string Exe { get; }
+        public string SetupExe { get; }
 
         /// <summary>
         /// Deploys a new instance of SQL Server.
@@ -290,13 +290,13 @@ namespace Cogito.SqlServer.Deployment
             // one instance at a time
             using (await SYNC.LockAsync())
             {
-                if (Exe != null)
+                if (SetupExe != null)
                 {
-                    if (File.Exists(Exe) == false)
-                        throw new FileNotFoundException($"Unable to find {Exe}.");
+                    if (File.Exists(SetupExe) == false)
+                        throw new FileNotFoundException($"Unable to find {SetupExe}.");
 
                     // run setup
-                    var exitCode = await RunInstallAction(Exe, instanceName);
+                    var exitCode = await RunInstallAction(SetupExe, instanceName);
                     if (exitCode != 0)
                         throw new InvalidOperationException($"Setup exited with exit code {exitCode}.");
                 }

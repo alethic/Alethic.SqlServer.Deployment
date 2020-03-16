@@ -46,7 +46,7 @@ namespace Cogito.SqlServer.Deployment.Tests
             var d = SqlDeployment.Load(x);
             var p = d.Compile(GetArgs());
 
-            await new SqlDeploymentSequentialExecutor(p, l.CreateLogger<SqlDeploymentSequentialExecutor>()).ExecuteAsync();
+            await new SqlDeploymentExecutor(p, l.CreateLogger<SqlDeploymentExecutor>()).ExecuteAsync();
         }
 
     }
