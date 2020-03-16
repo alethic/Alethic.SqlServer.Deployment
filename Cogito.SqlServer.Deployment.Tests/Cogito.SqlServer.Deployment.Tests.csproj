@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\Cogito.SqlServer.Deployment.Build\build\Cogito.SqlServer.Build.props" />
+  <Import Project="..\Cogito.SqlServer.Deployment.Build\build\Cogito.SqlServer.Deployment.Build.props" />
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net47</TargetFrameworks>
@@ -35,5 +35,5 @@
     </None>
   </ItemGroup>
 
-  <Import Project="..\Cogito.SqlServer.Deployment.Build\build\Cogito.SqlServer.Build.targets" />
+  <Import Project="..\Cogito.SqlServer.Deployment.Build\build\Cogito.SqlServer.Deployment.Build.targets" />
 </Project>

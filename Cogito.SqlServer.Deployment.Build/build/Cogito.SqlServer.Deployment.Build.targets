@@ -20,7 +20,6 @@
                 <TargetPath>%(Filename)%(Extension)</TargetPath>
             </ContentWithTargetPath>
         </ItemGroup>
-        <Message Text="@(_SqlProjectOutput)" Importance="high" />
     </Target>
 
 </Project>
