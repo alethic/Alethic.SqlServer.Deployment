@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Cogito.SqlServer.Deployment.Internal;
+
 using Microsoft.Extensions.Logging;
 
 namespace Cogito.SqlServer.Deployment
@@ -19,7 +21,7 @@ namespace Cogito.SqlServer.Deployment
         readonly SqlDeploymentPlan plan;
         readonly ILogger logger;
 
-        readonly ConcurrentDictionary<SqlDeploymentAction, Lazy<Task>> tasks = new ConcurrentDictionary<SqlDeploymentAction, Lazy<Task>>();
+        readonly ConcurrentDictionary<SqlDeploymentAction, Lazy<AsyncJob<bool>>> tasks = new ConcurrentDictionary<SqlDeploymentAction, Lazy<AsyncJob<bool>>>();
 
         /// <summary>
         /// Initializes a new instance.
@@ -120,7 +122,7 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         Task ExecuteAsync(SqlDeploymentExecuteContext context, SqlDeploymentAction action, CancellationToken cancellationToken)
         {
-            return tasks.GetOrAdd(action, _ => new Lazy<Task>(() => _.ExecuteAsync(context, CancellationToken.None))).Value;
+            return tasks.GetOrAdd(action, _ => new Lazy<AsyncJob<bool>>(() => new AsyncJob<bool>(async ct => { await _.ExecuteAsync(context, ct); return true; }))).Value.WaitAsync(cancellationToken);
         }
 
     }
