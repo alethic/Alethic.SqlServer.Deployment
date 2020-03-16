@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -12,6 +13,16 @@ namespace Cogito.SqlServer.Deployment.Tests
     public class SqlDeploymentTests
     {
 
+        public TestContext TestContext { get; set; }
+
+        Dictionary<string, string> GetArgs()
+        {
+            return new Dictionary<string, string>()
+            {
+                ["SetupExePath"] = (string)TestContext.Properties["SqlSetupExePath"]
+            };
+        }
+
         [TestMethod]
         public void Can_load_example()
         {
@@ -24,7 +35,7 @@ namespace Cogito.SqlServer.Deployment.Tests
         {
             var x = XDocument.Load(File.OpenRead("Cogito.SqlServer.Deployment.Tests.Database.xml"));
             var d = SqlDeployment.Load(x);
-            var p = d.Compile();
+            var p = d.Compile(GetArgs());
         }
 
         [TestMethod]
@@ -33,7 +44,7 @@ namespace Cogito.SqlServer.Deployment.Tests
             using var l = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Trace));
             var x = XDocument.Load(File.OpenRead("Cogito.SqlServer.Deployment.Tests.Database.xml"));
             var d = SqlDeployment.Load(x);
-            var p = d.Compile();
+            var p = d.Compile(GetArgs());
 
             await new SqlDeploymentSequentialExecutor(p, l.CreateLogger<SqlDeploymentSequentialExecutor>()).ExecuteAsync();
         }

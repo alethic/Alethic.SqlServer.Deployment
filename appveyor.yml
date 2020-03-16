@@ -15,7 +15,8 @@ before_test:
   - cmd: appveyor DownloadFile https://download.microsoft.com/download/b/8/c/b8ce1000-2e0b-4bc8-b4e4-646e9a439525/SQL2019-SSEI-Dev.exe
   - cmd: mkdir SQL2019
   - cmd: .\SQL2019-SSEI-Dev.exe /Quiet /Action=Download /MediaType=CAB /MediaPath=%TEMP%\SQL2019
-  - cmd: .\SQL2019\SQLServer2019-DEV-x64-ENU.exe /q /x:%TEMP%\SQL2019\setup
+  - cmd: .\SQL2019\SQLServer2019-DEV-x64-ENU.exe /q /x:%TEMP%\SQL2019\media
+  - ps: $x=gc Cogito.SqlServer.Deployment.runsettings; $x.RunSettings.TestRunParameters.Parameter[0].'@value'="$env:TEMP\SQL2019\media\setup.exe"; $x.Save("Cogito.SqlServer.Deployment.runsettings");
 
 artifacts:
   - path: pkg\*.nupkg
