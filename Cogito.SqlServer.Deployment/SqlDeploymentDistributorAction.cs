@@ -1,15 +1,12 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 using System.IO;
 using System.Linq;
-using System.Security.AccessControl;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Cogito.Collections;
 using Cogito.SqlServer.Deployment.Internal;
 
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 
 namespace Cogito.SqlServer.Deployment
@@ -80,7 +77,7 @@ namespace Cogito.SqlServer.Deployment
             // configure distribution database if required
             var databaseName = DatabaseName ?? "distribution";
             var currentDistributionDbs = await cnn.ExecuteSpHelpDistributionDbAsync(cancellationToken);
-            var currentDistributionDb = currentDistributionDbs.FirstOrDefault(i => i.Name == databaseName);
+            var currentDistributionDb = currentDistributionDbs?.FirstOrDefault(i => i.Name == databaseName);
             if (currentDistributionDb == null)
             {
                 context.Logger?.LogInformation("Adding distribution database {DatabaseName} on {InstanceName}.", databaseName, InstanceName);

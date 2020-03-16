@@ -112,7 +112,7 @@ namespace Cogito.SqlServer.Deployment
         {
             var p = new SqlDeploymentInstance();
             p.Name = (string)element.Attribute("Name");
-            p.Setup = element.Element(Xmlns + "Setup") is XElement setup ? LocalSetup(setup) : null;
+            p.Install = element.Element(Xmlns + "Install") is XElement setup ? LoadInstall(setup) : null;
 
             foreach (var configurationElement in element.Elements(Xmlns + "Configuration"))
                 p.Configuration[(string)configurationElement.Attribute("Name")] = (string)configurationElement.Attribute("Value");
@@ -124,10 +124,10 @@ namespace Cogito.SqlServer.Deployment
             return p;
         }
 
-        static SqlDeploymentSetup LocalSetup(XElement element)
+        static SqlDeploymentInstall LoadInstall(XElement element)
         {
-            var p = new SqlDeploymentSetup();
-            p.Exe = (string)element.Attribute("Exe");
+            var p = new SqlDeploymentInstall();
+            p.SetupExe = (string)element.Attribute("SetupExe");
             return p;
         }
 

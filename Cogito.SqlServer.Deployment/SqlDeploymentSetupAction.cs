@@ -25,7 +25,7 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Ensures that a SQL server instance is properly installed.
     /// </summary>
-    public class SqlDeploymentSetupAction : SqlDeploymentAction
+    public class SqlDeploymentInstallAction : SqlDeploymentAction
     {
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         /// <param name="instanceName"></param>
         /// <param name="exe"></param>
-        public SqlDeploymentSetupAction(string instanceName, string exe = null) :
+        public SqlDeploymentInstallAction(string instanceName, string exe = null) :
             base(instanceName)
         {
             Exe = exe;

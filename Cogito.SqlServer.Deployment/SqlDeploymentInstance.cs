@@ -17,7 +17,7 @@ namespace Cogito.SqlServer.Deployment
         /// <summary>
         /// Gets the information regarding the setup of the instance.
         /// </summary>
-        public SqlDeploymentSetup Setup { get; set; }
+        public SqlDeploymentInstall Install { get; set; }
 
         /// <summary>
         /// Gets the information regarding the properties to configure on the instance.
@@ -53,8 +53,8 @@ namespace Cogito.SqlServer.Deployment
         {
             var context = new SqlDeploymentCompileContext(arguments, Name.Expand<string>(arguments));
 
-            if (Setup != null)
-                foreach (var s in Setup.Compile(context))
+            if (Install != null)
+                foreach (var s in Install.Compile(context))
                     yield return s;
 
             if (Configuration != null)

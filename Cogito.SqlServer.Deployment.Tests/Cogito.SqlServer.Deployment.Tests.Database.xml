@@ -9,13 +9,13 @@
     <Parameter Name="DistributorAdminPassword" DefaultValue="gDQKUCn558LCC0mwv4LAVw12WMhchIRy" />
     <Target Name="DST">
         <Instance Name="[DST_InstanceName]">
-            <Setup Exe="[SetupExePath]" />
+            <Install SetupExe="[SetupExePath]" />
             <Distributor AdminPassword="[DistributorAdminPassword]" />
         </Instance>
     </Target>
     <Target Name="SQL">
         <Instance Name="[SQL_InstanceName]">
-            <Setup Exe="[SetupExePath]" />
+            <Install SetupExe="[SetupExePath]" />
             <Configuration Name="clr enabled" Value="1" />
         </Instance>
     </Target>
@@ -27,7 +27,7 @@
     </Target>
     <Target Name="EFM">
         <Instance Name="[EFM_InstanceName]">
-            <Setup Exe="[SetupExePath]" />
+            <Install SetupExe="[SetupExePath]" />
             <Configuration Name="clr enabled" Value="1" />
         </Instance>
     </Target>

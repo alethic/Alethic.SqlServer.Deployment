@@ -289,23 +289,25 @@ namespace Cogito.SqlServer.Deployment.Internal
             this SqlConnection connection,
             CancellationToken cancellationToken = default)
         {
-            var i = await connection.LoadDataTableAsync($"EXEC sp_helpdistributiondb", cancellationToken: cancellationToken);
-            if (i.Rows.Count < 1)
-                return null;
+            if (connection is null)
+                throw new ArgumentNullException(nameof(connection));
 
-            return i.Rows.Cast<DataRow>()
-                .Select(t => new HelpDistributionDbResults()
+            return (await connection.LoadDataTableAsync(
+                    $"EXEC sp_helpdistributiondb",
+                    cancellationToken: cancellationToken))
+                .Rows.Cast<DataRow>()
+                .Select(i => new HelpDistributionDbResults()
                 {
-                    Name = (string)t["name"],
-                    MinDistRetention = (int)t["min_distretention"],
-                    MaxDistRetention = (int)t["max_distretention"],
-                    HistoryRetention = (int)t["history_retention"],
-                    HistoryCleanupAgent = (string)t["history_cleanup_agent"],
-                    Status = (int)t["status"],
-                    DataFolder = (string)t["data_folder"],
-                    DataFile = (string)t["data_file"],
-                    LogFolder = (string)t["log_folder"],
-                    LogFile = (string)t["log_file"],
+                    Name = (string)i["name"],
+                    MinDistRetention = (int)i["min_distretention"],
+                    MaxDistRetention = (int)i["max_distretention"],
+                    HistoryRetention = (int)i["history_retention"],
+                    HistoryCleanupAgent = (string)i["history_cleanup_agent"],
+                    Status = (int)i["status"],
+                    DataFolder = (string)i["data_folder"],
+                    DataFile = (string)i["data_file"],
+                    LogFolder = (string)i["log_folder"],
+                    LogFile = (string)i["log_file"],
                 })
                 .ToArray();
         }
@@ -322,23 +324,27 @@ namespace Cogito.SqlServer.Deployment.Internal
             string database,
             CancellationToken cancellationToken = default)
         {
-            var t = await connection.LoadDataTableAsync($"EXEC sp_helpdistributiondb @database = {database}", cancellationToken: cancellationToken);
-            if (t.Rows.Count < 1)
-                return null;
+            if (connection is null)
+                throw new ArgumentNullException(nameof(connection));
 
-            return new HelpDistributionDbResults()
-            {
-                Name = (string)t.Rows[0]["name"],
-                MinDistRetention = (int)t.Rows[0]["min_distretention"],
-                MaxDistRetention = (int)t.Rows[0]["max_distretention"],
-                HistoryRetention = (int)t.Rows[0]["history_retention"],
-                HistoryCleanupAgent = (string)t.Rows[0]["history_cleanup_agent"],
-                Status = (int)t.Rows[0]["status"],
-                DataFolder = (string)t.Rows[0]["data_folder"],
-                DataFile = (string)t.Rows[0]["data_file"],
-                LogFolder = (string)t.Rows[0]["log_folder"],
-                LogFile = (string)t.Rows[0]["log_file"],
-            };
+            return (await connection.LoadDataTableAsync(
+                    $"EXEC sp_helpdistributiondb @database = {database}",
+                    cancellationToken: cancellationToken))
+                .Rows.Cast<DataRow>()
+                .Select(i => new HelpDistributionDbResults()
+                {
+                    Name = (string)i["name"],
+                    MinDistRetention = (int)i["min_distretention"],
+                    MaxDistRetention = (int)i["max_distretention"],
+                    HistoryRetention = (int)i["history_retention"],
+                    HistoryCleanupAgent = (string)i["history_cleanup_agent"],
+                    Status = (int)i["status"],
+                    DataFolder = (string)i["data_folder"],
+                    DataFile = (string)i["data_file"],
+                    LogFolder = (string)i["log_folder"],
+                    LogFile = (string)i["log_file"],
+                })
+                .FirstOrDefault();
         }
 
         /// <summary>

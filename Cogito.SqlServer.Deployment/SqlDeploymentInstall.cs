@@ -8,13 +8,13 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Ensures that a SQL server instance is properly installed.
     /// </summary>
-    public class SqlDeploymentSetup
+    public class SqlDeploymentInstall
     {
 
         /// <summary>
         /// Gets or sets the path to the SQL server installation.
         /// </summary>
-        public SqlDeploymentExpression? Exe { get; set; }
+        public SqlDeploymentExpression? SetupExe { get; set; }
 
         /// <summary>
         /// Compiles the setup actions.
@@ -27,9 +27,9 @@ namespace Cogito.SqlServer.Deployment
                 throw new SqlDeploymentException("SQL setup is only supported on Windows.");
 
             if (context.InstanceName.StartsWith(@"(localdb)\", StringComparison.OrdinalIgnoreCase))
-                yield return new SqlDeploymentSetupLocalDbAction(context.InstanceName);
+                yield return new SqlDeploymentInstallLocalDbAction(context.InstanceName);
             else
-                yield return new SqlDeploymentSetupAction(context.InstanceName, Exe?.Expand(context));
+                yield return new SqlDeploymentInstallAction(context.InstanceName, SetupExe?.Expand(context));
         }
 
     }
