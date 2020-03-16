@@ -99,7 +99,7 @@ namespace Cogito.SqlServer.Deployment
                 if (HistoryRetention != null)
                     cmd.Parameters.AddWithValue("@history_retention", HistoryRetention);
 
-                if ((int)await cmd.ExecuteScalarAsync(cancellationToken) != 0)
+                if (await cmd.ExecuteScalarAsync(cancellationToken) is int i && i != 0)
                     throw new SqlDeploymentException("Error code returned executing sp_adddistributiondb.");
             }
             else
@@ -114,7 +114,7 @@ namespace Cogito.SqlServer.Deployment
                     cmd.Parameters.AddWithValue("@property", "min_distretention");
                     cmd.Parameters.AddWithValue("@value", MinimumRetention);
 
-                    if ((int)await cmd.ExecuteScalarAsync(cancellationToken) != 0)
+                    if (await cmd.ExecuteScalarAsync(cancellationToken) is int i && i != 0)
                         throw new SqlDeploymentException("Error code returned executing sp_changedistributiondb.");
                 }
 
@@ -128,7 +128,7 @@ namespace Cogito.SqlServer.Deployment
                     cmd.Parameters.AddWithValue("@property", "max_distretention");
                     cmd.Parameters.AddWithValue("@value", MaximumRetention);
 
-                    if ((int)await cmd.ExecuteScalarAsync(cancellationToken) != 0)
+                    if (await cmd.ExecuteScalarAsync(cancellationToken) is int i && i != 0)
                         throw new SqlDeploymentException("Error code returned executing sp_changedistributiondb.");
                 }
 
@@ -142,7 +142,7 @@ namespace Cogito.SqlServer.Deployment
                     cmd.Parameters.AddWithValue("@property", "history_retention");
                     cmd.Parameters.AddWithValue("@value", HistoryRetention);
 
-                    if ((int)await cmd.ExecuteScalarAsync(cancellationToken) != 0)
+                    if (await cmd.ExecuteScalarAsync(cancellationToken) is int i && i != 0)
                         throw new SqlDeploymentException("Error code returned executing sp_changedistributiondb.");
                 }
             }
