@@ -122,7 +122,7 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         Task ExecuteAsync(SqlDeploymentExecuteContext context, SqlDeploymentAction action, CancellationToken cancellationToken)
         {
-            return tasks.GetOrAdd(action, _ => new Lazy<AsyncJob<bool>>(() => new AsyncJob<bool>(async ct => { await _.ExecuteAsync(context, ct); return true; }))).Value.WaitAsync(cancellationToken);
+            return tasks.GetOrAdd(action, _ => new Lazy<AsyncJob<bool>>(() => new AsyncJob<bool>(async ct => { await _.ExecuteAsync(context, ct); return true; }), true)).Value.WaitAsync(cancellationToken);
         }
 
     }
