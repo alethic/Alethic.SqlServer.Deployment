@@ -144,11 +144,9 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         async Task ExecuteAsyncInternal(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
         {
-            // attempt to refresh server name
-            var serverName = await TryGetServerName(InstanceName, cancellationToken) ?? InstanceName;
-
-            // parse instance name
-            var m = serverName.Split('\\');
+            // acquire breakdown of instance information
+            var serverName = await TryGetServerName(cancellationToken) ?? InstanceName;
+            var m = serverName.Split(new[] { '\\' }, 2);
             var host = m.Length >= 1 ? m[0].TrimOrNull() : null;
             var name = m.Length >= 2 ? m[1].TrimOrNull() : null;
 
@@ -160,89 +158,46 @@ namespace Cogito.SqlServer.Deployment
             if (name == null)
                 name = DEFAULT_INSTANCE_NAME;
 
-            // instance is local
-            if (GetLocalServerNames().Any(i => host.Equals(i, StringComparison.OrdinalIgnoreCase)))
-            {
-                // install instance if missing
-                if (GetLocalInstances().Contains(serverName, StringComparer.OrdinalIgnoreCase) == false)
+            // target is current machine, but missing: install
+            if (GetLocalServerNames().Contains(host, StringComparer.OrdinalIgnoreCase))
+                if (GetLocalInstanceNames().Contains(name, StringComparer.OrdinalIgnoreCase) == false)
                     await InstallSqlServer(name, cancellationToken);
 
-                // test connection and return instance
-                if (await TryGetServerName(InstanceName, cancellationToken) is string s)
-                {
-                    // required for deployment
-                    if (await IsSysAdmin(InstanceName, cancellationToken) != true)
-                        throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
-
-                    await ConfigureSqlAgent(InstanceName, cancellationToken);
-                    return;
-                }
-
-                throw new InvalidOperationException("Could not establish connection to local server.");
-            }
-            else
+            // test connection now that installation has completed
+            if (await TryGetServerName(cancellationToken) is string s)
             {
-                // test connection and return instance
-                if (await TryGetServerName(InstanceName, cancellationToken) is string s)
-                {
-                    // required for deployment
-                    if (await IsSysAdmin(InstanceName, cancellationToken) != true)
-                        throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
+                // required for deployment
+                if (await IsSysAdmin(cancellationToken) != true)
+                    throw new InvalidOperationException($"Unable to verify membership in sysadmin role on '{InstanceName}'.");
 
-                    await ConfigureSqlAgent(InstanceName, cancellationToken);
-                    return;
-                }
-
-                throw new NotSupportedException("Unable to connect to remote instance, and creation of remote instance is not supported.");
+                // ensure agent is setup properly
+                await ConfigureSqlAgent(cancellationToken);
+                return;
             }
+
+            throw new InvalidOperationException($"Could not establish connection SQL Server '{InstanceName}'.");
         }
 
         /// <summary>
         /// Returns <c>true</c> if we're logged in as a member of the sysadmin role.
         /// </summary>
-        /// <param name="dataSource"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task<bool> IsSysAdmin(string dataSource, CancellationToken cancellationToken)
+        async Task<bool> IsSysAdmin(CancellationToken cancellationToken)
         {
-            using var cnn = await OpenConnectionAsync(dataSource, cancellationToken);
+            using var cnn = await OpenConnectionAsync(cancellationToken);
             return await cnn.ExecuteScalarAsync("SELECT IS_SRVROLEMEMBER('sysadmin')", cancellationToken: cancellationToken) is int i && i == 1;
-        }
-
-        /// <summary>
-        /// Returns a new open connection to the specified data source.
-        /// </summary>
-        /// <param name="dataSource"></param>
-        /// <returns></returns>
-        async Task<SqlConnection> OpenConnectionAsync(string dataSource)
-        {
-            if (dataSource == null)
-                throw new ArgumentNullException(nameof(dataSource));
-
-            var b = new SqlConnectionStringBuilder
-            {
-                DataSource = dataSource,
-                IntegratedSecurity = true,
-            };
-
-            var cnn = new SqlConnection(b.ConnectionString);
-            await cnn.OpenAsync();
-            return cnn;
         }
 
         /// <summary>
         /// Ensure the SQL agent is configured properly.
         /// </summary>
-        /// <param name="dataSource"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task ConfigureSqlAgent(string dataSource, CancellationToken cancellationToken)
+        async Task ConfigureSqlAgent(CancellationToken cancellationToken)
         {
-            if (dataSource == null)
-                throw new ArgumentNullException(nameof(dataSource));
-
             // ensure agent extended procedures are enabled
-            using var cnn = await OpenConnectionAsync(dataSource, cancellationToken);
+            using var cnn = await OpenConnectionAsync(cancellationToken);
             await cnn.ExecuteNonQueryAsync(@"sp_configure 'show advanced options', 1", cancellationToken: cancellationToken);
             await cnn.ExecuteNonQueryAsync(@"RECONFIGURE WITH OVERRIDE", cancellationToken: cancellationToken);
             await cnn.ExecuteNonQueryAsync(@"sp_configure 'Agent XPs', 1", cancellationToken: cancellationToken);
@@ -282,15 +237,14 @@ namespace Cogito.SqlServer.Deployment
         /// <summary>
         /// Attempts to get the server name.
         /// </summary>
-        /// <param name="dataSource"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task<string> TryGetServerName(string dataSource, CancellationToken cancellationToken)
+        async Task<string> TryGetServerName(CancellationToken cancellationToken)
         {
             try
             {
                 // pull actual instance name from server itself
-                using var cnn = await OpenConnectionAsync(dataSource, cancellationToken);
+                using var cnn = await OpenConnectionAsync(InstanceName, cancellationToken);
                 return await cnn.GetServerNameAsync(cancellationToken);
             }
             catch (SqlException)
@@ -307,6 +261,9 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         async Task InstallSqlServer(string instanceName, CancellationToken cancellationToken)
         {
+            if (IsAdmin == false)
+                throw new SqlDeploymentException("Not running as local Administrator.");
+
             if (SetupExe != null)
             {
                 if (File.Exists(SetupExe) == false)
@@ -443,7 +400,7 @@ namespace Cogito.SqlServer.Deployment
         /// Gets the locally installed SQL instances.
         /// </summary>
         /// <returns></returns>
-        IEnumerable<string> GetLocalInstances()
+        IEnumerable<string> GetLocalInstanceNames()
         {
             var registryView = Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32;
 
@@ -452,7 +409,7 @@ namespace Cogito.SqlServer.Deployment
                 var instanceKey = hklm.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL", false);
                 if (instanceKey != null)
                     foreach (var instanceName in instanceKey.GetValueNames())
-                        yield return Environment.MachineName + @"\" + instanceName ?? DEFAULT_INSTANCE_NAME;
+                        yield return instanceName;
             }
         }
 
