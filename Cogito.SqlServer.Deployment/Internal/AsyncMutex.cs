@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -83,11 +84,12 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// <param name="cancellationToken"></param>
         void LockThread(TaskCompletionSource<AsyncMutexLock> tcs, CancellationToken cancellationToken)
         {
+            var x = (Exception)null; // disposer exception
+            var w = new ManualResetEvent(false); // signals disposal
+            var f = new ManualResetEvent(false); // signals completion of disposal; resuming disposer
+
             try
             {
-                var w = new ManualResetEvent(false); // signals disposal
-                var f = new ManualResetEvent(false); // signals completion of disposal; resuming disposer
-
                 // wait for mutex; and send disposer as result
                 while (true)
                 {
@@ -101,7 +103,7 @@ namespace Cogito.SqlServer.Deployment.Internal
                     // wait a bit for the mutex before trying again
                     if (mutex.WaitOne(TimeSpan.FromSeconds(2)))
                     {
-                        tcs.SetResult(new AsyncMutexLock(() => { w.Set(); f.WaitOne(); }));
+                        tcs.SetResult(new AsyncMutexLock(() => { w.Set(); f.WaitOne(); if (x != null) ExceptionDispatchInfo.Capture(x).Throw(); }));
                         break;
                     }
                 }
@@ -111,17 +113,20 @@ namespace Cogito.SqlServer.Deployment.Internal
 
                 // release mutex and resume disposer
                 mutex.ReleaseMutex();
-                f.Set();
             }
             catch (Exception e)
             {
-                // relay exception if possible
                 if (tcs.Task.IsCompleted == false)
+                    // relay exception to waiter if possible
                     tcs.SetException(e);
+                else
+                    // otherwise schedule exception to disposer
+                    x = e;
             }
             finally
-            { 
-
+            {
+                // release disposer
+                f.Set();
             }
         }
 
