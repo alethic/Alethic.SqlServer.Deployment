@@ -9,5 +9,6 @@
         <PackageIconUrl>https://cloverluxussc.blob.core.windows.net/public/cogito-nuget-icon.png</PackageIconUrl>
         <PackageTags>sql dacpac dacfx dac</PackageTags>
         <LangVersion>8.0</LangVersion>
+        <RunSettingsFilePath>$(MSBuildThisFileDirectory)\Cogito.SqlServer.Deployment.runsettings</RunSettingsFilePath>
     </PropertyGroup>
 </Project>
