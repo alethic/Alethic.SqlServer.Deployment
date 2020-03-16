@@ -23,8 +23,8 @@ before_test:
       $x.Node.OwnerDocument.Save($p)
 
 test_script:
-  -cmd: vstest.console /logger:Appveyor /settings:Cogito.SqlServer.Deployment.runsettings "Cogito.SqlServer.Deployment.Tests\bin\Release\net47\Cogito.SqlServer.Deployment.Tests.dll"
-  -cmd: vstest.console /logger:Appveyor /settings:Cogito.SqlServer.Deployment.runsettings "Cogito.SqlServer.Deployment.Tests\bin\Release\netcoreapp3.1\Cogito.SqlServer.Deployment.Tests.dll"
+  - cmd: vstest.console /logger:Appveyor /settings:Cogito.SqlServer.Deployment.runsettings "Cogito.SqlServer.Deployment.Tests\bin\Release\net47\Cogito.SqlServer.Deployment.Tests.dll"
+  - cmd: vstest.console /logger:Appveyor /settings:Cogito.SqlServer.Deployment.runsettings "Cogito.SqlServer.Deployment.Tests\bin\Release\netcoreapp3.1\Cogito.SqlServer.Deployment.Tests.dll"
 
 artifacts:
   - path: pkg\*.nupkg
