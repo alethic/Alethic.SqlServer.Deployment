@@ -298,14 +298,15 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// Gets the fully qualified name of the connected server.
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<string> GetFullyQualifiedServerName(this SqlConnection connection)
+        public static async Task<string> GetFullyQualifiedServerName(this SqlConnection connection, CancellationToken cancellationToken = default)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
 
-            var m = await connection.GetServerPropertyAsync("MACHINENAME");
-            var d = await connection.GetServerDomainName();
+            var m = await connection.GetServerPropertyAsync("MACHINENAME", cancellationToken);
+            var d = await connection.GetServerDomainName(cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(d))
                 return m + "." + d;

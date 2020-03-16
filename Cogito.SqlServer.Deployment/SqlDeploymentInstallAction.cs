@@ -145,7 +145,7 @@ namespace Cogito.SqlServer.Deployment
         async Task ExecuteAsyncInternal(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
         {
             // attempt to refresh server name
-            var serverName = await TryGetServerName(InstanceName) ?? InstanceName;
+            var serverName = await TryGetServerName(InstanceName, cancellationToken) ?? InstanceName;
 
             // parse instance name
             var m = serverName.Split('\\');
@@ -165,16 +165,16 @@ namespace Cogito.SqlServer.Deployment
             {
                 // install instance if missing
                 if (GetLocalInstances().Contains(serverName, StringComparer.OrdinalIgnoreCase) == false)
-                    await InstallSqlServer(name);
+                    await InstallSqlServer(name, cancellationToken);
 
                 // test connection and return instance
-                if (await TryGetServerName(InstanceName) is string s)
+                if (await TryGetServerName(InstanceName, cancellationToken) is string s)
                 {
                     // required for deployment
-                    if (await IsSysAdmin(InstanceName) != true)
+                    if (await IsSysAdmin(InstanceName, cancellationToken) != true)
                         throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
 
-                    await ConfigureSqlAgent(InstanceName);
+                    await ConfigureSqlAgent(InstanceName, cancellationToken);
                     return;
                 }
 
@@ -183,13 +183,13 @@ namespace Cogito.SqlServer.Deployment
             else
             {
                 // test connection and return instance
-                if (await TryGetServerName(InstanceName) is string s)
+                if (await TryGetServerName(InstanceName, cancellationToken) is string s)
                 {
                     // required for deployment
-                    if (await IsSysAdmin(InstanceName) != true)
+                    if (await IsSysAdmin(InstanceName, cancellationToken) != true)
                         throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
 
-                    await ConfigureSqlAgent(InstanceName);
+                    await ConfigureSqlAgent(InstanceName, cancellationToken);
                     return;
                 }
 
@@ -201,11 +201,12 @@ namespace Cogito.SqlServer.Deployment
         /// Returns <c>true</c> if we're logged in as a member of the sysadmin role.
         /// </summary>
         /// <param name="dataSource"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task<bool> IsSysAdmin(string dataSource)
+        async Task<bool> IsSysAdmin(string dataSource, CancellationToken cancellationToken)
         {
-            using var cnn = await OpenConnectionAsync(dataSource);
-            return await cnn.ExecuteScalarAsync("SELECT IS_SRVROLEMEMBER('sysadmin')") is int i && i == 1;
+            using var cnn = await OpenConnectionAsync(dataSource, cancellationToken);
+            return await cnn.ExecuteScalarAsync("SELECT IS_SRVROLEMEMBER('sysadmin')", cancellationToken: cancellationToken) is int i && i == 1;
         }
 
         /// <summary>
@@ -233,27 +234,35 @@ namespace Cogito.SqlServer.Deployment
         /// Ensure the SQL agent is configured properly.
         /// </summary>
         /// <param name="dataSource"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task ConfigureSqlAgent(string dataSource)
+        async Task ConfigureSqlAgent(string dataSource, CancellationToken cancellationToken)
         {
             if (dataSource == null)
                 throw new ArgumentNullException(nameof(dataSource));
 
             // ensure agent extended procedures are enabled
-            using var cnn = await OpenConnectionAsync(dataSource);
-            await cnn.ExecuteNonQueryAsync(@"sp_configure 'show advanced options', 1");
-            await cnn.ExecuteNonQueryAsync(@"RECONFIGURE WITH OVERRIDE");
-            await cnn.ExecuteNonQueryAsync(@"sp_configure 'Agent XPs', 1");
-            await cnn.ExecuteNonQueryAsync(@"RECONFIGURE WITH OVERRIDE");
+            using var cnn = await OpenConnectionAsync(dataSource, cancellationToken);
+            await cnn.ExecuteNonQueryAsync(@"sp_configure 'show advanced options', 1", cancellationToken: cancellationToken);
+            await cnn.ExecuteNonQueryAsync(@"RECONFIGURE WITH OVERRIDE", cancellationToken: cancellationToken);
+            await cnn.ExecuteNonQueryAsync(@"sp_configure 'Agent XPs', 1", cancellationToken: cancellationToken);
+            await cnn.ExecuteNonQueryAsync(@"RECONFIGURE WITH OVERRIDE", cancellationToken: cancellationToken);
 
             if (IsAdmin)
             {
+                using var controller = new ServiceController(
+                    await GetSqlAgentServiceName(cnn, cancellationToken),
+                    await cnn.GetFullyQualifiedServerName(cancellationToken));
+
                 // start agent if stopped
-                using var controller = new ServiceController(await GetSqlAgentServiceName(cnn), await cnn.GetFullyQualifiedServerName());
                 if (controller.Status == ServiceControllerStatus.Stopped)
                 {
-                    controller.Start();
-                    controller.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromMinutes(1));
+                    // schedule in the background to allow cancellation
+                    await Task.Run(() =>
+                    {
+                        controller.Start();
+                        controller.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromMinutes(1));
+                    }, cancellationToken);
                 }
             }
         }
@@ -263,9 +272,9 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-        async Task<string> GetSqlAgentServiceName(SqlConnection connection)
+        async Task<string> GetSqlAgentServiceName(SqlConnection connection, CancellationToken cancellationToken)
         {
-            var n = (await connection.GetServerPropertyAsync("InstanceName"))?.TrimOrNull() ?? "MSSQLSERVER";
+            var n = (await connection.GetServerPropertyAsync("InstanceName", cancellationToken))?.TrimOrNull() ?? "MSSQLSERVER";
             var s = n == "MSSQLSERVER" ? "SQLSERVERAGENT" : "SQLAgent$" + n;
             return s;
         }
@@ -274,14 +283,15 @@ namespace Cogito.SqlServer.Deployment
         /// Attempts to get the server name.
         /// </summary>
         /// <param name="dataSource"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task<string> TryGetServerName(string dataSource)
+        async Task<string> TryGetServerName(string dataSource, CancellationToken cancellationToken)
         {
             try
             {
                 // pull actual instance name from server itself
-                using var cnn = await OpenConnectionAsync(dataSource);
-                return (string)await cnn.ExecuteScalarAsync((string)$@"SELECT CAST(SERVERPROPERTY('ServerName') AS nvarchar(256))");
+                using var cnn = await OpenConnectionAsync(dataSource, cancellationToken);
+                return await cnn.GetServerNameAsync(cancellationToken);
             }
             catch (SqlException)
             {
@@ -293,8 +303,9 @@ namespace Cogito.SqlServer.Deployment
         /// Ensures the specified SQL server instance is installed.
         /// </summary>
         /// <param name="instanceName"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task InstallSqlServer(string instanceName)
+        async Task InstallSqlServer(string instanceName, CancellationToken cancellationToken)
         {
             if (SetupExe != null)
             {
@@ -302,7 +313,7 @@ namespace Cogito.SqlServer.Deployment
                     throw new FileNotFoundException($"Unable to find {SetupExe}.");
 
                 // run setup
-                var exitCode = await RunInstallAction(SetupExe, instanceName);
+                var exitCode = await RunInstallAction(SetupExe, instanceName, cancellationToken);
                 if (exitCode != 0)
                     throw new InvalidOperationException($"Setup exited with exit code {exitCode}.");
             }
@@ -319,12 +330,15 @@ namespace Cogito.SqlServer.Deployment
                     ["/ACTION"] = "Download",
                     ["/MEDIAPATH"] = media,
                     ["/MEDIATYPE"] = "Advanced",
-                });
+                }, cancellationToken);
                 if (downloadExitCode != 0)
                     throw new InvalidOperationException($"Setup exited with exit code {downloadExitCode}.");
 
+                // exit after download?
+                cancellationToken.ThrowIfCancellationRequested();
+
                 // run setup
-                var exitCode = await RunInstallAction(Path.Combine(media, "SQLEXPRADV_x64_ENU.exe"), instanceName);
+                var exitCode = await RunInstallAction(Path.Combine(media, "SQLEXPRADV_x64_ENU.exe"), instanceName, cancellationToken);
                 if (exitCode != 0)
                     throw new InvalidOperationException($"Setup exited with exit code {exitCode}.");
             }
@@ -335,8 +349,9 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         /// <param name="executable"></param>
         /// <param name="instanceName"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task<int> RunInstallAction(string executable, string instanceName)
+        async Task<int> RunInstallAction(string executable, string instanceName, CancellationToken cancellationToken)
         {
             if (executable == null)
                 throw new ArgumentNullException(nameof(executable));
@@ -349,9 +364,9 @@ namespace Cogito.SqlServer.Deployment
                 ["/ACTION"] = "Install",
                 ["/FEATURES"] = "SQL",
                 ["/INSTANCENAME"] = instanceName,
-                ["/SQLSYSADMINACCOUNTS"] = System.Security.Principal.WindowsIdentity.GetCurrent().Name,
+                ["/SQLSYSADMINACCOUNTS"] = WindowsIdentity.GetCurrent().Name,
                 ["/IACCEPTSQLSERVERLICENSETERMS"] = null,
-            });
+            }, cancellationToken);
         }
 
         /// <summary>
@@ -360,7 +375,7 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="path"></param>
         /// <param name="arguments"></param>
         /// <returns></returns>
-        async Task<int> RunSqlExeAsync(string path, Dictionary<string, string> arguments)
+        async Task<int> RunSqlExeAsync(string path, Dictionary<string, string> arguments, CancellationToken cancellationToken)
         {
             if (new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator) == false)
                 throw new SecurityException("Adminstrator access is required to install SQL server locally.");
