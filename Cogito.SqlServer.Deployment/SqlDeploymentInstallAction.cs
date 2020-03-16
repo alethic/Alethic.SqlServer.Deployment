@@ -28,16 +28,14 @@ namespace Cogito.SqlServer.Deployment
     public class SqlDeploymentInstallAction : SqlDeploymentAction
     {
 
-        /// <summary>
-        /// Returns <c>true</c> if the currnet user is a local administrator.
-        /// </summary>
-        static bool IsAdmin => new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
-
         const string DEFAULT_INSTANCE_NAME = @"MSSQLSERVER";
         const string SQL_EXPRESS_URI = @"https://download.microsoft.com/download/2/1/6/216eb471-e637-4517-97a6-b247d8051759/SQL2019-SSEI-Expr.exe";
         const string SQL_EXPRESS_MD5 = "5B232C8BB56935B9E99A09D97D3494EA";
-        static readonly Lazy<Task<string>> SETUP = new Lazy<Task<string>>(() => Task.Run(() => GetSqlExpressInstaller()), true);
-        static readonly AsyncLock SYNC = new AsyncLock();
+
+        static readonly AsyncMutex Mutex = new AsyncMutex("Cogito.SqlServer.Deployment.SqlDeploymentInstallAction");
+        static readonly Lazy<Task<string>> SetupTask = new Lazy<Task<string>>(() => Task.Run(() => GetSqlExpressInstaller()), true);
+
+        static bool IsAdmin => new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
 
         /// <summary>
         /// Gets the path to the SQL Express installer.
@@ -135,56 +133,60 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
         {
-            // attempt to refresh server name
-            var serverName = await TryGetServerName(InstanceName) ?? InstanceName;
-
-            // parse instance name
-            var m = serverName.Split('\\');
-            var host = m.Length >= 1 ? m[0].TrimOrNull() : null;
-            var name = m.Length >= 2 ? m[1].TrimOrNull() : null;
-
-            // instance requires host name
-            if (host == null)
-                throw new InvalidOperationException("Missing host name for instance.");
-
-            // fallback to default
-            if (name == null)
-                name = DEFAULT_INSTANCE_NAME;
-
-            // instance is local
-            if (GetLocalServerNames().Any(i => host.Equals(i, StringComparison.OrdinalIgnoreCase)))
+            // only allow one installation task to proceed at a time
+            using (await Mutex.WaitOneAsync())
             {
-                // install instance if missing
-                if (GetLocalInstances().Contains(serverName, StringComparer.OrdinalIgnoreCase) == false)
-                    await InstallSqlServer(name);
+                // attempt to refresh server name
+                var serverName = await TryGetServerName(InstanceName) ?? InstanceName;
 
-                // test connection and return instance
-                if (await TryGetServerName(InstanceName) is string s)
+                // parse instance name
+                var m = serverName.Split('\\');
+                var host = m.Length >= 1 ? m[0].TrimOrNull() : null;
+                var name = m.Length >= 2 ? m[1].TrimOrNull() : null;
+
+                // instance requires host name
+                if (host == null)
+                    throw new InvalidOperationException("Missing host name for instance.");
+
+                // fallback to default
+                if (name == null)
+                    name = DEFAULT_INSTANCE_NAME;
+
+                // instance is local
+                if (GetLocalServerNames().Any(i => host.Equals(i, StringComparison.OrdinalIgnoreCase)))
                 {
-                    // required for deployment
-                    if (await IsSysAdmin(InstanceName) != true)
-                        throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
+                    // install instance if missing
+                    if (GetLocalInstances().Contains(serverName, StringComparer.OrdinalIgnoreCase) == false)
+                        await InstallSqlServer(name);
 
-                    await ConfigureSqlAgent(InstanceName);
-                    return;
+                    // test connection and return instance
+                    if (await TryGetServerName(InstanceName) is string s)
+                    {
+                        // required for deployment
+                        if (await IsSysAdmin(InstanceName) != true)
+                            throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
+
+                        await ConfigureSqlAgent(InstanceName);
+                        return;
+                    }
+
+                    throw new InvalidOperationException("Could not establish connection to local server.");
                 }
-
-                throw new InvalidOperationException("Could not establish connection to local server.");
-            }
-            else
-            {
-                // test connection and return instance
-                if (await TryGetServerName(InstanceName) is string s)
+                else
                 {
-                    // required for deployment
-                    if (await IsSysAdmin(InstanceName) != true)
-                        throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
+                    // test connection and return instance
+                    if (await TryGetServerName(InstanceName) is string s)
+                    {
+                        // required for deployment
+                        if (await IsSysAdmin(InstanceName) != true)
+                            throw new InvalidOperationException("Unable to verify membership in sysadmin role.");
 
-                    await ConfigureSqlAgent(InstanceName);
-                    return;
+                        await ConfigureSqlAgent(InstanceName);
+                        return;
+                    }
+
+                    throw new NotSupportedException("Unable to connect to remote instance, and creation of remote instance is not supported.");
                 }
-
-                throw new NotSupportedException("Unable to connect to remote instance, and creation of remote instance is not supported.");
             }
         }
 
@@ -287,41 +289,37 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         async Task InstallSqlServer(string instanceName)
         {
-            // one instance at a time
-            using (await SYNC.LockAsync())
+            if (SetupExe != null)
             {
-                if (SetupExe != null)
+                if (File.Exists(SetupExe) == false)
+                    throw new FileNotFoundException($"Unable to find {SetupExe}.");
+
+                // run setup
+                var exitCode = await RunInstallAction(SetupExe, instanceName);
+                if (exitCode != 0)
+                    throw new InvalidOperationException($"Setup exited with exit code {exitCode}.");
+            }
+            else
+            {
+                // lets run the setup
+                var setup = await SetupTask.Value;
+                var media = Path.Combine(Path.GetTempPath(), "SQLServer2019Media");
+
+                // run setup to download installer files
+                var downloadExitCode = await RunSqlExeAsync(setup, new Dictionary<string, string>()
                 {
-                    if (File.Exists(SetupExe) == false)
-                        throw new FileNotFoundException($"Unable to find {SetupExe}.");
+                    ["/Q"] = null,
+                    ["/ACTION"] = "Download",
+                    ["/MEDIAPATH"] = media,
+                    ["/MEDIATYPE"] = "Advanced",
+                });
+                if (downloadExitCode != 0)
+                    throw new InvalidOperationException($"Setup exited with exit code {downloadExitCode}.");
 
-                    // run setup
-                    var exitCode = await RunInstallAction(SetupExe, instanceName);
-                    if (exitCode != 0)
-                        throw new InvalidOperationException($"Setup exited with exit code {exitCode}.");
-                }
-                else
-                {
-                    // lets run the setup
-                    var setup = await SETUP.Value;
-                    var media = Path.Combine(Path.GetTempPath(), "SQLServer2019Media");
-
-                    // run setup to download installer files
-                    var downloadExitCode = await RunSqlExeAsync(setup, new Dictionary<string, string>()
-                    {
-                        ["/Q"] = null,
-                        ["/ACTION"] = "Download",
-                        ["/MEDIAPATH"] = media,
-                        ["/MEDIATYPE"] = "Advanced",
-                    });
-                    if (downloadExitCode != 0)
-                        throw new InvalidOperationException($"Setup exited with exit code {downloadExitCode}.");
-
-                    // run setup
-                    var exitCode = await RunInstallAction(Path.Combine(media, "SQLEXPRADV_x64_ENU.exe"), instanceName);
-                    if (exitCode != 0)
-                        throw new InvalidOperationException($"Setup exited with exit code {exitCode}.");
-                }
+                // run setup
+                var exitCode = await RunInstallAction(Path.Combine(media, "SQLEXPRADV_x64_ENU.exe"), instanceName);
+                if (exitCode != 0)
+                    throw new InvalidOperationException($"Setup exited with exit code {exitCode}.");
             }
         }
 
