@@ -79,9 +79,12 @@ namespace Cogito.SqlServer.Deployment
 
             // configure distribution database if required
             var databaseName = DatabaseName ?? "distribution";
-            var currentDistributionDb = await cnn.ExecuteSpHelpDistributionDbAsync(databaseName, cancellationToken);
+            var currentDistributionDbs = await cnn.ExecuteSpHelpDistributionDbAsync(cancellationToken);
+            var currentDistributionDb = currentDistributionDbs.FirstOrDefault(i => i.Name == databaseName);
             if (currentDistributionDb == null)
             {
+                context.Logger?.LogInformation("Adding distribution database {DatabaseName} on {InstanceName}.", databaseName, InstanceName);
+
                 using var cmd = cnn.CreateCommand();
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.CommandText = "sp_adddistributiondb";

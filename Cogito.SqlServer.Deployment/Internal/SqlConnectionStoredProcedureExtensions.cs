@@ -283,6 +283,37 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// Executes the 'sp_helpdistributiondb' stored procedure.
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static async Task<HelpDistributionDbResults[]> ExecuteSpHelpDistributionDbAsync(
+            this SqlConnection connection,
+            CancellationToken cancellationToken = default)
+        {
+            var i = await connection.LoadDataTableAsync($"EXEC sp_helpdistributiondb", cancellationToken: cancellationToken);
+            if (i.Rows.Count < 1)
+                return null;
+
+            return i.Rows.Cast<DataRow>()
+                .Select(t => new HelpDistributionDbResults()
+                {
+                    Name = (string)t["name"],
+                    MinDistRetention = (int)t["min_distretention"],
+                    MaxDistRetention = (int)t["max_distretention"],
+                    HistoryRetention = (int)t["history_retention"],
+                    HistoryCleanupAgent = (string)t["history_cleanup_agent"],
+                    Status = (int)t["status"],
+                    DataFolder = (string)t["data_folder"],
+                    DataFile = (string)t["data_file"],
+                    LogFolder = (string)t["log_folder"],
+                    LogFile = (string)t["log_file"],
+                })
+                .ToArray();
+        }
+
+        /// <summary>
+        /// Executes the 'sp_helpdistributiondb' stored procedure.
+        /// </summary>
+        /// <param name="connection"></param>
         /// <param name="database"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
