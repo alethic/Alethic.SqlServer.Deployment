@@ -12,14 +12,15 @@ build:
 
 before_test:
   - ps: |-
-      mkdir "$env:TEMP\SQL2019"
-      Invoke-WebRequest -Uri "https://download.microsoft.com/download/b/8/c/b8ce1000-2e0b-4bc8-b4e4-646e9a439525/SQL2019-SSEI-Dev.exe" -OutFile "$env:TEMP\SQL2019-SSEI-Dev.exe"
+      mkdir "$env:TEMP\SQL2019" | Out-Null
+      Invoke-WebRequest -Uri "https://download.microsoft.com/download/b/8/c/b8ce1000-2e0b-4bc8-b4e4-646e9a439525/SQL2019-SSEI-Dev.exe" -OutFile "$env:TEMP\SQL2019-SSEI-Dev.exe" | Out-Null
       & "$env:TEMP\SQL2019-SSEI-Dev.exe" /Quiet /Action=Download /MediaType=CAB /MediaPath="$env:TEMP\SQL2019" | Out-Null
       & "$env:TEMP\SQL2019\SQLServer2019-DEV-x64-ENU.exe" /q /x:"$env:TEMP\SQL2019\media" | Out-Null
   - ps: |-
       $x = Select-Xml -Path 'Cogito.SqlServer.Deployment.runsettings' -XPath '//RunSettings/TestRunParameters/Parameter[@name="SqlSetupExePath"]'
       $x.Node.value = "$env:TEMP\SQL2019\media\setup.exe"
       $x.Node.OwnerDocument.Save('Cogito.SqlServer.Deployment.runsettings')
+      gc Cogito.SqlServer.Deployment.runsettings
 
 artifacts:
   - path: pkg\*.nupkg
