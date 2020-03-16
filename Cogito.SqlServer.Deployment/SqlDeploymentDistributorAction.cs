@@ -38,14 +38,32 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         public string AdminPassword { get; internal set; }
 
+        /// <summary>
+        /// Gets the minimum retention period, in hours.
+        /// </summary>
         public int? MinimumRetention { get; internal set; }
 
+        /// <summary>
+        /// Gets the maximum retention period, in hours.
+        /// </summary>
         public int? MaximumRetention { get; internal set; }
 
+        /// <summary>
+        /// Gets the number of hours to retain history.
+        /// </summary>
         public int? HistoryRetention { get; internal set; }
 
+        /// <summary>
+        /// Gets the path to snapshot output for this distributor.
+        /// </summary>
         public string SnapshotPath { get; internal set; }
 
+        /// <summary>
+        /// Configures the distributor.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public override async Task Execute(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var cnn = await OpenConnectionAsync(cancellationToken);

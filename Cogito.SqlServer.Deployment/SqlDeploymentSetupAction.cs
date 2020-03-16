@@ -240,9 +240,12 @@ namespace Cogito.SqlServer.Deployment
             if (IsAdmin)
             {
                 // start agent if stopped
-                using (var controller = new ServiceController(await GetSqlAgentServiceName(cnn), await cnn.GetFullyQualifiedServerName()))
-                    if (controller.Status == ServiceControllerStatus.Stopped)
-                        controller.Start();
+                using var controller = new ServiceController(await GetSqlAgentServiceName(cnn), await cnn.GetFullyQualifiedServerName());
+                if (controller.Status == ServiceControllerStatus.Stopped)
+                {
+                    controller.Start();
+                    controller.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromMinutes(1));
+                }
             }
         }
 
