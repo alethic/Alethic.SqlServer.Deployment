@@ -19,7 +19,7 @@ namespace Cogito.SqlServer.Deployment.Tests
         {
             return new Dictionary<string, string>()
             {
-                ["SetupExePath"] = (string)TestContext.Properties["SqlSetupExePath"]
+                ["SetupExePath"] = (string)TestContext.Properties["SqlSetupExePath"],
             };
         }
 

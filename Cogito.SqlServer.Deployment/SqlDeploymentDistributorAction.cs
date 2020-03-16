@@ -10,6 +10,7 @@ using Cogito.Collections;
 using Cogito.SqlServer.Deployment.Internal;
 
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 
 namespace Cogito.SqlServer.Deployment
 {
@@ -59,18 +60,24 @@ namespace Cogito.SqlServer.Deployment
             // configure as distributor if required
             var currentDistributorName = (string)await cnn.ExecuteScalarAsync($"SELECT name FROM sys.servers WHERE is_distributor = 1");
             if (currentDistributorName != "repl_distributor")
+            {
+                context.Logger?.LogInformation("Creating distributor on {InstanceName}.", InstanceName);
                 await cnn.ExecuteNonQueryAsync($@"
                     EXEC sp_adddistributor
                         @distributor = {distributorName},
                         @password = {AdminPassword}");
+            }
 
             // reset distributor password, if specified
             if (AdminPassword != null)
+            {
+                context.Logger?.LogInformation("Setting distributor password on {InstanceName}.", InstanceName);
                 await cnn.ExecuteNonQueryAsync($@"
                     EXEC sp_changedistributor_password
                         @password = {AdminPassword}");
+            }
 
-            // confgiure distribution database if required
+            // configure distribution database if required
             var databaseName = DatabaseName ?? "distribution";
             var currentDistributionDb = await cnn.ExecuteSpHelpDistributionDbAsync(databaseName, cancellationToken);
             if (currentDistributionDb == null)
