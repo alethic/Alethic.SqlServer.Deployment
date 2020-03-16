@@ -244,7 +244,7 @@ namespace Cogito.SqlServer.Deployment
             try
             {
                 // pull actual instance name from server itself
-                using var cnn = await OpenConnectionAsync(InstanceName, cancellationToken);
+                using var cnn = await OpenConnectionAsync(cancellationToken);
                 return await cnn.GetServerNameAsync(cancellationToken);
             }
             catch (SqlException)
