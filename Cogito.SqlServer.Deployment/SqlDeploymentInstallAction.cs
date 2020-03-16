@@ -299,6 +299,9 @@ namespace Cogito.SqlServer.Deployment
                 if (exitCode != 0)
                     throw new InvalidOperationException($"Setup exited with exit code {exitCode}.");
             }
+
+            // just to ensure everything is cleared out
+            await Task.Delay(TimeSpan.FromSeconds(5));
         }
 
         /// <summary>
