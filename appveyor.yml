@@ -19,8 +19,12 @@ before_test:
   - ps: |-
       $x = Select-Xml -Path 'Cogito.SqlServer.Deployment.runsettings' -XPath '//RunSettings/TestRunParameters/Parameter[@name="SqlSetupExePath"]'
       $x.Node.value = "$env:TEMP\SQL2019\media\setup.exe"
+      $x.Node.value
       $x.Node.OwnerDocument.Save('Cogito.SqlServer.Deployment.runsettings')
       gc Cogito.SqlServer.Deployment.runsettings
+
+test_script:
+  - cmd: dotnet test Cogito.SqlServer.Deployment.sln 
 
 artifacts:
   - path: pkg\*.nupkg

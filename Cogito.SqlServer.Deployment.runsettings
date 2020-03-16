@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 
 <RunSettings>
     <TestRunParameters>
-        <Parameter name="SqlSetupExePath" value="" />
+        <Parameter name="SqlSetupExePath" value="C:\Users\wasabi\AppData\Local\Temp\SQL2019\media\setup.exe" />
     </TestRunParameters>
 </RunSettings>
