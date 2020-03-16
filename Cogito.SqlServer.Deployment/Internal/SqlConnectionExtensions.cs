@@ -288,7 +288,7 @@ namespace Cogito.SqlServer.Deployment.Internal
             var d = (string)await connection.ExecuteScalarAsync($@"
                 DECLARE @DomainName nvarchar(256)
                 EXEC    master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\Services\Tcpip\Parameters', N'Domain', @DomainName OUTPUT
-                SELECT  @DomainName",
+                SELECT  COALESCE(@DomainName, '')",
                 cancellationToken: cancellationToken);
 
             return d?.TrimOrNull();
