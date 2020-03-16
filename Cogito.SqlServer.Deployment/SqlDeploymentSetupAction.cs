@@ -29,6 +29,11 @@ namespace Cogito.SqlServer.Deployment
     {
 
         /// <summary>
+        /// Globally locks any install actions.
+        /// </summary>
+        static readonly Mutex Mutex = new Mutex(false, "Cogito.SqlServer.Deployment::SqlDeploymentInstallAction");
+
+        /// <summary>
         /// Returns <c>true</c> if the currnet user is a local administrator.
         /// </summary>
         static bool IsAdmin => new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);

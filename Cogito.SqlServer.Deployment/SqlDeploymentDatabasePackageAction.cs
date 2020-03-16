@@ -277,8 +277,12 @@ namespace Cogito.SqlServer.Deployment
             {
                 try
                 {
-                    cnn.ChangeDatabase("master");
-                    await cnn.ReleaseAppLock($"DATABASE::{Name}");
+                    // we might have been closed as part of the error
+                    if (cnn.State == ConnectionState.Open)
+                    {
+                        cnn.ChangeDatabase("master");
+                        await cnn.ReleaseAppLock($"DATABASE::{Name}");
+                    }
                 }
                 catch (SqlException e)
                 {

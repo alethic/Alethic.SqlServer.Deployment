@@ -100,13 +100,7 @@
         <DependsOn Name="EFM" />
         <Instance Name="[EFM_InstanceName]">
             <Database Name="Exchange">
-                <Package Source="[PathToExchangeDacPac]">
-                    <DeployOptions>
-                        <SqlCommandVariableValues>
-                            <SqlCommandVariableValue Name="Foo" Value="Bar" />
-                        </SqlCommandVariableValues>
-                    </DeployOptions>
-                </Package>
+                <Package Source="[PathToExchangeDacPac]" />
             </Database>
         </Instance>
     </Target>
