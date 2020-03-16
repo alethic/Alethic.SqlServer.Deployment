@@ -3,7 +3,7 @@ configuration: Release
 platform: Any CPU
 
 cache:
-  - '%TEMP%\SQL2019' -> appveyor.yml
+- '%TEMP%\SQL2019' -> appveyor.yml
 
 before_build:
   - nuget restore
