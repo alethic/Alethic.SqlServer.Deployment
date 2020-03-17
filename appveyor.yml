@@ -3,7 +3,6 @@ configuration: Release
 platform: Any CPU
 
 cache:
-  - '%TEMP%\SQL2019'
   - 'packages'
   - '%USERPROFILE%\.nuget\packages'
 
