@@ -55,6 +55,36 @@ var p = d.Compile(new Dictionary<string, string>() {
 await new SqlDeploymentExecutor(p).ExecuteAsync();
 ```
 
+The `SqlDeploymentExecutor` can be retained and executed multiple times.
+
+```
+var d = SqlDeployment.Load("Example.xml");
+var p = d.Compile(new Dictionary<string, string>() {
+    ["PathToDacPacA"] = "A.dacpac",
+    ["PathToDacPacB"] = "B.dacpac",
+});
+
+var e = new SqlDeploymentExecutor(p);
+await e.ExecuteAsync("TargetA");
+await e.ExecuteAsync("TargetB");
+```
+
+Or it can be retained and executed multiple times concurrently from different parts of the code. This would allow multiple unit tests to concurrently obtain the same `SqlDeploymentExecutor` instance and execute different (or the same) targets concurrently so as not to break parallel unit test execution.
+
+```
+var d = SqlDeployment.Load("Example.xml");
+var p = d.Compile(new Dictionary<string, string>() {
+    ["PathToDacPacA"] = "A.dacpac",
+    ["PathToDacPacB"] = "B.dacpac",
+});
+
+var e = new SqlDeploymentExecutor(p);
+var t1 = Task.Run(() => e.ExecuteAsync("TargetA"));
+var t2 = Task.Run(() => e.ExecuteAsync("TargetB"));
+await Task.WhenAll(t1, t2);
+```
+
+
 ## Tool
 A .NET Core Global Tool is available as `Cogito.SqlServer.Deployment.Tool`. This tool supports a `deploy` command, accepting the manifest path as an argument; along with additional `-a` arguments to specify arguments.
 
