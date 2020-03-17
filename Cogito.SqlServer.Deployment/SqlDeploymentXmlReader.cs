@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
@@ -25,13 +26,49 @@ namespace Cogito.SqlServer.Deployment
         static readonly XNamespace Xmlns = SqlDeploymentXml.Xmlns;
 
         /// <summary>
+        /// Loads a <see cref="SqlDeployment"/> from the specified <see cref="TextReader"/>.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static SqlDeployment Load(string path)
+        {
+            using var rdr = File.OpenRead(path);
+            return Load(rdr, path);
+        }
+
+        /// <summary>
+        /// Loads a <see cref="SqlDeployment"/> from the specified <see cref="TextReader"/>.
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="baseUri"></param>
+        /// <returns></returns>
+        public static SqlDeployment Load(Stream stream, string baseUri = null)
+        {
+            using var rdr = XmlReader.Create(stream, null, baseUri);
+            return Load(rdr);
+        }
+
+        /// <summary>
+        /// Loads a <see cref="SqlDeployment"/> from the specified <see cref="TextReader"/>.
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="baseUri"></param>
+        /// <returns></returns>
+        public static SqlDeployment Load(TextReader reader, string baseUri = null)
+        {
+            using var xml = XmlReader.Create(reader, null, baseUri);
+            return Load(xml);
+        }
+
+        /// <summary>
         /// Loads a <see cref="SqlDeployment"/> from the specified <see cref="XmlReader"/>.
         /// </summary>
         /// <param name="reader"></param>
+        /// <param name="baseUri"></param>
         /// <returns></returns>
         public static SqlDeployment Load(XmlReader reader)
         {
-            return Load(XDocument.Load(reader));
+            return Load(XDocument.Load(reader, LoadOptions.SetBaseUri));
         }
 
         /// <summary>
@@ -48,6 +85,7 @@ namespace Cogito.SqlServer.Deployment
         /// Loads a <see cref="SqlDeployment"/> from the specified <see cref="XElement"/>.
         /// </summary>
         /// <param name="xml"></param>
+        /// <param name="baseUri"></param>
         /// <returns></returns>
         public static SqlDeployment Load(XElement xml, string baseUri = null)
         {

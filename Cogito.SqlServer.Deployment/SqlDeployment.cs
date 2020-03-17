@@ -36,6 +36,27 @@ namespace Cogito.SqlServer.Deployment
         public static SqlDeployment Load(XmlReader reader) => SqlDeploymentXmlReader.Load(reader);
 
         /// <summary>
+        /// Loads a <see cref="SqlDeployment"/> from the specified <see cref="TextReader"/>.
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
+        public static SqlDeployment Load(TextReader reader, string baseUri = null) => SqlDeploymentXmlReader.Load(reader, baseUri);
+
+        /// <summary>
+        /// Loads a <see cref="SqlDeployment"/> from the specified <see cref="Stream"/>.
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <returns></returns>
+        public static SqlDeployment Load(Stream stream, string baseUri = null) => SqlDeploymentXmlReader.Load(stream, baseUri);
+
+        /// <summary>
+        /// Loads a <see cref="SqlDeployment"/> from the specified file path.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public static SqlDeployment Load(string file) => SqlDeploymentXmlReader.Load(file);
+
+        /// <summary>
         /// Gets the path to the loaded manifest, if available.
         /// </summary>
         public string SourcePath { get; set; }
