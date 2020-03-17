@@ -45,7 +45,7 @@ This build framework operates by injecting MSBuild targets into referenced `.sql
 
 Determinism of DACPACs is accomplished by repackaging the DACPAC: removing absolute paths from the `model.xml` file, resetting internal timestamps in the `Origin.xml` file, and rebuilding the DACPAC archive without file timestamps.
 
-To make use of this, install the `Cogito.SqlServer.Deployment.Build` NuGet package into your C# project. Then, add a `<ProjectReference>` to the C# project referencing the SSDT project. Then apply the special `CopySqlProjectOutput` metadata item to that `<ProjectReference>` element:
+To make use of this, install the `Cogito.SqlServer.Deployment.Build` NuGet package into your C# project. Then, add a `<ProjectReference>` to the C# project referencing the SSDT project. Then apply the special `CopySqlProjectOutput` metadata item to that `<ProjectReference>` element. During build of the C# project the `.dacpac` will be copied to the output path and included with the application during publish.
 
 ```
 <ProjectReference Include="..\Foo\Bar.sqlproj">
