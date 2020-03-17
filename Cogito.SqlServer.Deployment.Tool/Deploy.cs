@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,7 +8,6 @@ using System.Xml.Linq;
 
 using McMaster.Extensions.CommandLineUtils;
 
-using Microsoft.Build.Framework;
 using Microsoft.Extensions.Logging;
 
 namespace Cogito.SqlServer.Deployment.Tool
@@ -20,6 +20,17 @@ namespace Cogito.SqlServer.Deployment.Tool
     class Deploy
     {
 
+        readonly ILogger logger;
+
+        /// <summary>
+        /// Initializes a new instance.
+        /// </summary>
+        /// <param name="logger"></param>
+        public Deploy(ILogger<SqlDeploymentExecutor> logger)
+        {
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
         /// <summary>
         /// Gets the parent program.
         /// </summary>
@@ -29,8 +40,8 @@ namespace Cogito.SqlServer.Deployment.Tool
         /// Gets or sets the path to the SQL deployment manifest file.
         /// </summary>
         [Argument(0, "manifest", "deployment manifest file")]
-        [Required]
         [FileExists]
+        [Required]
         public string Manifest { get; set; }
 
         /// <summary>
@@ -51,13 +62,10 @@ namespace Cogito.SqlServer.Deployment.Tool
         /// <returns></returns>
         public async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
-            using var f = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(Parent.Debug ? LogLevel.Trace : LogLevel.Information));
-            var l = f.CreateLogger("SqlDeployment");
-
             var manifest = Path.IsPathFullyQualified(Manifest) == false ? Path.GetFullPath(Manifest, Environment.CurrentDirectory) : Manifest;
             if (File.Exists(manifest) == false)
             {
-                l.LogError("Could not find SQL Deployment manifest file: {Manifest}.", manifest);
+                logger.LogError("Could not find SQL Deployment manifest file: {Manifest}.", manifest);
                 return 1;
             }
 
@@ -76,13 +84,13 @@ namespace Cogito.SqlServer.Deployment.Tool
 
                 // execute plan with specified targets
                 if (Targets.Count > 0)
-                    await new SqlDeploymentExecutor(plan, l).ExecuteAsync(Targets.ToArray());
+                    await new SqlDeploymentExecutor(plan, logger).ExecuteAsync(Targets.ToArray());
                 else
-                    await new SqlDeploymentExecutor(plan, l).ExecuteAsync();
+                    await new SqlDeploymentExecutor(plan, logger).ExecuteAsync();
             }
-            catch (SqlDeploymentException e)
+            catch (Exception e)
             {
-                l.LogError(e, "Unable to compile or execute SQL deployment.");
+                logger.LogError(e, "Unable to compile or execute SQL deployment.");
                 return 1;
             }
 

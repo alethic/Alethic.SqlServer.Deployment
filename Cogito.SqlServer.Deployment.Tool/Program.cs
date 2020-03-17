@@ -1,32 +1,40 @@
 ﻿using System;
-using System.IO;
+using System.Threading.Tasks;
 
 using McMaster.Extensions.CommandLineUtils;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Cogito.SqlServer.Deployment.Tool
 {
 
     [Command]
+    [HelpOption]
     [Subcommand(typeof(Deploy))]
     [Subcommand(typeof(License))]
     public partial class Program
     {
 
-        public static int Main(string[] args)
+        /// <summary>
+        /// Main application entry point.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static async Task<int> Main(string[] args)
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(@"Cogito SQL Server Deployment Tool");
             Console.WriteLine(@"Copyright 2020 Jerome Haltom");
             Console.WriteLine();
             Console.ResetColor();
-            return CommandLineApplication.Execute<Program>(args);
-        }
 
-        /// <summary>
-        /// Sets whether or not debug level output will be produced.
-        /// </summary>
-        [Option("-d | --debug", Description = "enable debug mode", Inherited = true)]
-        public bool Debug { get; set; } = false;
+            return await new HostBuilder()
+                .ConfigureLogging(o => o.AddConsole().SetMinimumLevel(LogLevel.Information))
+                .ConfigureServices((ctx, svc) => svc.AddSingleton(PhysicalConsole.Singleton))
+                .RunCommandLineApplicationAsync<Program>(args);
+        }
 
         /// <summary>
         /// Executes the command.
@@ -36,7 +44,8 @@ namespace Cogito.SqlServer.Deployment.Tool
         /// <returns></returns>
         public int OnExecute(CommandLineApplication app, IConsole console)
         {
-            console.Error.Write("You must specify a subcommand.");
+            console.Error.WriteLine("You must specify a subcommand.");
+            console.Error.WriteLine();
             app.ShowHelp();
             return 1;
         }

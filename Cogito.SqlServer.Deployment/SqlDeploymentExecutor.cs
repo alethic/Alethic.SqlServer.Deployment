@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Cogito.Collections;
 using Cogito.SqlServer.Deployment.Internal;
 
@@ -38,9 +39,11 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public Task ExecuteAsync(CancellationToken cancellationToken = default)
+        public async Task ExecuteAsync(CancellationToken cancellationToken = default)
         {
-            return ExecuteAsync(new SqlDeploymentExecuteContext(logger), plan.Targets.Values, cancellationToken);
+            logger.LogInformation("Executing all targets...");
+            await ExecuteAsync(new SqlDeploymentExecuteContext(logger), plan.Targets.Values, cancellationToken);
+            logger.LogInformation("Done executing all targets.");
         }
 
         /// <summary>
@@ -49,12 +52,14 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="targetName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public Task ExecuteAsync(string targetName, CancellationToken cancellationToken = default)
+        public async Task ExecuteAsync(string targetName, CancellationToken cancellationToken = default)
         {
             if (targetName is null)
                 throw new ArgumentNullException(nameof(targetName));
 
-            return ExecuteAsync(new SqlDeploymentExecuteContext(logger), targetName, cancellationToken);
+            logger.LogInformation("Executing {Target}...", targetName);
+            await ExecuteAsync(new SqlDeploymentExecuteContext(logger), targetName, cancellationToken);
+            logger.LogInformation("Done executing {Target}.", targetName);
         }
 
         /// <summary>
@@ -63,13 +68,15 @@ namespace Cogito.SqlServer.Deployment
         /// <param name="targetNames"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public Task ExecuteAsync(string[] targetNames, CancellationToken cancellationToken = default)
+        public async Task ExecuteAsync(string[] targetNames, CancellationToken cancellationToken = default)
         {
             if (targetNames is null)
                 throw new ArgumentNullException(nameof(targetNames));
 
+            logger.LogInformation("Executing {Targets}...", targetNames);
             var targets = targetNames.Select(i => plan.Targets.GetOrDefault(i)).Where(i => i != null);
-            return ExecuteAsync(new SqlDeploymentExecuteContext(logger), targets, cancellationToken);
+            await ExecuteAsync(new SqlDeploymentExecuteContext(logger), targets, cancellationToken);
+            logger.LogInformation("Done executing {Targets}.", targetNames);
         }
 
         /// <summary>
@@ -159,9 +166,9 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         async Task ExecuteActionAsync(SqlDeploymentExecuteContext context, SqlDeploymentAction action, CancellationToken cancellationToken)
         {
-            context.Logger.LogInformation("Starting action {Action} against {InstanceName}.", action.GetType().FullName, action.InstanceName);
+            context.Logger.LogDebug("Starting action {Action} against {InstanceName}.", action.GetType().Name, action.InstanceName);
             await action.ExecuteAsync(context, cancellationToken);
-            context.Logger.LogInformation("Finished action {Action} against {InstanceName}.", action.GetType().FullName, action.InstanceName);
+            context.Logger.LogDebug("Finished action {Action} against {InstanceName}.", action.GetType().Name, action.InstanceName);
         }
 
         /// <summary>

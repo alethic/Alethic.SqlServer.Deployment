@@ -204,7 +204,7 @@ namespace Cogito.SqlServer.Deployment
             // check that existing database does not already exist with tag
             if (await IsOutOfDate(cnn, cancellationToken) == false)
             {
-                context.Logger.LogInformation("Database {Name} is up to date.", Name);
+                context.Logger.LogInformation("Database {Name} is up to date on {InstanceName}.", Name, InstanceName);
                 return;
             }
 
@@ -213,7 +213,7 @@ namespace Cogito.SqlServer.Deployment
                 // lock database for deployment
                 cnn.ChangeDatabase("master");
                 if (await cnn.GetAppLock($"DATABASE::{Name}", timeout: (int)TimeSpan.FromMinutes(5).TotalMilliseconds) < 0)
-                    throw new SqlDeploymentException($"Unable to acquire database lock on '{Name}'.");
+                    throw new SqlDeploymentException($"Unable to acquire database lock on '{Name}' at '{InstanceName}'.");
 
                 // load up the DAC services
                 using var dac = LoadDacPackage(Source);
@@ -256,7 +256,7 @@ namespace Cogito.SqlServer.Deployment
 
                 // deploy database
                 cnn.ChangeDatabase("master");
-                context.Logger.LogInformation("Publishing {DacPacFile} to {Instance}:{Database}.", Source, InstanceName, Name);
+                context.Logger.LogInformation("Publishing {DacPacFile} to {Database} at {InstanceName}.", Source, Name, InstanceName);
                 svc.Deploy(dac, Name, true, opt, cancellationToken);
 
                 // generate files for file groups
@@ -270,7 +270,7 @@ namespace Cogito.SqlServer.Deployment
             }
             catch (SqlException e)
             {
-                context.Logger.LogError(e, "Exception deploying DACPAC to {Name}.", Name);
+                context.Logger.LogError(e, "Exception deploying DACPAC to {Name} at {InstanceName}.", Name, InstanceName);
                 throw;
             }
             finally
