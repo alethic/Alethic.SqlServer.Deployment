@@ -122,7 +122,21 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         Task ExecuteAsync(SqlDeploymentExecuteContext context, SqlDeploymentAction action, CancellationToken cancellationToken)
         {
-            return tasks.GetOrAdd(action, _ => new Lazy<AsyncJob<bool>>(() => new AsyncJob<bool>(async ct => { await _.ExecuteAsync(context, ct); return true; }), true)).Value.WaitAsync(cancellationToken);
+            return tasks.GetOrAdd(action, _ => new Lazy<AsyncJob<bool>>(() => new AsyncJob<bool>(async ct => { await ExecuteActionAsync(context, _, ct); return true; }), true)).Value.WaitAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Returns a task that is completed when the specified action is complete.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="action"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        async Task ExecuteActionAsync(SqlDeploymentExecuteContext context, SqlDeploymentAction action, CancellationToken cancellationToken)
+        {
+            context.Logger.LogInformation("Starting action {Action} against {InstanceName}.", action.GetType().FullName, action.InstanceName);
+            await action.ExecuteAsync(context, cancellationToken);
+            context.Logger.LogInformation("Finished action {Action} against {InstanceName}.", action.GetType().FullName, action.InstanceName);
         }
 
     }

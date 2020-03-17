@@ -14,7 +14,6 @@
                 SQLDBExtensionsRefPath=$(MSBuildThisFileDirectory);">
             <Output TaskParameter="TargetOutputs" ItemName="_SqlProjectOutput" />
         </MSBuild>
-        <Message Text="_SqlProjectOutput: @(_SqlProjectOutput)" Importance="high" />
         <ItemGroup>
             <SqlProjectItems Include="@(_SqlProjectOutput)" Condition=" '%(Extension)' != '.dacpac' " />
         </ItemGroup>
@@ -23,7 +22,6 @@
         <ItemGroup>
             <SqlPackageItems Include="@(_SqlProjectOutput->'$(IntermediateOutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" Condition=" '%(Extension)' == '.dacpac' " />
         </ItemGroup>
-        <Message Text="SqlPackageItems: @(SqlPackageItems)" Importance="high" />
         <ItemGroup>
             <ContentWithTargetPath Include="@(SqlPackageItems)">
                 <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -100,11 +98,11 @@
 
                 pkg.DeletePart(modelUri);
                 modelPart = pkg.CreatePart(modelUri, "text/xml", CompressionOption.Maximum);
-                using (XmlWriter wrt = XmlWriter.Create(modelPart.GetStream(), xmlWriterSettings))
+                using (var wrt = XmlWriter.Create(modelPart.GetStream(), xmlWriterSettings))
                     model.Save(wrt);
 
                 pkg.Flush();
-                
+
                 // compute hash of model file
                 var data = SHA256.Create().ComputeHash(pkg.GetPart(modelUri).GetStream());
                 var hash = BitConverter.ToString(data).Replace("-", "");
@@ -116,7 +114,7 @@
                     .FirstOrDefault(i => (string)i.Attribute("Uri") == modelUri.ToString());
                 if (modelChecksum != null)
                     modelChecksum.Value = hash;
-                
+
                 var identity = origin
                     .Elements(xns + "DacOrigin")
                     .Elements(xns + "Operation")
@@ -128,7 +126,7 @@
                     Array.Copy(data, 0, g, 0, 16);
                     identity.Value = new Guid(g).ToString();
                 }
-                
+
                 var start = origin
                     .Elements(xns + "DacOrigin")
                     .Elements(xns + "Operation")
@@ -136,7 +134,7 @@
                     .FirstOrDefault();
                 if (start != null)
                     start.Value = new DateTimeOffset(new DateTime(2000, 1, 1), TimeSpan.Zero).ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
-                
+
                 var end = origin
                     .Elements(xns + "DacOrigin")
                     .Elements(xns + "Operation")
@@ -147,7 +145,7 @@
 
                 pkg.DeletePart(originUri);
                 originPart = pkg.CreatePart(originUri, "text/xml", CompressionOption.Maximum);
-                using (XmlWriter wrt = XmlWriter.Create(originPart.GetStream(), xmlWriterSettings))
+                using (var wrt = XmlWriter.Create(originPart.GetStream(), xmlWriterSettings))
                     origin.Save(wrt);
 
                 pkg.Flush();
@@ -161,7 +159,7 @@
                 {
                     foreach (var srcEntry in srcZip.Entries)
                     {
-                        var tmpEntry = tmpZip.CreateEntry(srcEntry.Name);
+                        var tmpEntry = tmpZip.CreateEntry(srcEntry.Name, CompressionLevel.Optimal);
                         tmpEntry.LastWriteTime = new DateTimeOffset(new DateTime(2000, 1, 1), TimeSpan.Zero);
                         
                         using (var srcStream = srcEntry.Open())

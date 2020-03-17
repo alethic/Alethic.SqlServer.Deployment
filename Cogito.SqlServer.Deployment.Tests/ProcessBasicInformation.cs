@@ -29,11 +29,9 @@ namespace Cogito.SqlServer.Deployment.Tests
         internal static Process GetParentProcess(IntPtr handle)
         {
             var pbi = new ProcessBasicInformation();
-            var status = NtQueryInformationProcess(handle, 0, ref pbi, Marshal.SizeOf(pbi), out var returnLength);
+            var status = NtQueryInformationProcess(handle, 0, ref pbi, Marshal.SizeOf(pbi), out _);
             if (status != 0)
                 throw new Win32Exception(status);
-
-            new DateTimeOffset(new DateTime(2000, 1, 1), TimeSpan.Zero).ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
 
             try
             {

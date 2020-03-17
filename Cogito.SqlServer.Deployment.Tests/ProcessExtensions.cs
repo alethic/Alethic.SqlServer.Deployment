@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace Cogito.SqlServer.Deployment.Tests
 {
@@ -13,6 +14,9 @@ namespace Cogito.SqlServer.Deployment.Tests
         /// <returns>An instance of the Process class.</returns>
         public static Process GetParentProcess(this Process process)
         {
+            if (process is null)
+                throw new ArgumentNullException(nameof(process));
+
             return ProcessBasicInformation.GetParentProcess(process.Handle);
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -77,6 +78,24 @@ namespace Cogito.SqlServer.Deployment.Tests
             var p = d.Compile(GetArgs());
 
             await new SqlDeploymentExecutor(p, l.CreateLogger<SqlDeploymentExecutor>()).ExecuteAsync();
+        }
+
+        [TestMethod]
+        public async Task Should_allow_catchup_of_targets()
+        {
+            using var l = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Trace));
+            var x = XDocument.Load(File.OpenRead("local_test.xml"));
+            var d = SqlDeployment.Load(x);
+            var a = GetArgs();
+            var r = new Random();
+            var n = r.Next(0, int.MaxValue);
+            a["SQL_InstanceName"] = "(localdb)\\SQL_" + n.ToString("X8");
+            a["EFM_InstanceName"] = "(localdb)\\EFM_" + n.ToString("X8");
+            var p = d.Compile(a);
+
+            var e = new SqlDeploymentExecutor(p, l.CreateLogger<SqlDeploymentExecutor>());
+            await e.ExecuteAsync("SQL");
+            await e.ExecuteAsync("SQL_TO_EFM");
         }
 
     }
