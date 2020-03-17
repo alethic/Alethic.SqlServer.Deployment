@@ -1,5 +1,5 @@
 # Cogito.SqlServer.Deployment
-The `Cogito.SqlServer.Deployment` package provides a library to enable deployment and configuration, in batch, of SQL Server instances. Thought DACPACs provide a convient way to package the schema and objects associated with a single database; in a continuous deployment situation often other higher-level SQL Server configuration would be useful to deploy. For instance, Linked Servers. Or multiple DACPACs. Or complex replication topologies.
+The `Cogito.SqlServer.Deployment` package provides a library to enable deployment and configuration, in batch, of SQL Server instances. Though DACPACs provide a convient way to package the schema and objects associated with a single database; in a continuous deployment situation often other higher-level SQL Server configuration would be useful to deploy. For instance, Linked Servers. Or multiple DACPACs. Or complex replication topologies.
 
 ## Configuration
 `Cogito.SqlServer.Deployment` works by processing a SQL deployment manifest file. This file is an XML file which defines a number of named `Target` elements. Each `Target` element can contain one or more `Instance` elements. And within each `Instance` element configuration can be specified.
