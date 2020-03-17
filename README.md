@@ -45,5 +45,13 @@ This build framework operates by injecting MSBuild targets into dependency `.sql
 
 Determinism of DACPACs is accomplished by repackaging the DACPAC: removing absolute paths from the `model.xml` file, resetting internal timestamps in the `Origin.xml` file, and rebuilding the DACPAC archive without file timestamps.
 
+To make use of this, install the `Cogito.SqlServer.Deployment.Build` NuGet package into your C# project. Then, add a `<ProjectReference>` to the SSDT project. Then apply the special `CopySqlProjectOutput` metadata item to that `<ProjectReference>` element:
+
+```
+<ProjectReference Include="..\Foo\Bar.sqlproj">
+    <CopySqlProjectOutput>true</CopySqlProjectOutput>
+</ProjectReference>
+```
+
 ## Unit Testing
 In addition to deployment of environmental instances, unit testing against complex SQL server instances can be made more convienent by being able to deploy a complex SQL server topology to LocalDB instances.
