@@ -19,14 +19,23 @@ namespace Cogito.SqlServer.Deployment.Tool
     class Deploy
     {
 
+        /// <summary>
+        /// Gets or sets the path to the SQL deployment manifest file.
+        /// </summary>
         [Argument(0, "manifest", "deployment manifest file")]
         public string Manifest { get; set; }
 
-        [Option("-t | --target", "target name", CommandOptionType.SingleOrNoValue)]
-        public string Target { get; set; }
+        /// <summary>
+        /// Gets or sets the set of targets to be executed by the deployment.
+        /// </summary>
+        [Option("-t | --target", "target name to execute", CommandOptionType.MultipleValue)]
+        public List<string> Targets { get; set; } = new List<string>();
 
-        [Option("-p | --parameter", "parameter value", CommandOptionType.MultipleValue)]
-        public List<string> Parameters { get; set; }
+        /// <summary>
+        /// Gets or sets the parameter arguments to be passed to the deployment.
+        /// </summary>
+        [Option("-a | --argument", "argument to pass to deployment (Name=Value)", CommandOptionType.MultipleValue)]
+        public List<string> Arguments { get; set; } = new List<string>();
 
         /// <summary>
         /// Executes the deployment.
@@ -45,17 +54,23 @@ namespace Cogito.SqlServer.Deployment.Tool
             }
 
             // extract parameters
-            var args = Parameters
+            var arguments = Arguments
                 .Select(i => i.Split(new[] { '=' }, 2))
                 .ToDictionary(i => i[0], i => i.Length > 1 ? i[1] : null);
 
             // load SQL deployment
-            var dply = SqlDeployment.Load(XDocument.Load(manifest, LoadOptions.SetBaseUri));
+            var deployment = SqlDeployment.Load(XDocument.Load(manifest, LoadOptions.SetBaseUri));
 
             try
             {
-                var plan = dply.Compile(args, Path.GetDirectoryName(manifest));
-                await new SqlDeploymentExecutor(plan, l).ExecuteAsync();
+                // compile plan from manifest and parameters
+                var plan = deployment.Compile(arguments, Path.GetDirectoryName(manifest));
+
+                // execute plan with specified targets
+                if (Targets.Count > 0)
+                    await new SqlDeploymentExecutor(plan, l).ExecuteAsync(Targets.ToArray());
+                else
+                    await new SqlDeploymentExecutor(plan, l).ExecuteAsync();
             }
             catch (SqlDeploymentException e)
             {

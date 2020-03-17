@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Cogito.Collections;
 using Cogito.SqlServer.Deployment.Internal;
 
 using Microsoft.Extensions.Logging;
@@ -34,17 +34,42 @@ namespace Cogito.SqlServer.Deployment
         }
 
         /// <summary>
-        /// Executes the given target of the plan, or all targets.
+        /// Executes all targets of the plan.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task ExecuteAsync(CancellationToken cancellationToken = default)
+        {
+            return ExecuteAsync(new SqlDeploymentExecuteContext(logger), plan.Targets.Values, cancellationToken);
+        }
+
+        /// <summary>
+        /// Executes the given target of the plan.
         /// </summary>
         /// <param name="targetName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public Task ExecuteAsync(string targetName = null, CancellationToken cancellationToken = default)
+        public Task ExecuteAsync(string targetName, CancellationToken cancellationToken = default)
         {
-            if (targetName != null)
-                return ExecuteAsync(new SqlDeploymentExecuteContext(logger), targetName, cancellationToken);
-            else
-                return ExecuteAsync(new SqlDeploymentExecuteContext(logger), plan.Targets.Values, cancellationToken);
+            if (targetName is null)
+                throw new ArgumentNullException(nameof(targetName));
+
+            return ExecuteAsync(new SqlDeploymentExecuteContext(logger), targetName, cancellationToken);
+        }
+
+        /// <summary>
+        /// Executes the given targets of the plan.
+        /// </summary>
+        /// <param name="targetNames"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task ExecuteAsync(string[] targetNames, CancellationToken cancellationToken = default)
+        {
+            if (targetNames is null)
+                throw new ArgumentNullException(nameof(targetNames));
+
+            var targets = targetNames.Select(i => plan.Targets.GetOrDefault(i)).Where(i => i != null);
+            return ExecuteAsync(new SqlDeploymentExecuteContext(logger), targets, cancellationToken);
         }
 
         /// <summary>

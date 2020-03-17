@@ -11,12 +11,27 @@ namespace Cogito.SqlServer.Deployment
     {
 
         /// <summary>
-        /// Begins execution of the SQL deployment plan.
+        /// Executes all targets of the plan.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task ExecuteAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Executes the given target of the plan.
         /// </summary>
         /// <param name="targetName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task ExecuteAsync(string targetName = null, CancellationToken cancellationToken = default);
+        Task ExecuteAsync(string targetName, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Executes the given targets of the plan.
+        /// </summary>
+        /// <param name="targetNames"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task ExecuteAsync(string[] targetNames, CancellationToken cancellationToken = default);
 
     }
 

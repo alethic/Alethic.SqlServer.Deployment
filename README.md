@@ -32,10 +32,10 @@ The following example demonstrates the configuration of two LocalDB instances, e
 ```
 
 ## Tool
-A .NET Core Global Tool is available as `Cogito.SqlServer.Deployment.Tool`. This tool supports a `deploy` command, accepting the manifest path as an argument; along with additional `/p` arguments to specify parameters.
+A .NET Core Global Tool is available as `Cogito.SqlServer.Deployment.Tool`. This tool supports a `deploy` command, accepting the manifest path as an argument; along with additional `-a` arguments to specify arguments.
 
 ```
-dotnet sqldeploy Environment.xml -p:Foo=Bar
+dotnet sqldeploy Environment.xml -a Foo=Bar
 ```
 
 ## Unit Testing
