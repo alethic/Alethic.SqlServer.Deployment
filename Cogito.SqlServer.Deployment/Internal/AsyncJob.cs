@@ -161,6 +161,7 @@ namespace Cogito.SqlServer.Deployment.Internal
 
         readonly Func<CancellationToken, Task<TResult>> work;
         readonly object sync = new object();
+        readonly AsyncLock async = new AsyncLock();
 
         AsyncJobAttempt attempt;
         bool disposed;
@@ -191,11 +192,22 @@ namespace Cogito.SqlServer.Deployment.Internal
 
                 // initialize attempt
                 if (attempt == null)
-                    attempt = new AsyncJobAttempt(work, Exit);
+                    attempt = new AsyncJobAttempt(Work, Exit);
 
                 // subscribe new waiter
                 return attempt.WaitAsync(cancellationToken);
             }
+        }
+
+        /// <summary>
+        /// Executes the work within a lock to prevent double executions.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        async Task<TResult> Work(CancellationToken cancellationToken)
+        {
+            using (await async.LockAsync(cancellationToken))
+                return await work(cancellationToken);
         }
 
         /// <summary>
