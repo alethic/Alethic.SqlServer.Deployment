@@ -31,6 +31,30 @@ The following example demonstrates the configuration of two LocalDB instances, e
 </Deployment>
 ```
 
+This file, if saved as `Example.xml` can be executed from the .NET Core Global Tool:
+
+```
+sqldeploy deploy Example.xml -a PathToDacPacA=A.dacpac -a PathToDacPacB=B.dacpac
+```
+
+The single `TargetA` target can be deployed by including it on the command line:
+
+```
+sqldeploy deploy Example.xml TargetA -a PathToDacPacA=A.dacpac -a PathToDacPacB=B.dacpac
+```
+
+Additionally, from C#, the deployment manifest can be loaded, compiled into a plan, and executed:
+
+```
+var d = SqlDeployment.Load("Example.xml");
+var p = d.Compile(new Dictionary<string, string>() {
+    ["PathToDacPacA"] = "A.dacpac",
+    ["PathToDacPacB"] = "B.dacpac",
+});
+
+await new SqlDeploymentExecutor(p).ExecuteAsync();
+```
+
 ## Tool
 A .NET Core Global Tool is available as `Cogito.SqlServer.Deployment.Tool`. This tool supports a `deploy` command, accepting the manifest path as an argument; along with additional `-a` arguments to specify arguments.
 
