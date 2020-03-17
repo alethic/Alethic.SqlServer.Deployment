@@ -15,7 +15,7 @@ namespace Cogito.SqlServer.Deployment
     /// <summary>
     /// Maintains an execution context over a plan.
     /// </summary>
-    public class SqlDeploymentExecutor : ISqlDeploymentExecutor
+    public class SqlDeploymentExecutor : ISqlDeploymentExecutor, IDisposable
     {
 
         readonly SqlDeploymentPlan plan;
@@ -137,6 +137,41 @@ namespace Cogito.SqlServer.Deployment
             context.Logger.LogInformation("Starting action {Action} against {InstanceName}.", action.GetType().FullName, action.InstanceName);
             await action.ExecuteAsync(context, cancellationToken);
             context.Logger.LogInformation("Finished action {Action} against {InstanceName}.", action.GetType().FullName, action.InstanceName);
+        }
+
+        /// <summary>
+        /// Disposes of the instance.
+        /// </summary>
+        public void Dispose()
+        {
+            if (tasks != null)
+                foreach (var i in tasks)
+                    if (i.Value.IsValueCreated)
+                        TryDisposeJob(i.Value.Value);
+        }
+
+        /// <summary>
+        /// Attempts to dispose of the job.
+        /// </summary>
+        /// <param name="value"></param>
+        void TryDisposeJob(AsyncJob<bool> value)
+        {
+            try
+            {
+                value.Dispose();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        /// <summary>
+        /// Finalizes the instance.
+        /// </summary>
+        ~SqlDeploymentExecutor()
+        {
+            Dispose();
         }
 
     }

@@ -197,7 +197,7 @@ namespace Cogito.SqlServer.Deployment
         public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
         {
             if (File.Exists(Source) == false)
-                throw new FileNotFoundException("Missing DACPAC. Ensure project has been built successfully.", Source);
+                throw new FileNotFoundException($"Missing DACPAC '{Source}'. Ensure project has been built successfully.", Source);
 
             using var cnn = await OpenConnectionAsync(cancellationToken);
 

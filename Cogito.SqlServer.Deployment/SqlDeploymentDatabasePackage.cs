@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-
+using System.IO;
 using Microsoft.SqlServer.Dac;
 
 namespace Cogito.SqlServer.Deployment
@@ -35,7 +35,14 @@ namespace Cogito.SqlServer.Deployment
         public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context, string name)
         {
             if (Source != null)
-                yield return new SqlDeploymentDatabasePackageAction(context.InstanceName, name, Source.Expand(context), LoadProfile(context));
+            {
+                // ensure source path is absolute
+                var source = Source.Expand(context);
+                if (Path.IsPathRooted(source) == false)
+                    source = Path.Combine(context.RelativeRoot, source);
+
+                yield return new SqlDeploymentDatabasePackageAction(context.InstanceName, name, source, LoadProfile(context));
+            }
         }
 
         /// <summary>
@@ -45,7 +52,18 @@ namespace Cogito.SqlServer.Deployment
         /// <returns></returns>
         DacProfile LoadProfile(SqlDeploymentCompileContext context)
         {
-            var profile = ProfileSource != null ? DacProfile.Load(ProfileSource.Value.Expand(context)) : new DacProfile();
+            var profile = new DacProfile();
+
+            // load external profile source
+            if (ProfileSource != null)
+            {
+                // ensure path is rooted
+                var source = ProfileSource.Value.Expand(context);
+                if (Path.IsPathRooted(source) == false)
+                    source = Path.Combine(context.RelativeRoot, source);
+
+                profile = DacProfile.Load(source);
+            }
 
             if (DeployOptions.AdditionalDeploymentContributorArguments != null)
                 profile.DeployOptions.AdditionalDeploymentContributorArguments = DeployOptions.AdditionalDeploymentContributorArguments.Value.Expand<string>(context);

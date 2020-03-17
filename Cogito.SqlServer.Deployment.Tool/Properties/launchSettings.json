@@ -1,8 +1,8 @@
 {
-  "profiles": {
-    "Cogito.SqlServer.Deployment.Tool": {
-      "commandName": "Project",
-      "commandLineArgs": "deploy C:\\dev\\Cogito.SqlServer.Deployment\\Cogito.SqlServer.Deployment.Tests\\Example.xml -p:Foo=Bar"
+    "profiles": {
+        "Cogito.SqlServer.Deployment.Tool": {
+            "commandName": "Project",
+            "commandLineArgs": "deploy ..\\..\\..\\..\\..\\Cogito.SqlServer.Deployment.Tests\\bin\\Debug\\netcoreapp3.1\\local_test.xml -p:Foo=Bar"
+        }
     }
-  }
 }

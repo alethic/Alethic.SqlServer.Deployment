@@ -49,13 +49,25 @@ namespace Cogito.SqlServer.Deployment
         /// </summary>
         /// <param name="xml"></param>
         /// <returns></returns>
-        public static SqlDeployment Load(XElement xml)
+        public static SqlDeployment Load(XElement xml, string baseUri = null)
         {
             if (xml.Name != Xmlns + "Deployment")
                 throw new SqlDeploymentXmlException("Element must be a Deployment element.");
 
             var c = new ReaderContext();
             var d = new SqlDeployment();
+
+            // default to XML provided base URI
+            if (baseUri == null)
+                baseUri = xml.BaseUri;
+
+            // we received a base URI, try to parse for a path
+            if (baseUri != null && Uri.TryCreate(baseUri, UriKind.Absolute, out var b))
+            {
+                // source path is a file
+                if (b.Scheme == Uri.UriSchemeFile)
+                    d.SourcePath = b.LocalPath;
+            }
 
             foreach (var p in LoadParameters(c, xml))
                 d.Parameters.Add(p);

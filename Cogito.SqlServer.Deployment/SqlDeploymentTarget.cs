@@ -28,11 +28,12 @@ namespace Cogito.SqlServer.Deployment
         /// Generates the series of deployment steps that execute the target.
         /// </summary>
         /// <param name="arguments"></param>
+        /// <param name="relativeRoot"></param>
         /// <returns></returns>
-        public IEnumerable<SqlDeploymentAction> Compile(IDictionary<string, string> arguments)
+        public IEnumerable<SqlDeploymentAction> Compile(IDictionary<string, string> arguments, string relativeRoot)
         {
             foreach (var instance in Instances)
-                foreach (var step in instance.Compile(arguments))
+                foreach (var step in instance.Compile(arguments, relativeRoot))
                     yield return step;
         }
 

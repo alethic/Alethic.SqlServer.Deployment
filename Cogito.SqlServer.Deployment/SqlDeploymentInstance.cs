@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Cogito.SqlServer.Deployment
 {
@@ -47,11 +48,15 @@ namespace Cogito.SqlServer.Deployment
         /// <summary>
         /// Generates the steps required to ensure the instance.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="arguments"></param>
+        /// <param name="relativeRoot"></param>
         /// <returns></returns>
-        internal IEnumerable<SqlDeploymentAction> Compile(IDictionary<string, string> arguments)
+        internal IEnumerable<SqlDeploymentAction> Compile(IDictionary<string, string> arguments, string relativeRoot)
         {
-            var context = new SqlDeploymentCompileContext(arguments, Name.Expand<string>(arguments));
+            if (relativeRoot is null)
+                throw new ArgumentNullException(nameof(relativeRoot));
+
+            var context = new SqlDeploymentCompileContext(arguments, Name.Expand<string>(arguments), relativeRoot);
 
             if (Install != null)
                 foreach (var s in Install.Compile(context))
