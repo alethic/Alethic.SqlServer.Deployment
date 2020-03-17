@@ -65,6 +65,11 @@ namespace Cogito.SqlServer.Deployment
                 if (args.ContainsKey(kvp.Name) == false)
                     args[kvp.Name] = kvp.DefaultValue;
 
+            // check for missing parameters
+            foreach (var kvp in args)
+                if (kvp.Value == null)
+                    throw new SqlDeploymentException($"Missing value for parameter '{kvp.Key}'.");
+
             // default value
             if (relativeRoot == null)
                 relativeRoot = SourcePath != null ? Path.GetDirectoryName(SourcePath) : Environment.CurrentDirectory;
