@@ -41,11 +41,11 @@ dotnet sqldeploy Environment.xml -a Foo=Bar
 ## Build
 The `Cogito.SqlServer.Deployment.Build` package provides MSBuild extensions to an existing C# project which allow `ProjectReference`s to SSDT projects. This allows importing the `.dacpac` output of one SSDT project as content into another library or executable. This way users can build executables or unit test libraries that contain the corresponding SQL schema along with them; deployable at runtime.
 
-This build framework operates by injecting MSBuild targets into dependency `.sqlproj` files that allow enumeration of the SSDT project outputs. Those outputs are collected and made deterministic, before being included into the content output of the depending project.
+This build framework operates by injecting MSBuild targets into referenced `.sqlproj` files that allow enumeration of the SSDT project outputs. Those outputs are collected and made deterministic, before being included into the content output of the depending project.
 
 Determinism of DACPACs is accomplished by repackaging the DACPAC: removing absolute paths from the `model.xml` file, resetting internal timestamps in the `Origin.xml` file, and rebuilding the DACPAC archive without file timestamps.
 
-To make use of this, install the `Cogito.SqlServer.Deployment.Build` NuGet package into your C# project. Then, add a `<ProjectReference>` to the SSDT project. Then apply the special `CopySqlProjectOutput` metadata item to that `<ProjectReference>` element:
+To make use of this, install the `Cogito.SqlServer.Deployment.Build` NuGet package into your C# project. Then, add a `<ProjectReference>` to the C# project referencing the SSDT project. Then apply the special `CopySqlProjectOutput` metadata item to that `<ProjectReference>` element:
 
 ```
 <ProjectReference Include="..\Foo\Bar.sqlproj">
