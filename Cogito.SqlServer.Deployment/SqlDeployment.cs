@@ -61,14 +61,14 @@ namespace Cogito.SqlServer.Deployment
             var args = arguments != null ? new Dictionary<string, string>(arguments) : new Dictionary<string, string>();
 
             // populate missing arguments with default values
-            foreach (var kvp in Parameters)
-                if (args.ContainsKey(kvp.Name) == false)
-                    args[kvp.Name] = kvp.DefaultValue;
+            foreach (var param in Parameters)
+                if (args.ContainsKey(param.Name) == false)
+                    args[param.Name] = param.DefaultValue;
 
             // check for missing parameters
-            foreach (var kvp in args)
-                if (kvp.Value == null)
-                    throw new SqlDeploymentException($"Missing value for parameter '{kvp.Key}'.");
+            foreach (var param in Parameters)
+                if (args.TryGetValue(param.Name, out var val) == false || val == null)
+                    throw new SqlDeploymentException($"Missing value for parameter '{param.Name}'.");
 
             // default value
             if (relativeRoot == null)
