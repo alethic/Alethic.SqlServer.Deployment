@@ -1,0 +1,193 @@
+<Deployment xmlns="https://cogito.cx/schemas/SqlServer.Deployment/manifest/2020">
+    <Parameter Name="SetupExePath" DefaultValue="D:\setup.exe" />
+    <Parameter Name="SQL_InstanceName" DefaultValue="(local)\SQL" />
+    <Parameter Name="EFM_InstanceName" DefaultValue="(local)\EFM" />
+    <Parameter Name="WHS_InstanceName" DefaultValue="(local)\WHS" />
+    <Parameter Name="DST_InstanceName" DefaultValue="(local)\DST" />
+    <Parameter Name="PathToDacPac" DefaultValue="Cogito.SqlServer.Deployment.Tests.Database.dacpac" />
+    <Parameter Name="DistributorAdminPassword" DefaultValue="gDQKUCn558LCC0mwv4LAVw12WMhchIRy" />
+    <Target Name="DST">
+        <Instance Name="[DST_InstanceName]">
+            <Install SetupExe="[SetupExePath]" />
+            <Distributor AdminPassword="[DistributorAdminPassword]" />
+        </Instance>
+    </Target>
+    <Target Name="SQL">
+        <Instance Name="[SQL_InstanceName]">
+            <Install SetupExe="[SetupExePath]" />
+            <Configuration Name="clr enabled" Value="1" />
+        </Instance>
+    </Target>
+    <Target Name="EFM">
+        <Instance Name="[EFM_InstanceName]">
+            <Install SetupExe="[SetupExePath]" />
+            <Configuration Name="clr enabled" Value="1" />
+            <LinkedServer Name="LinkC" DataSource="[EFM_InstanceName]" /> <!-- self-link -->
+        </Instance>
+    </Target>
+    <Target Name="WHS">
+        <Instance Name="[EFM_InstanceName]">
+            <Install SetupExe="[SetupExePath]" />
+            <Configuration Name="clr enabled" Value="1" />
+        </Instance>
+    </Target>
+    <Target Name="SQL_REPL">
+        <DependsOn Name="SQL" />
+        <DependsOn Name="DST" />
+        <Instance Name="[SQL_InstanceName]">
+            <Publisher DistributorInstanceName="[DST_InstanceName]" DistributorAdminPassword="[DistributorAdminPassword]" />
+        </Instance>
+    </Target>
+    <Target Name="EFM_REPL">
+        <DependsOn Name="EFM" />
+        <DependsOn Name="DST" />
+        <Instance Name="[EFM_InstanceName]">
+            <Publisher DistributorInstanceName="[DST_InstanceName]" DistributorAdminPassword="[DistributorAdminPassword]" />
+        </Instance>
+    </Target>
+    <Target Name="WHS_REPL">
+        <DependsOn Name="WHS" />
+        <DependsOn Name="DST" />
+        <Instance Name="[WHS_InstanceName]">
+            <Publisher DistributorInstanceName="[DST_InstanceName]" DistributorAdminPassword="[DistributorAdminPassword]" />
+        </Instance>
+    </Target>
+    <Target Name="SQL_TO_EFM">
+        <DependsOn Name="SQL" />
+        <DependsOn Name="EFM" />
+        <Instance Name="[SQL_InstanceName]">
+            <LinkedServer Name="LinkA" DataSource="[EFM_InstanceName]" />
+        </Instance>
+    </Target>
+    <Target Name="SQL_TO_WHS">
+        <DependsOn Name="SQL" />
+        <DependsOn Name="WHS" />
+        <Instance Name="[SQL_InstanceName]">
+            <LinkedServer Name="LinkB" DataSource="[WHS_InstanceName]" />
+        </Instance>
+    </Target>
+    <Target Name="EFM_TO_SQL">
+        <DependsOn Name="EFM" />
+        <DependsOn Name="SQL" />
+        <Instance Name="[EFM_InstanceName]">
+            <LinkedServer Name="LinkA" DataSource="[WHS_InstanceName]" />
+            <LinkedServer Name="LinkB" DataSource="[SQL_InstanceName]" />
+        </Instance>
+    </Target>
+    <Target Name="EFM_TO_WHS">
+        <DependsOn Name="EFM" />
+        <DependsOn Name="WHS" />
+        <Instance Name="[EFM_InstanceName]">
+            <LinkedServer Name="LinkA" DataSource="[WHS_InstanceName]" />
+        </Instance>
+    </Target>
+    <Target Name="SQL_DatabaseA">
+        <DependsOn Name="SQL" />
+        <DependsOn Name="SQL_TO_EFM" />
+        <Instance Name="[SQL_InstanceName]">
+            <Database Name="DatabaseA" Owner="sa">
+                <Package Source="[PathToDacPac]">
+                    <DeployOptions>
+                        <AllowIncompatiblePlatform>true</AllowIncompatiblePlatform>
+                    </DeployOptions>
+                </Package>
+            </Database>
+        </Instance>
+    </Target>
+    <Target Name="SQL_DatabaseA_PUBL">
+        <DependsOn Name="SQL_DatabaseA" />
+        <Instance Name="[SQL_InstanceName]">
+            <Database Name="DatabaseA">
+                <Publications>
+                    <Transactional Name="DatabaseA">
+                        <Articles>
+                            <Table Name="Foo" />
+                        </Articles>
+                    </Transactional>
+                </Publications>
+            </Database>
+        </Instance>
+    </Target>
+    <Target Name="SQL_DatabaseB">
+        <DependsOn Name="SQL" />
+        <Instance Name="[SQL_InstanceName]">
+            <Database Name="DatabaseB" Owner="sa">
+                <Package Source="[PathToDacPac]" />
+            </Database>
+        </Instance>
+    </Target>
+    <Target Name="SQL_DatabaseB_PUBL">
+        <DependsOn Name="SQL_DatabaseB" />
+        <Instance Name="[SQL_InstanceName]">
+            <Database Name="DatabaseB">
+                <Publications>
+                    <Transactional Name="DatabaseB">
+                        <Articles>
+                            <Table Name="Foo" />
+                        </Articles>
+                    </Transactional>
+                </Publications>
+            </Database>
+        </Instance>
+    </Target>
+    <Target Name="SQL_DatabaseC">
+        <DependsOn Name="SQL" />
+        <Instance Name="[SQL_InstanceName]">
+            <Database Name="DatabaseC" Owner="sa">
+                <Package Source="[PathToDacPac]" />
+            </Database>
+        </Instance>
+    </Target>
+    <Target Name="EFM_DatabaseA">
+        <DependsOn Name="EFM_REPL" />
+        <DependsOn Name="SQL_DatabaseA_PUBL" />
+        <Instance Name="[EFM_InstanceName]">
+            <Database Name="DatabaseA">
+                <Subscriptions>
+                    <Push PublisherInstanceName="[SQL_InstanceName]" PublicationDatabaseName="DatabaseA" PublicationName="DatabaseA" SyncType="Automatic" UpdateMode="ReadOnly" />
+                </Subscriptions>
+            </Database>
+        </Instance>
+    </Target>
+    <Target Name="EFM_DatabaseB">
+        <DependsOn Name="EFM_REPL" />
+        <DependsOn Name="SQL_DatabaseB_PUBL" />
+        <Instance Name="[EFM_InstanceName]">
+            <Database Name="DatabaseB">
+                <Subscriptions>
+                    <Push PublisherInstanceName="[SQL_InstanceName]" PublicationDatabaseName="DatabaseB" PublicationName="DatabaseB" SyncType="Automatic" UpdateMode="ReadOnly" />
+                </Subscriptions>
+            </Database>
+        </Instance>
+    </Target>
+    <Target Name="EFM_DatabaseC">
+        <DependsOn Name="EFM_REPL" />
+        <DependsOn Name="SQL_DatabaseC_PUBL" />
+        <Instance Name="[EFM_InstanceName]">
+            <Database Name="DatabaseC">
+                <Subscriptions>
+                    <Push PublisherInstanceName="[SQL_InstanceName]" PublicationDatabaseName="DatabaseC" PublicationName="DatabaseC" SyncType="Automatic" UpdateMode="ReadOnly" />
+                </Subscriptions>
+            </Database>
+        </Instance>
+    </Target>
+    <Target Name="EFM_Exchange">
+        <DependsOn Name="EFM" />
+        <Instance Name="[EFM_InstanceName]">
+            <Database Name="Exchange">
+                <Package Source="[PathToExchangeDacPac]" />
+            </Database>
+        </Instance>
+    </Target>
+    <Target Name="WHS_DatabaseA">
+        <DependsOn Name="WHS_REPL" />
+        <DependsOn Name="SQL_DatabaseA_PUBL" />
+        <Instance Name="[EFM_InstanceName]">
+            <Database Name="DatabaseA">
+                <Subscriptions>
+                    <Push PublisherInstanceName="[SQL_InstanceName]" PublicationDatabaseName="DatabaseA" PublicationName="DatabaseA" SyncType="Automatic" UpdateMode="ReadOnly" />
+                </Subscriptions>
+            </Database>
+        </Instance>
+    </Target>
+</Deployment>
