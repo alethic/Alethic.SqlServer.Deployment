@@ -29,14 +29,14 @@ before_test:
   - ps: |-
       if (!(Test-Path "$env:TEMP\SQL2019\SQL2019-SSEI-Dev.exe")) {
         mkdir "$env:TEMP\SQL2019"
-        Invoke-WebRequest -Uri "https://download.microsoft.com/download/b/8/c/b8ce1000-2e0b-4bc8-b4e4-646e9a439525/SQL2019-SSEI-Dev.exe" -OutFile "$env:TEMP\SQL2019\SQL2019-SSEI-Dev.exe"
+        Invoke-WebRequest -Uri "https://download.microsoft.com/download/d/a/2/da259851-b941-459d-989c-54a18a5d44dd/SQL2019-SSEI-Dev.exe" -OutFile "$env:TEMP\SQL2019\SQL2019-SSEI-Dev.exe"
       }
       if (!(Test-Path "$env:TEMP\SQL2019\setup\SQLServer2019-DEV-x64-ENU.exe")) {
         mkdir "$env:TEMP\SQL2019\setup"
         & "$env:TEMP\SQL2019\SQL2019-SSEI-Dev.exe" /Quiet /Action=Download /MediaType=CAB /MediaPath="$env:TEMP\SQL2019\setup" | Out-Null
       }
       if (!(Test-Path "$env:TEMP\SQL2019\media\done")) {
-        Remove-Item "$env:TEMP\SQL2019\media\" -Recurse -Force
+        Remove-Item "$env:TEMP\SQL2019\media" -Recurse -Force
         & "$env:TEMP\SQL2019\setup\SQLServer2019-DEV-x64-ENU.exe" /q /x:"$env:TEMP\SQL2019\media" | Out-Null
         "" | Set-Content -Path "$env:TEMP\SQL2019\media\done"
       }
