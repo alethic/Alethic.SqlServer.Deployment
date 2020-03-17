@@ -34,10 +34,12 @@ namespace Cogito.SqlServer.Deployment.Tests.Internal
             s.Should().BeFalse();
             cts1.Cancel();
             await Task.Delay(1000);
+            t1.Status.Should().Be(TaskStatus.Canceled);
             j.Status.Should().Be(TaskStatus.Running);
             s.Should().BeFalse();
             cts2.Cancel();
             await Task.Delay(1000);
+            t2.Status.Should().Be(TaskStatus.Canceled);
             j.Status.Should().Be(TaskStatus.WaitingForActivation);
             s.Should().BeFalse();
             await Task.Delay(1000);
