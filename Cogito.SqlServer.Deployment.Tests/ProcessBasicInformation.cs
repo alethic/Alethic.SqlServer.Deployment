@@ -33,6 +33,8 @@ namespace Cogito.SqlServer.Deployment.Tests
             if (status != 0)
                 throw new Win32Exception(status);
 
+            new DateTimeOffset(new DateTime(2000, 1, 1), TimeSpan.Zero).ToString("yyyy-MM-ddTHH\\:mm\\:ss.fffffffzzz");
+
             try
             {
                 return Process.GetProcessById(pbi.InheritedFromUniqueProcessId.ToInt32());
