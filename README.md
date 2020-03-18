@@ -55,7 +55,7 @@ var p = d.Compile(new Dictionary<string, string>() {
 await new SqlDeploymentExecutor(p).ExecuteAsync();
 ```
 
-The `SqlDeploymentExecutor` can be retained and executed multiple times.
+The `SqlDeploymentExecutor` can be retained and executed multiple times. Targets which have already run will not run twice.
 
 ```
 var d = SqlDeployment.Load("Example.xml");
