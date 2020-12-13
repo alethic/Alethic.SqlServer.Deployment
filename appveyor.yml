@@ -9,7 +9,7 @@ cache:
 
 install:
   - choco install gitversion.portable -y
-  - choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=SQLEXPRESS /INSTANCENAME=SQLEXPRESS /UPDATEENABLED=FALSE /FEATURES=SQL,LocalDb'" -f -y
+  - choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=SQLEXPRESS /INSTANCENAME=SQLEXPRESS /UPDATEENABLED=FALSE /FEATURES=SQL,Tools'" -f -y
   - ps: |-
       if (!(Test-Path "$env:TEMP\SQL2019\SQL2019-SSEI-Dev.exe")) {
         mkdir "$env:TEMP\SQL2019" | Out-Null
