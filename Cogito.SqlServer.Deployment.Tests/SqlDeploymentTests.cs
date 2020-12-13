@@ -78,6 +78,13 @@ namespace Cogito.SqlServer.Deployment.Tests
             var p = d.Compile(GetArgs());
 
             await new SqlDeploymentExecutor(p, l.CreateLogger<SqlDeploymentExecutor>()).ExecuteAsync();
+
+            var api = new MartinCostello.SqlLocalDb.SqlLocalDbApi();
+            api.AutomaticallyDeleteInstanceFiles = true;
+            api.StopInstance("SQL");
+            api.StopInstance("EFM");
+            api.DeleteInstance("SQL");
+            api.DeleteInstance("EFM");
         }
 
         [TestMethod]
@@ -96,6 +103,13 @@ namespace Cogito.SqlServer.Deployment.Tests
             var e = new SqlDeploymentExecutor(p, l.CreateLogger<SqlDeploymentExecutor>());
             await e.ExecuteAsync("SQL");
             await e.ExecuteAsync("SQL_TO_EFM");
+
+            var api = new MartinCostello.SqlLocalDb.SqlLocalDbApi();
+            api.AutomaticallyDeleteInstanceFiles = true;
+            api.StopInstance("SQL_" + n.ToString("X8"));
+            api.StopInstance("EFM_" + n.ToString("X8"));
+            api.DeleteInstance("SQL_" + n.ToString("X8"));
+            api.DeleteInstance("EFM_" + n.ToString("X8"));
         }
 
     }

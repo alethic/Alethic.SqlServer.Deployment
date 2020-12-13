@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Cogito.SqlServer.Deployment.Internal
 {
 
-    public class AsyncMutex : IDisposable
+    class AsyncMutex : IDisposable
     {
 
         /// <summary>

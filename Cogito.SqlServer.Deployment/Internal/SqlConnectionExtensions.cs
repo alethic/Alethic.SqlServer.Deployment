@@ -12,7 +12,7 @@ using Microsoft.Data.SqlClient;
 namespace Cogito.SqlServer.Deployment.Internal
 {
 
-    public static class SqlConnectionExtensions
+    static class SqlConnectionExtensions
     {
 
         /// <summary>

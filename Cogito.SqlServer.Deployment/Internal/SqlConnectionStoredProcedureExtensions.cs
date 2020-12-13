@@ -12,7 +12,7 @@ namespace Cogito.SqlServer.Deployment.Internal
     /// <summary>
     /// Provides various extensions to SQL connections for executing system stored procedures.
     /// </summary>
-    public static class SqlConnectionStoredProcedureExtensions
+    static class SqlConnectionStoredProcedureExtensions
     {
 
         public class HelpDistributorResults

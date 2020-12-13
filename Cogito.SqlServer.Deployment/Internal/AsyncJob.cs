@@ -11,7 +11,7 @@ namespace Cogito.SqlServer.Deployment.Internal
     /// <summary>
     /// Represents a unit of execution that will be started on demand and canceled when no longer needed.
     /// </summary>
-    public class AsyncJob<TResult> : IDisposable
+    class AsyncJob<TResult> : IDisposable
     {
 
         /// <summary>
