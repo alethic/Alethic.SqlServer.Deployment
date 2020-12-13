@@ -891,7 +891,7 @@ namespace Cogito.SqlServer.Deployment.Internal
                 o.DbType = DbType.Int32;
                 cmd.Parameters.Add(o);
 
-                var s = new StringBuilder("EXEC @output = sys.xp_delete_files ");
+                var s = new StringBuilder("EXEC @output = xp_delete_files ");
                 var l = new string[files.Length];
                 for (var i = 0; i < files.Length; i++)
                 {

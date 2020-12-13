@@ -54,12 +54,10 @@ namespace Cogito.SqlServer.Deployment
             if (File.Exists(f) == false)
             {
                 // download new file
-                using (var http = new HttpClient())
-                {
-                    using (var s = await http.GetStreamAsync(SQL_EXPRESS_URI))
-                    using (var o = File.OpenWrite(f))
-                        await s.CopyToAsync(o);
-                }
+                using (var h = new HttpClient())
+                using (var s = await h.GetStreamAsync(SQL_EXPRESS_URI))
+                using (var o = File.OpenWrite(f))
+                    await s.CopyToAsync(o);
             }
 
             // if file does not match delete

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -26,7 +27,7 @@ namespace Cogito.SqlServer.Deployment.Tool
         /// Initializes a new instance.
         /// </summary>
         /// <param name="logger"></param>
-        public Deploy(ILogger<SqlDeploymentExecutor> logger)
+        public Deploy(ILogger<Deploy> logger)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -59,8 +60,9 @@ namespace Cogito.SqlServer.Deployment.Tool
         /// <summary>
         /// Executes the deployment.
         /// </summary>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
+        public async Task<int> OnExecuteAsync(CancellationToken cancellationToken)
         {
             var manifest = Path.IsPathFullyQualified(Manifest) == false ? Path.GetFullPath(Manifest, Environment.CurrentDirectory) : Manifest;
             if (File.Exists(manifest) == false)
