@@ -11,6 +11,7 @@
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.0" />
     <PackageReference Include="Microsoft.SqlServer.DACFx" Version="150.4897.1" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
     <PackageReference Include="System.IO.Packaging" Version="5.0.0" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="5.0.0" />
