@@ -8,7 +8,6 @@ cache:
 
 install:
   - choco install gitversion.portable -y
-  - nuget sources add -Name github -Source %nuget_github_feed% -UserName %nuget_github_user% -Password %nuget_github_pass%
   
 before_build:
   - ps: gitversion /l console /output buildserver
