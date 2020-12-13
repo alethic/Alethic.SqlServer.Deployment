@@ -12,7 +12,7 @@ install:
   - choco install sql-server-express -y
   - ps: |-
       if (!(Test-Path "$env:TEMP\SQL2019\SqlLocalDB.msi")) {
-        mkdir "$env:TEMP\SQL2019" | Out-Null
+        mkdir "$env:TEMP\SQL2019" -Force | Out-Null
         Invoke-WebRequest -Uri "https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SqlLocalDB.msi" -OutFile "$env:TEMP\SQL2019\SqlLocalDB.msi"
       }
       if (!(Test-Path "$env:TEMP\SQL2019\localdb.install")) {
@@ -21,7 +21,7 @@ install:
       }
   - ps: |-
       if (!(Test-Path "$env:TEMP\SQL2019\SQL2019-SSEI-Dev.exe")) {
-        mkdir "$env:TEMP\SQL2019" | Out-Null
+        mkdir "$env:TEMP\SQL2019" -Force | Out-Null
         Invoke-WebRequest -Uri "https://download.microsoft.com/download/d/a/2/da259851-b941-459d-989c-54a18a5d44dd/SQL2019-SSEI-Dev.exe" -OutFile "$env:TEMP\SQL2019\SQL2019-SSEI-Dev.exe"
       }
       if (!(Test-Path "$env:TEMP\SQL2019\setup\SQLServer2019-DEV-x64-ENU.exe")) {
