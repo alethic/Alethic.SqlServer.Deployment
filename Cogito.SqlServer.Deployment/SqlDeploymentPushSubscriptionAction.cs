@@ -38,11 +38,11 @@ namespace Cogito.SqlServer.Deployment
         {
             using var sub = await OpenConnectionAsync(cancellationToken);
             sub.ChangeDatabase(DatabaseName);
-            var subServerName = await sub.GetServerNameAsync();
+            var subServerName = await sub.GetServerNameAsync(cancellationToken);
 
             using var pub = await OpenConnectionAsync(PublisherInstanceName, cancellationToken);
             pub.ChangeDatabase(PublicationDatabaseName);
-            var pubServerName = await pub.GetServerNameAsync();
+            var pubServerName = await pub.GetServerNameAsync(cancellationToken);
 
             await pub.ExecuteNonQueryAsync($@"
                 IF NOT EXISTS ( SELECT * FROM syssubscriptions WHERE srvname = {subServerName} AND dest_db = {DatabaseName} )
@@ -54,24 +54,26 @@ namespace Cogito.SqlServer.Deployment
                         @sync_type = N'automatic',
                         @article = N'all',
                         @update_mode = N'read only',
-                        @subscriber_type = 0");
+                        @subscriber_type = 0",
+                cancellationToken: cancellationToken);
 
             var articles = (await pub.LoadDataTableAsync($@"
-                SELECT      DISTINCT
-                            NULLIF(a.artid, '')             as article_id,
-                            NULLIF(a.name, '')              as article_name,
-                            COALESCE(u.srvname, '')         as subscriber_name
-                FROM        syspublications p
-                INNER JOIN  sysarticles a
-                    ON      a.pubid = p.pubid
-                INNER JOIN  sys.tables t
-                    ON      t.object_id = a.objid
-                INNER JOIN  sys.schemas s
-                    ON      s.schema_id = t.schema_id
-                LEFT JOIN   syssubscriptions u
-                    ON      u.artid = a.artid
-                    AND     u.srvname = {subServerName}
-                WHERE       p.name = {PublicationName}"))
+                    SELECT      DISTINCT
+                                NULLIF(a.artid, '')             as article_id,
+                                NULLIF(a.name, '')              as article_name,
+                                COALESCE(u.srvname, '')         as subscriber_name
+                    FROM        syspublications p
+                    INNER JOIN  sysarticles a
+                        ON      a.pubid = p.pubid
+                    INNER JOIN  sys.tables t
+                        ON      t.object_id = a.objid
+                    INNER JOIN  sys.schemas s
+                        ON      s.schema_id = t.schema_id
+                    LEFT JOIN   syssubscriptions u
+                        ON      u.artid = a.artid
+                        AND     u.srvname = {subServerName}
+                    WHERE       p.name = {PublicationName}",
+                    cancellationToken: cancellationToken))
                 .Rows.Cast<DataRow>()
                 .Select(i => new
                 {
@@ -91,7 +93,8 @@ namespace Cogito.SqlServer.Deployment
                         destinationDb: DatabaseName,
                         article: article.ArticleName,
                         syncType: "automatic",
-                        updateMode: "read only");
+                        updateMode: "read only",
+                        cancellationToken: cancellationToken);
 
             try
             {
@@ -99,7 +102,8 @@ namespace Cogito.SqlServer.Deployment
                     publication: PublicationName,
                     subscriber: subServerName,
                     subscriberDb: DatabaseName,
-                    subscriberSecurityMode: 1);
+                    subscriberSecurityMode: 1,
+                    cancellationToken: cancellationToken);
             }
             catch (Exception e)
             {
@@ -109,7 +113,7 @@ namespace Cogito.SqlServer.Deployment
             // start publication
             try
             {
-                await pub.ExecuteSpStartPublicationSnapshotAsync(PublicationName);
+                await pub.ExecuteSpStartPublicationSnapshotAsync(PublicationName, cancellationToken);
             }
             catch (Exception)
             {

@@ -130,12 +130,13 @@ namespace Cogito.SqlServer.Deployment
                     destinationTable: table.ObjectName,
                     destinationOwner: table.SchemaName,
                     status: 24,
-                    forceInvalidateSnapshot: true);
+                    forceInvalidateSnapshot: true,
+                    cancellationToken: cancellationToken);
 
                 // start publication
                 try
                 {
-                    await connection.ExecuteSpStartPublicationSnapshotAsync(PublicationName);
+                    await connection.ExecuteSpStartPublicationSnapshotAsync(PublicationName, cancellationToken);
                 }
                 catch (SqlException)
                 {

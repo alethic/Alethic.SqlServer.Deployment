@@ -44,19 +44,20 @@ namespace Cogito.SqlServer.Deployment
             using var distributor = DistributorInstanceName != null ? await OpenConnectionAsync(DistributorInstanceName, cancellationToken) : publisher;
 
             // load name of publisher
-            var publisherName = await publisher.GetServerPropertyAsync("SERVERNAME");
+            var publisherName = await publisher.GetServerPropertyAsync("SERVERNAME", cancellationToken);
             if (publisherName == null)
                 throw new InvalidOperationException();
 
             var knownPublisherName = (string)await distributor.ExecuteScalarAsync($@"
-                    SELECT  name
-                    FROM    msdb.dbo.MSdistpublishers
-                    WHERE   name = {publisherName}");
+                SELECT  name
+                FROM    msdb.dbo.MSdistpublishers
+                WHERE   name = {publisherName}",
+                cancellationToken: cancellationToken);
             if (knownPublisherName == null)
-                await distributor.ExecuteSpAddDistPublisherAsync(publisherName, DistributorDatabaseName, 1, "false", 0, "MSSQLSERVER");
+                await distributor.ExecuteSpAddDistPublisherAsync(publisherName, DistributorDatabaseName, 1, "false", 0, "MSSQLSERVER", cancellationToken: cancellationToken);
 
             // grant distributor permissions to server if not already
-            var distributorInfo = await distributor.ExecuteSpHelpDistributorAsync();
+            var distributorInfo = await distributor.ExecuteSpHelpDistributorAsync(cancellationToken);
             if (distributorInfo?.Account != null)
                 await publisher.ExecuteSpAddSrvRoleMemberAsync(distributorInfo.Account, "sysadmin");
 
@@ -65,9 +66,10 @@ namespace Cogito.SqlServer.Deployment
                 IF NOT EXISTS ( SELECT * from sys.servers WHERE is_distributor = 1 )
                 BEGIN
                     EXEC sp_adddistributor
-                        @distributor = {await distributor.GetServerPropertyAsync("SERVERNAME")},
+                        @distributor = {await distributor.GetServerPropertyAsync("SERVERNAME", cancellationToken)},
                         @password = {DistributorAdminPassword}
-                END");
+                END",
+                cancellationToken: cancellationToken);
         }
 
     }

@@ -5,6 +5,7 @@ platform: Any CPU
 cache:
   - 'packages'
   - '%USERPROFILE%\.nuget\packages'
+  - '%TEMP%\SQL2019'
 
 install:
   - choco install gitversion.portable -y

@@ -540,7 +540,8 @@ namespace Cogito.SqlServer.Deployment.Internal
             string trusted,
             int thirdPartyFlag,
             string publisherType,
-            SqlTransaction transaction = null)
+            SqlTransaction transaction = null,
+            CancellationToken cancellationToken = default)
         {
             await connection.ExecuteNonQueryAsync($@"
                 EXEC sp_adddistpublisher
@@ -550,7 +551,8 @@ namespace Cogito.SqlServer.Deployment.Internal
                     @trusted = {trusted},
                     @thirdparty_flag = {thirdPartyFlag},
                     @publisher_type = {publisherType}",
-                transaction);
+                transaction,
+                cancellationToken);
         }
 
         /// <summary>
@@ -558,14 +560,17 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="publication"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task ExecuteSpStartPublicationSnapshotAsync(
             this SqlConnection connection,
-            string publication)
+            string publication,
+            CancellationToken cancellationToken = default)
         {
             await connection.ExecuteNonQueryAsync($@"
                 EXEC sp_startpublication_snapshot
-                    @publication = {publication}");
+                    @publication = {publication}",
+                cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -658,6 +663,7 @@ namespace Cogito.SqlServer.Deployment.Internal
         /// <param name="article"></param>
         /// <param name="syncType"></param>
         /// <param name="updateMode"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public static async Task ExecuteSpAddSubscriptionAsync(
             this SqlConnection connection,
@@ -668,7 +674,8 @@ namespace Cogito.SqlServer.Deployment.Internal
             string destinationDb,
             string article,
             string syncType,
-            string updateMode)
+            string updateMode,
+            CancellationToken cancellationToken = default)
         {
             await connection.ExecuteNonQueryAsync($@"
                 EXEC sp_addsubscription
@@ -679,7 +686,8 @@ namespace Cogito.SqlServer.Deployment.Internal
                     @destination_db = {destinationDb},
                     @article = {article},
                     @sync_type = {syncType},
-                    @update_mode = {updateMode}");
+                    @update_mode = {updateMode}",
+                cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -740,14 +748,16 @@ namespace Cogito.SqlServer.Deployment.Internal
             string publication,
             string subscriber,
             string subscriberDb,
-            int subscriberSecurityMode)
+            int subscriberSecurityMode,
+            CancellationToken cancellationToken = default)
         {
             await connection.ExecuteNonQueryAsync($@"
                 EXEC sp_addpushsubscription_agent
                     @publication = {publication},
                     @subscriber = {subscriber},
                     @subscriber_db = {subscriberDb},
-                    @subscriber_security_mode = {subscriberSecurityMode}");
+                    @subscriber_security_mode = {subscriberSecurityMode}",
+                cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -764,14 +774,16 @@ namespace Cogito.SqlServer.Deployment.Internal
             string publication,
             string subscriber,
             string subscriberDb,
-            int subscriberSecurityMode)
+            int subscriberSecurityMode,
+            CancellationToken cancellationToken = default)
         {
             await connection.ExecuteNonQueryAsync($@"
                 EXEC sp_addpullsubscription_agent
                     @publication = {publication},
                     @subscriber = {subscriber},
                     @subscriber_db = {subscriberDb},
-                    @subscriber_security_mode = {subscriberSecurityMode}");
+                    @subscriber_security_mode = {subscriberSecurityMode}",
+                cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -806,7 +818,8 @@ namespace Cogito.SqlServer.Deployment.Internal
             string destinationTable,
             string destinationOwner,
             int status,
-            bool forceInvalidateSnapshot)
+            bool forceInvalidateSnapshot,
+            CancellationToken cancellationToken = default)
         {
             await connection.ExecuteNonQueryAsync($@"
                 EXEC sp_addarticle
@@ -817,7 +830,8 @@ namespace Cogito.SqlServer.Deployment.Internal
                     @destination_table = {destinationTable},
                     @destination_owner = {destinationOwner},
                     @status = {status},
-                    @force_invalidate_snapshot = {(forceInvalidateSnapshot ? 1 : 0)}");
+                    @force_invalidate_snapshot = {(forceInvalidateSnapshot ? 1 : 0)}",
+                cancellationToken: cancellationToken);
         }
 
         public class XpFileExistResults
