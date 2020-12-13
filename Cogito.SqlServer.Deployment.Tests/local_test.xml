@@ -34,7 +34,7 @@
         <DependsOn Name="SQL" />
         <DependsOn Name="SQL_TO_EFM" />
         <Instance Name="[SQL_InstanceName]">
-            <Database Name="JCMS" Owner="sa">
+            <Database Name="JCMS" Owner="sa" Overwrite="true">
                 <Package Source="[PathToJcmsDacPac]">
                     <DeployOptions>
                         <AllowIncompatiblePlatform>true</AllowIncompatiblePlatform>
@@ -46,7 +46,7 @@
     <Target Name="SQL_Conversion">
         <DependsOn Name="SQL" />
         <Instance Name="[SQL_InstanceName]">
-            <Database Name="Conversion" Owner="sa">
+            <Database Name="Conversion" Owner="sa" Overwrite="true">
                 <Package Source="[PathToConversionDacPac]" />
             </Database>
         </Instance>
@@ -54,7 +54,7 @@
     <Target Name="EFM_Exchange">
         <DependsOn Name="EFM" />
         <Instance Name="[EFM_InstanceName]">
-            <Database Name="Exchange">
+            <Database Name="Exchange" Overwrite="true">
                 <Package Source="[PathToExchangeDacPac]" />
             </Database>
         </Instance>

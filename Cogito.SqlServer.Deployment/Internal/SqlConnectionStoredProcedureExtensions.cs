@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -816,6 +818,83 @@ namespace Cogito.SqlServer.Deployment.Internal
                     @destination_owner = {destinationOwner},
                     @status = {status},
                     @force_invalidate_snapshot = {(forceInvalidateSnapshot ? 1 : 0)}");
+        }
+
+        public class XpFileExistResults
+        {
+
+            public byte FileExists { get; set; }
+
+            public byte FileIsADirectory { get; set; }
+
+            public byte ParentDirectoryExists { get; set; }
+
+        }
+
+        /// <summary>
+        /// Executes the 'xp_fileexist' extended procedure.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="fullPath"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static async Task<XpFileExistResults> ExecuteXpFileExist(
+            this SqlConnection connection,
+            string fullPath,
+            CancellationToken cancellationToken = default)
+        {
+            var t = await connection.LoadDataTableAsync($@"EXEC xp_fileexist @fullPath = {fullPath}", cancellationToken: cancellationToken);
+            if (t.Rows.Count < 1)
+                return null;
+
+            return new XpFileExistResults()
+            {
+                FileExists = t.Rows[0]["File Exists"] is byte exists ? exists : (byte)0,
+                FileIsADirectory = t.Rows[0]["File is a Directory"] is byte isDirectory ? isDirectory : (byte)0,
+                ParentDirectoryExists = t.Rows[0]["Parent Directory Exists"] is byte publisherSecurityMode ? publisherSecurityMode : (byte)0,
+            };
+        }
+
+        /// <summary>
+        /// Executes the 'xp_delete_files' extended procedure.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="files"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static async Task<int> ExecuteXpDeleteFiles(
+            this SqlConnection connection,
+            string[] files,
+            CancellationToken cancellationToken = default)
+        {
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandType = CommandType.Text;
+
+                var o = cmd.CreateParameter();
+                o.ParameterName = "@output";
+                o.Direction = ParameterDirection.Output;
+                o.DbType = DbType.Int32;
+                cmd.Parameters.Add(o);
+
+                var s = new StringBuilder("EXEC @output = sys.xp_delete_files ");
+                var l = new string[files.Length];
+                for (var i = 0; i < files.Length; i++)
+                {
+                    var z = cmd.CreateParameter();
+                    z.ParameterName = "@p" + i;
+                    z.DbType = DbType.String;
+                    z.Value = files[i];
+                    l[i] = z.ParameterName;
+                    cmd.Parameters.Add(z);
+                }
+                s.Append(string.Join(", ", l));
+
+                cmd.CommandText = s.ToString();
+
+                await cmd.ExecuteNonQueryAsync(cancellationToken);
+                return (int)o.Value;
+            }
         }
 
     }

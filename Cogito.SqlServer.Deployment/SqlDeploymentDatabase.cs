@@ -25,6 +25,21 @@ namespace Cogito.SqlServer.Deployment
         public SqlDeploymentExpression? Owner { get; set; }
 
         /// <summary>
+        /// Gets or sets the default path to the data file.
+        /// </summary>
+        public SqlDeploymentExpression? DefaultDataFilePath { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default path to the log file.
+        /// </summary>
+        public SqlDeploymentExpression? DefaultLogFilePath { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether we should overwrite existing files.
+        /// </summary>
+        public SqlDeploymentExpression? Overwrite { get; set; }
+
+        /// <summary>
         /// Extended properties to be set on the database.
         /// </summary>
         public ICollection<SqlDeploymentDatabaseExtendedProperty> ExtendedProperties { get; } = new List<SqlDeploymentDatabaseExtendedProperty>();
@@ -47,7 +62,12 @@ namespace Cogito.SqlServer.Deployment
         public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context)
         {
             // creates the database if it does not exist
-            yield return new SqlDeploymentCreateDatabaseAction(context.InstanceName, Name.Expand(context));
+            yield return new SqlDeploymentCreateDatabaseAction(
+                context.InstanceName,
+                Name.Expand(context),
+                DefaultDataFilePath?.Expand(context),
+                DefaultLogFilePath?.Expand(context),
+                Overwrite?.Expand<bool>(context) ?? false);
 
             // potentially deploy a DAC package
             if (Package != null)
