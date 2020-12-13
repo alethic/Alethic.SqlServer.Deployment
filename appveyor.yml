@@ -7,7 +7,7 @@ cache:
   - '%USERPROFILE%\.nuget\packages'
 
 install:
-  - choco install gitversion.portable -pre -y
+  - choco install gitversion.portable -y
   - nuget sources add -Name github -Source %nuget_github_feed% -UserName %nuget_github_user% -Password %nuget_github_pass%
   
 before_build:
@@ -54,11 +54,11 @@ artifacts:
     name: Cogito.SqlServer.Deployment
 
 deploy:
-  provider: NuGet
-  server: https://nuget.pkg.github.com/wasabii/index.json
-  username: wasabii
-  api_key:
-    secure: xrFuWmVqekabWUvYce7mOmKS4ToqdtFJOGgiLYyrDRVZJhMSMvpOUVxf0mhzwGiH
-  skip_symbols: false
-  symbol_server:
-  artifact: /.*\.nupkg/
+  - provider: NuGet
+    server: https://nuget.pkg.github.com/alethic/index.json
+    username: wasabii
+    api_key:
+      secure: u7+1z/CZGBli+CiDxHSQetMjE1dbaf1f9eJtSCb8wifl7s1+AdnhWjnsjGQaEsAw
+    skip_symbols: false
+    symbol_server:
+    artifact: /.*\.nupkg/
