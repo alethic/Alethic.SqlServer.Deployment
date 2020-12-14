@@ -18,10 +18,7 @@ install:
   - choco install sql-server-express -y
   - ps: |-
       Start-Sleep -Seconds 5
-      Restart-Computer -Force
-      Start-Sleep -Seconds 5
-  - ps: |-
-      & msiexec /i "https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SqlLocalDB.msi" /qn /norestart /log install.log IACCEPTSQLLOCALDBLICENSETERMS=YES
+      Start-Process C:\Windows\System32\msiexec.exe -ArgumentList '/i "https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SqlLocalDB.msi" /qn /norestart /log install.log IACCEPTSQLLOCALDBLICENSETERMS=YES' -Wait
       Start-Sleep -Seconds 5
       Restart-Computer -Force
       Start-Sleep -Seconds 5
