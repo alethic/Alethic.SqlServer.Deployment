@@ -15,9 +15,9 @@ install:
         mkdir "$env:TEMP\SQL2019" -Force | Out-Null
         Invoke-WebRequest -Uri "https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SqlLocalDB.msi" -OutFile "$env:TEMP\SQL2019\SqlLocalDB.msi"
       }
-      if (!(Test-Path "$env:TEMP\SQL2019\localdb.install")) {
+      if (!(Test-Path "$env:TEMP\localdb.install")) {
         & msiexec /i "$env:TEMP\SQL2019\SqlLocalDB.msi" /qn /norestart | Out-Null
-        "" | Set-Content -Path "$env:TEMP\SQL2019\localdb.install"
+        "" | Set-Content -Path "$env:TEMP\localdb.install"
       }
   - ps: |-
       if (!(Test-Path "$env:TEMP\SQL2019\SQL2019-SSEI-Dev.exe")) {
@@ -28,10 +28,10 @@ install:
         mkdir "$env:TEMP\SQL2019\setup" | Out-Null
         & "$env:TEMP\SQL2019\SQL2019-SSEI-Dev.exe" /Quiet /Action=Download /MediaType=CAB /MediaPath="$env:TEMP\SQL2019\setup" | Out-Null
       }
-      if (!(Test-Path "$env:TEMP\SQL2019\express.install")) {
+      if (!(Test-Path "$env:TEMP\express.install")) {
         Remove-Item "$env:TEMP\SQL2019\media" -Recurse -Force -ErrorAction SilentlyContinue
         & "$env:TEMP\SQL2019\setup\SQLServer2019-DEV-x64-ENU.exe" /q /x:"$env:TEMP\SQL2019\media" | Out-Null
-        "" | Set-Content -Path "$env:TEMP\SQL2019\express.install"
+        "" | Set-Content -Path "$env:TEMP\express.install"
       }
 
 before_build:
