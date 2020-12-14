@@ -28,21 +28,21 @@ namespace Alethic.SqlServer.Deployment.Internal
             {
                 case null:
                     return SqlDbType.Variant;
-                case string s:
+                case string _:
                     return SqlDbType.NVarChar;
-                case int i:
+                case int _:
                     return SqlDbType.Int;
-                case short s:
+                case short _:
                     return SqlDbType.SmallInt;
-                case long l:
+                case long _:
                     return SqlDbType.BigInt;
-                case byte b:
+                case byte _:
                     return SqlDbType.TinyInt;
-                case Guid p2:
+                case Guid _:
                     return SqlDbType.UniqueIdentifier;
-                case byte[] b:
+                case byte[] _:
                     return SqlDbType.VarBinary;
-                case XDocument a:
+                case XDocument _:
                 case XElement _:
                 case XmlDocument _:
                 case XmlElement _:
