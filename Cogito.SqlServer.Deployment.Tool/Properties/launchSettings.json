@@ -1,8 +1,0 @@
-{
-    "profiles": {
-        "Cogito.SqlServer.Deployment.Tool": {
-            "commandName": "Project",
-            "commandLineArgs": "deploy ..\\..\\..\\..\\Cogito.SqlServer.Deployment.Tests\\bin\\Debug\\netcoreapp3.1\\local_test.xml -a Foo=Bar"
-        }
-    }
-}
