@@ -88,8 +88,8 @@ namespace Alethic.SqlServer.Deployment.Internal
         /// <summary>
         /// Generates parameters for the query string.
         /// </summary>
-        /// <param name="command"></param>
-        /// <param name="query"></param>
+        /// <param name="parameters"></param>
+        /// <param name="createParameter"></param>
         /// <returns></returns>
         static SqlParameter[] GenerateParameters(object[] parameters, Func<SqlParameter> createParameter)
         {
