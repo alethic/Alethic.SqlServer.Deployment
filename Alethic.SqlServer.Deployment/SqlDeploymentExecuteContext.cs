@@ -27,6 +27,15 @@ namespace Alethic.SqlServer.Deployment
         /// </summary>
         public ILogger Logger => logger;
 
+        /// <summary>
+        /// Adds a new action to the stack of actions to be executed.
+        /// </summary>
+        /// <param name="action"></param>
+        public void AddAction(SqlDeploymentAction action)
+        {
+
+        }
+
     }
 
 }

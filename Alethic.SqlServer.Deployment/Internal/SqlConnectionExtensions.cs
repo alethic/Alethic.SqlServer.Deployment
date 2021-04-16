@@ -313,13 +313,14 @@ namespace Alethic.SqlServer.Deployment.Internal
         /// Gets the instance name of the connected server.
         /// </summary>
         /// <param name="connection"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<string> GetServerInstanceName(this SqlConnection connection)
+        public static async Task<string> GetServerInstanceName(this SqlConnection connection, CancellationToken cancellationToken = default)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
 
-            var n = (await connection.GetServerPropertyAsync("InstanceName"))?.TrimOrNull() ?? "MSSQLSERVER";
+            var n = (await connection.GetServerPropertyAsync("InstanceName", cancellationToken))?.TrimOrNull() ?? "MSSQLSERVER";
             var s = n == "MSSQLSERVER" ? null : n;
             return s;
         }
