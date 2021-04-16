@@ -369,19 +369,6 @@ namespace Alethic.SqlServer.Deployment
         }
 
         /// <summary>
-        /// Opens a new connection to the target database.
-        /// </summary>
-        /// <param name="connectionString"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        async Task<SqlConnection> OpenConnection(string connectionString, CancellationToken cancellationToken)
-        {
-            var cnn = new SqlConnection(connectionString);
-            await cnn.OpenAsync(cancellationToken);
-            return cnn;
-        }
-
-        /// <summary>
         /// Deploys the database.
         /// </summary>
         /// <param name="connection"></param>
