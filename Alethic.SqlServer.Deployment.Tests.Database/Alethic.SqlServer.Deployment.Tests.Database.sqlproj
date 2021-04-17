@@ -34,7 +34,7 @@
     <DefineTrace>true</DefineTrace>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <SqlTargetName>Alethic.SqlServer.Deployment</SqlTargetName>
+    <SqlTargetName>Alethic.SqlServer.Deployment.Tests</SqlTargetName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath>bin\Debug\</OutputPath>
@@ -47,7 +47,7 @@
     <DefineTrace>true</DefineTrace>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <SqlTargetName>Alethic.SqlServer.Deployment</SqlTargetName>
+    <SqlTargetName>Alethic.SqlServer.Deployment.Tests</SqlTargetName>
   </PropertyGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
