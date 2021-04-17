@@ -71,7 +71,7 @@ namespace Alethic.SqlServer.Deployment
 
             // potentially deploy a DAC package
             if (Package != null)
-                foreach (var s in Package.Compile(context, Name))
+                foreach (var s in Package.Compile(context, Name.Expand(context)))
                     yield return s;
 
             // potentially alter the owner
@@ -80,17 +80,17 @@ namespace Alethic.SqlServer.Deployment
 
             // apply any extended properties
             foreach (var extendedProperty in ExtendedProperties)
-                foreach (var s in extendedProperty.Compile(context, Name))
+                foreach (var s in extendedProperty.Compile(context, Name.Expand(context)))
                     yield return s;
 
             // apply any publications
             foreach (var publication in Publications)
-                foreach (var s in publication.Compile(context, Name))
+                foreach (var s in publication.Compile(context, Name.Expand(context)))
                     yield return s;
 
             // apply any subscriptions
             foreach (var subscription in Subscriptions)
-                foreach (var s in subscription.Compile(context, Name))
+                foreach (var s in subscription.Compile(context, Name.Expand(context)))
                     yield return s;
         }
 
