@@ -25,10 +25,7 @@
         <ItemGroup>
             <ContentWithTargetPath Include="@(SqlPackageItems)">
                 <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-                <TargetPath>%(Filename)%(Extension)</TargetPath>
-            </ContentWithTargetPath>
-            <ContentWithTargetPath Include="@(SqlProjectItems)">
-                <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
                 <TargetPath>%(Filename)%(Extension)</TargetPath>
             </ContentWithTargetPath>
         </ItemGroup>
