@@ -2,7 +2,7 @@
 
     <Target
         Name="GetSqlProjectOutputItems"
-        BeforeTargets="GetCopyToOutputDirectoryItems">
+        BeforeTargets="GetCopyToOutputDirectoryItems;DefaultCopyToPublishDirectoryMetadata">
         <MSBuild
             Condition="'%(Extension)' == '.sqlproj' AND '%(ProjectReferenceWithConfiguration.CopySqlProjectOutput)' == 'true'"
             Projects="@(ProjectReferenceWithConfiguration)"
