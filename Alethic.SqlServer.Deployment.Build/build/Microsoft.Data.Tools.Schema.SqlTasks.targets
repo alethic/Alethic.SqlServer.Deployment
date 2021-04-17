@@ -5,9 +5,6 @@
     <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
 
     <!-- callable to return output including DACPAC -->
-    <Target
-        Name="GetSqlReferenceCopyLocalPaths"
-        DependsOnTargets="ResolveArtifactReferences;ResolveAssemblyReferences"
-        Returns="@(ReferenceCopyLocalPaths)" />
+    <Target Name="GetSqlReferenceCopyLocalPaths" DependsOnTargets="ResolveArtifactReferences;ResolveAssemblyReferences" Returns="@(ReferenceCopyLocalPaths)" />
 
 </Project>
