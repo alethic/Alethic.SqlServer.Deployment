@@ -16,6 +16,11 @@ namespace Alethic.SqlServer.Deployment
         public SqlDeploymentExpression Name { get; set; }
 
         /// <summary>
+        /// Describes the connection information to connect to the SQL server instance.
+        /// </summary>
+        public SqlDeploymentConnection Connection { get; set; }
+
+        /// <summary>
         /// Gets the information regarding the setup of the instance.
         /// </summary>
         public SqlDeploymentInstall Install { get; set; }

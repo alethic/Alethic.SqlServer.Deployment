@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\Alethic.SqlServer.Deployment.Build\build\Alethic.SqlServer.Deployment.Build.props" />
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Alethic.SqlServer.Deployment.Tests.Database\Alethic.SqlServer.Deployment.Tests.Database.sqlproj">
+      <CopySqlProjectOutput>true</CopySqlProjectOutput>
+    </ProjectReference>
+  </ItemGroup>
+
+  <Import Project="..\Alethic.SqlServer.Deployment.Build\build\Alethic.SqlServer.Deployment.Build.targets" />
+</Project>

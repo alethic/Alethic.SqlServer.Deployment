@@ -162,6 +162,7 @@ namespace Alethic.SqlServer.Deployment
         {
             var p = new SqlDeploymentInstance();
             p.Name = (string)element.Attribute("Name");
+            p.Connection = element.Element(Xmlns + "Connection") is XElement connection ? LoadConnection(connection) : null;
             p.Install = element.Element(Xmlns + "Install") is XElement setup ? LoadInstall(setup) : null;
 
             foreach (var configurationElement in element.Elements(Xmlns + "Configuration"))
@@ -171,6 +172,13 @@ namespace Alethic.SqlServer.Deployment
             p.LinkedServers.AddRange(element.Elements(Xmlns + "LinkedServer").Select(i => LoadLinkedServer(context, i)));
             p.Distributor = element.Element(Xmlns + "Distributor") is XElement distributor ? LoadDistributor(context, distributor) : null;
             p.Publisher = element.Element(Xmlns + "Publisher") is XElement publisher ? LoadPublisher(context, publisher) : null;
+            return p;
+        }
+
+        static SqlDeploymentConnection LoadConnection(XElement element)
+        {
+            var p = new SqlDeploymentConnection();
+            p.ConnectionString = (string)element.Attribute("ConnectionString");
             return p;
         }
 
