@@ -28,7 +28,7 @@
         </ItemGroup>
     </Target>
 
-    <Target Name="GetSqlprojectCopyToOutputDirectoryItems" DependsOnTargets="GetSqlProjectOutputItems;UpdateSqlProjectDacPacs" BeforeTargets="GetCopyToOutputDirectoryItems;DefaultCopyToPublishDirectoryMetadata">
+    <Target Name="GetSqlProjectCopyToOutputDirectoryItems" DependsOnTargets="GetSqlProjectOutputItems;UpdateSqlProjectDacPacs" BeforeTargets="GetCopyToOutputDirectoryItems;DefaultCopyToPublishDirectoryMetadata">
         <ItemGroup>
             <ContentWithTargetPath Include="@(SqlPackageItems->'$(IntermediateOutputPath)%(Filename)%(Extension)')">
                 <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -45,7 +45,7 @@
     <PropertyGroup>
         <GetCopyToOutputDirectoryItemsDependsOn>
             $(GetCopyToOutputDirectoryItemsDependsOn);
-            GetSqlprojectCopyToOutputDirectoryItems
+            GetSqlProjectCopyToOutputDirectoryItems
         </GetCopyToOutputDirectoryItemsDependsOn>
     </PropertyGroup>
 
