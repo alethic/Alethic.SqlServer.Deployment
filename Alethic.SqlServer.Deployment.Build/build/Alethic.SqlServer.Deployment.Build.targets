@@ -1,8 +1,6 @@
 <Project>
 
-    <Target
-        Name="GetSqlProjectOutputItems"
-        BeforeTargets="GetCopyToOutputDirectoryItems;DefaultCopyToPublishDirectoryMetadata">
+    <Target Name="GetSqlProjectOutputItems">
         <MSBuild
             Condition="'%(Extension)' == '.sqlproj' AND '%(ProjectReferenceWithConfiguration.CopySqlProjectOutput)' == 'true'"
             Projects="@(ProjectReferenceWithConfiguration)"
@@ -16,29 +14,33 @@
         </MSBuild>
         <ItemGroup>
             <SqlProjectItems Include="@(_SqlProjectOutput)" Condition=" '%(Extension)' != '.dacpac' " />
+            <SqlPackageItems Include="@(_SqlProjectOutput)" Condition=" '%(Extension)' == '.dacpac' " />
         </ItemGroup>
-        <Copy SourceFiles="@(_SqlProjectOutput)" DestinationFiles="@(_SqlProjectOutput->'$(IntermediateOutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" Condition=" '%(Extension)' == '.dacpac' " />
-        <UpdateDacPacModelReferencePathsToRelative Target="@(_SqlProjectOutput->'$(IntermediateOutputPath)\%(RecursiveDir)%(Filename)%(Extension)')"  Condition=" '%(Extension)' == '.dacpac' " />
+    </Target>
+
+    <Target Name="UpdateSqlProjectDacPacs" DependsOnTargets="GetSqlProjectOutputItems" Inputs="@(SqlPackageItems)" Outputs="$(IntermediateOutputPath)%(SqlPackageItems.Filename)%(SqlPackageItems.Extension)">
+        <Copy SourceFiles="@(SqlPackageItems)" DestinationFiles="$(IntermediateOutputPath)%(SqlPackageItems.Filename).tmp%(SqlPackageItems.Extension)" />
+        <UpdateDacPacModelReferencePathsToRelative Target="$(IntermediateOutputPath)%(SqlPackageItems.Filename).tmp%(SqlPackageItems.Extension)" />
+        <Copy SourceFiles="$(IntermediateOutputPath)%(SqlPackageItems.Filename).tmp%(SqlPackageItems.Extension)" DestinationFiles="$(IntermediateOutputPath)%(SqlPackageItems.Filename)%(SqlPackageItems.Extension)" />
         <ItemGroup>
-            <SqlPackageItems Include="@(_SqlProjectOutput->'$(IntermediateOutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" Condition=" '%(Extension)' == '.dacpac' " />
+            <FileWrites Include="$(IntermediateOutputPath)%(SqlPackageItems.Filename).tmp%(SqlPackageItems.Extension)" />
+            <FileWrites Include="$(IntermediateOutputPath)%(SqlPackageItems.Filename)%(SqlPackageItems.Extension)" />
         </ItemGroup>
+    </Target>
+
+    <Target Name="GetSqlprojectCopyToOutputDirectoryItems" DependsOnTargets="GetSqlProjectOutputItems;UpdateSqlProjectDacPacs" BeforeTargets="GetCopyToOutputDirectoryItems;DefaultCopyToPublishDirectoryMetadata">
         <ItemGroup>
-            <ContentWithTargetPath Include="@(SqlPackageItems)">
+            <ContentWithTargetPath Include="@(SqlPackageItems->'$(IntermediateOutputPath)%(Filename)%(Extension)')">
                 <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
                 <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-                <TargetPath>%(Filename)%(Extension)</TargetPath>
+                <TargetPath>%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
             </ContentWithTargetPath>
             <ContentWithTargetPath Include="@(SqlProjectItems)">
                 <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
                 <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-                <TargetPath>%(Filename)%(Extension)</TargetPath>
+                <TargetPath>%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
             </ContentWithTargetPath>
         </ItemGroup>
-    </Target>
-
-    <!-- modifies data inside the DACPAC which is build-location relative -->
-    <Target Name="UpdateDacPacModelReferencePaths" AfterTargets="SqlBuild">
-        <UpdateDacPacModelReferencePathsToRelative Target="$(SqlTargetPath)" />
     </Target>
 
     <UsingTask
