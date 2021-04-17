@@ -3,9 +3,9 @@
     <Parameter Name="SQL_InstanceName" DefaultValue="(local)\SQL" />
     <Parameter Name="EFM_InstanceName" DefaultValue="(local)\EFM" />
     <Parameter Name="DST_InstanceName" DefaultValue="(local)\DST" />
-    <Parameter Name="PathToJcmsDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.Database.dacpac" />
-    <Parameter Name="PathToConversionDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.Database.dacpac" />
-    <Parameter Name="PathToExchangeDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.Database.dacpac" />
+    <Parameter Name="PathToJcmsDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.dacpac" />
+    <Parameter Name="PathToConversionDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.dacpac" />
+    <Parameter Name="PathToExchangeDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.dacpac" />
     <Parameter Name="DistributorAdminPassword" DefaultValue="gDQKUCn558LCC0mwv4LAVw12WMhchIRy" />
     <Target Name="DST">
         <Instance Name="[DST_InstanceName]">

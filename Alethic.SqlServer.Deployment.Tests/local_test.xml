@@ -1,9 +1,9 @@
 ﻿<Deployment xmlns="https://cogito.cx/schemas/SqlServer.Deployment/manifest/2020">
     <Parameter Name="SQL_InstanceName" DefaultValue="(localdb)\SQL" />
     <Parameter Name="EFM_InstanceName" DefaultValue="(localdb)\EFM" />
-    <Parameter Name="PathToJcmsDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.Database.dacpac" />
-    <Parameter Name="PathToConversionDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.Database.dacpac" />
-    <Parameter Name="PathToExchangeDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.Database.dacpac" />
+    <Parameter Name="PathToJcmsDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.dacpac" />
+    <Parameter Name="PathToConversionDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.dacpac" />
+    <Parameter Name="PathToExchangeDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.dacpac" />
     <Target Name="SQL">
         <Instance Name="[SQL_InstanceName]">
             <Install />
