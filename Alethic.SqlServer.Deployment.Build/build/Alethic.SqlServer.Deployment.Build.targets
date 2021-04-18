@@ -1,6 +1,6 @@
 <Project>
 
-    <Target Name="GetSqlProjectOutputItems">
+    <Target Name="GetSqlProjectOutputItems" DependsOnTargets="ResolveProjectReferences">
         <MSBuild
             Condition="'%(Extension)' == '.sqlproj' AND '%(ProjectReferenceWithConfiguration.CopySqlProjectOutput)' == 'true'"
             Projects="@(ProjectReferenceWithConfiguration)"
@@ -28,7 +28,7 @@
         </ItemGroup>
     </Target>
 
-    <Target Name="GetSqlProjectCopyToOutputDirectoryItems" DependsOnTargets="GetSqlProjectOutputItems;UpdateSqlProjectDacPacs" BeforeTargets="GetCopyToOutputDirectoryItems;DefaultCopyToPublishDirectoryMetadata">
+    <Target Name="GetSqlProjectCopyToOutputDirectoryItems" DependsOnTargets="GetSqlProjectOutputItems;UpdateSqlProjectDacPacs" BeforeTargets="DefaultCopyToPublishDirectoryMetadata">
         <ItemGroup>
             <ContentWithTargetPath Include="@(SqlPackageItems->'$(IntermediateOutputPath)%(Filename)%(Extension)')">
                 <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -42,6 +42,7 @@
             </ContentWithTargetPath>
         </ItemGroup>
     </Target>
+    
     <PropertyGroup>
         <GetCopyToOutputDirectoryItemsDependsOn>
             $(GetCopyToOutputDirectoryItemsDependsOn);
