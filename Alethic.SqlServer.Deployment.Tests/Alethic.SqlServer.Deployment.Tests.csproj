@@ -33,11 +33,4 @@
     </None>
   </ItemGroup>
 
-  <Target Name="TestPull" BeforeTargets="Build" DependsOnTargets="ResolveProjectReferences">
-    <MSBuild Projects="..\Alethic.SqlServer.Deployment.Tests.Database.Intermediate\Alethic.SqlServer.Deployment.Tests.Database.Intermediate.csproj" Targets="PublishItemsOutputGroup" BuildInParallel="$(BuildInParallel)" RebaseOutputs="true" Properties="TargetFramework=netstandard2.0">
-      <Output TaskParameter="TargetOutputs" ItemName="_WixHarvestComponents" />
-    </MSBuild>
-    <Message Text="_WixHarvestComponents: @(_WixHarvestComponents)" Importance="high" />
-  </Target>
-
 </Project>
