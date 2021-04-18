@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\Alethic.SqlServer.Deployment.Build\build\Alethic.SqlServer.Deployment.Build.props"/>
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net47</TargetFrameworks>
@@ -20,8 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Alethic.SqlServer.Deployment.Tests.Database.Intermediate\Alethic.SqlServer.Deployment.Tests.Database.Intermediate.csproj" />
     <ProjectReference Include="..\Alethic.SqlServer.Deployment\Alethic.SqlServer.Deployment.csproj" />
+    <ProjectReference Include="..\Alethic.SqlServer.Deployment.Tests.Database\Alethic.SqlServer.Deployment.Tests.Database.sqlproj">
+      <CopySqlProjectOutput>true</CopySqlProjectOutput>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -33,4 +36,5 @@
     </None>
   </ItemGroup>
 
+  <Import Project="..\Alethic.SqlServer.Deployment.Build\build\Alethic.SqlServer.Deployment.Build.targets"/>
 </Project>

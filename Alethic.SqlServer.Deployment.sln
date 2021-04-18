@@ -23,10 +23,6 @@ Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Alethic.SqlServer.Deploymen
 EndProject
 Project("{13B669BE-BB05-4DDF-9536-439F39A36129}") = "Alethic.SqlServer.Deployment.Build", "Alethic.SqlServer.Deployment.Build\Alethic.SqlServer.Deployment.Build.msbuildproj", "{95A3AE1E-8DF1-4FB4-ACBB-4D4FD6381BE1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Alethic.SqlServer.Deployment.Tests.Database.Intermediate", "Alethic.SqlServer.Deployment.Tests.Database.Intermediate\Alethic.SqlServer.Deployment.Tests.Database.Intermediate.csproj", "{B9ECB110-AB0D-4358-9F6F-30D7AB4C8FD1}"
-EndProject
-Project("{13B669BE-BB05-4DDF-9536-439F39A36129}") = "Alethic.SqlServer.Deployment.Tests.Consume", "Alethic.SqlServer.Deployment.Tests.Consume\Alethic.SqlServer.Deployment.Tests.Consume.msbuildproj", "{3C42A664-D9EE-408B-8ECD-A3A2EFA2E627}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,14 +51,6 @@ Global
 		{95A3AE1E-8DF1-4FB4-ACBB-4D4FD6381BE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95A3AE1E-8DF1-4FB4-ACBB-4D4FD6381BE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95A3AE1E-8DF1-4FB4-ACBB-4D4FD6381BE1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B9ECB110-AB0D-4358-9F6F-30D7AB4C8FD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B9ECB110-AB0D-4358-9F6F-30D7AB4C8FD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B9ECB110-AB0D-4358-9F6F-30D7AB4C8FD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B9ECB110-AB0D-4358-9F6F-30D7AB4C8FD1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3C42A664-D9EE-408B-8ECD-A3A2EFA2E627}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3C42A664-D9EE-408B-8ECD-A3A2EFA2E627}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3C42A664-D9EE-408B-8ECD-A3A2EFA2E627}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3C42A664-D9EE-408B-8ECD-A3A2EFA2E627}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
