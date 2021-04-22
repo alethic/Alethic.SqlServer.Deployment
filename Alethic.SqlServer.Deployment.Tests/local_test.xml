@@ -55,7 +55,12 @@
         <DependsOn Name="EFM" />
         <Instance Name="[EFM_InstanceName]">
             <Database Name="Exchange" Overwrite="true">
-                <Package Source="[PathToExchangeDacPac]" />
+                <Package Source="[PathToExchangeDacPac]">
+                    <DeployOptions>
+                        <BlockOnPossibleDataLoss>false</BlockOnPossibleDataLoss>
+                        <AllowIncompatiblePlatform>true</AllowIncompatiblePlatform>
+                    </DeployOptions>
+                </Package>
             </Database>
         </Instance>
     </Target>
