@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using Cogito;
+
 using Microsoft.SqlServer.Dac;
 
 namespace Alethic.SqlServer.Deployment
@@ -251,7 +253,7 @@ namespace Alethic.SqlServer.Deployment
         /// <returns></returns>
         ObjectType ToObjectType(string value)
         {
-            return (ObjectType)Enum.Parse(typeof(ObjectType), value);
+            return (ObjectType)Enum.Parse(typeof(ObjectType), value.TrimOrNull());
         }
 
     }
