@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 
-using Microsoft.SqlServer.Dac;
-
 namespace Alethic.SqlServer.Deployment
 {
 
@@ -49,7 +47,7 @@ namespace Alethic.SqlServer.Deployment
 
         public SqlDeploymentExpression? DoNotAlterReplicatedObjects { get; set; }
 
-        public ObjectType[] DoNotDropObjectTypes { get; set; }
+        public SqlDeploymentExpression[] DoNotDropObjectTypes { get; set; }
 
         public SqlDeploymentExpression? DropConstraintsNotInSource { get; set; }
 
@@ -67,7 +65,7 @@ namespace Alethic.SqlServer.Deployment
 
         public SqlDeploymentExpression? DropStatisticsNotInSource { get; set; }
 
-        public ObjectType[] ExcludeObjectTypes { get; set; }
+        public SqlDeploymentExpression[] ExcludeObjectTypes { get; set; }
 
         public SqlDeploymentExpression? GenerateSmartDefaults { get; set; }
 

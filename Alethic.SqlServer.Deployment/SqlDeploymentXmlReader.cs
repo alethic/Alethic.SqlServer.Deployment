@@ -244,7 +244,7 @@ namespace Alethic.SqlServer.Deployment
             o.DisableAndReenableDdlTriggers = (string)element.Element(Xmlns + "DisableAndReenableDdlTriggers");
             o.DoNotAlterChangeDataCaptureObjects = (string)element.Element(Xmlns + "DoNotAlterChangeDataCaptureObjects");
             o.DoNotAlterReplicatedObjects = (string)element.Element(Xmlns + "DoNotAlterReplicatedObjects");
-            //o.DoNotDropObjectTypes = (string)element.Element(Xmlns+"DoNotDropObjectTypes");
+            o.DoNotDropObjectTypes = element.Elements(Xmlns + "DoNotDropObjectTypes").Select(i => new SqlDeploymentExpression(i.Value)).ToArray();
             o.DropConstraintsNotInSource = (string)element.Element(Xmlns + "DropConstraintsNotInSource");
             o.DropDmlTriggersNotInSource = (string)element.Element(Xmlns + "DropDmlTriggersNotInSource");
             o.DropExtendedPropertiesNotInSource = (string)element.Element(Xmlns + "DropExtendedPropertiesNotInSource");
@@ -253,7 +253,7 @@ namespace Alethic.SqlServer.Deployment
             o.DropPermissionsNotInSource = (string)element.Element(Xmlns + "DropPermissionsNotInSource");
             o.DropRoleMembersNotInSource = (string)element.Element(Xmlns + "DropRoleMembersNotInSource");
             o.DropStatisticsNotInSource = (string)element.Element(Xmlns + "DropStatisticsNotInSource");
-            //o.ExcludeObjectTypes = (string)element.Element(Xmlns+"ExcludeObjectTypes");
+            o.ExcludeObjectTypes = element.Elements(Xmlns + "ExcludeObjectTypes").Select(i => new SqlDeploymentExpression(i.Value)).ToArray();
             o.GenerateSmartDefaults = (string)element.Element(Xmlns + "GenerateSmartDefaults");
             o.IgnoreAnsiNulls = (string)element.Element(Xmlns + "IgnoreAnsiNulls");
             o.IgnoreAuthorizer = (string)element.Element(Xmlns + "IgnoreAuthorizer");

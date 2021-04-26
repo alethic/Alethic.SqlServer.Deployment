@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+
 using Microsoft.SqlServer.Dac;
 
 namespace Alethic.SqlServer.Deployment
@@ -103,8 +106,8 @@ namespace Alethic.SqlServer.Deployment
                 profile.DeployOptions.DoNotAlterChangeDataCaptureObjects = DeployOptions.DoNotAlterChangeDataCaptureObjects.Value.Expand<bool>(context);
             if (DeployOptions.DoNotAlterReplicatedObjects != null)
                 profile.DeployOptions.DoNotAlterReplicatedObjects = DeployOptions.DoNotAlterReplicatedObjects.Value.Expand<bool>(context);
-            //if (DeployOptions.DoNotDropObjectTypes != null)
-            //    profile.DeployOptions.DoNotDropObjectTypes = DeployOptions.DoNotDropObjectTypes.Value.Expand<bool>(context);
+            if (DeployOptions.DoNotDropObjectTypes != null)
+                profile.DeployOptions.DoNotDropObjectTypes = DeployOptions.DoNotDropObjectTypes?.SelectMany(i => i.Expand<string>(context)?.Split(';').Select(i => ToObjectType(i))).ToArray();
             if (DeployOptions.DropConstraintsNotInSource != null)
                 profile.DeployOptions.DropConstraintsNotInSource = DeployOptions.DropConstraintsNotInSource.Value.Expand<bool>(context);
             if (DeployOptions.DropDmlTriggersNotInSource != null)
@@ -121,8 +124,8 @@ namespace Alethic.SqlServer.Deployment
                 profile.DeployOptions.DropRoleMembersNotInSource = DeployOptions.DropRoleMembersNotInSource.Value.Expand<bool>(context);
             if (DeployOptions.DropStatisticsNotInSource != null)
                 profile.DeployOptions.DropStatisticsNotInSource = DeployOptions.DropStatisticsNotInSource.Value.Expand<bool>(context);
-            //if (DeployOptions.ExcludeObjectTypes != null)
-            //    profile.DeployOptions.ExcludeObjectTypes = DeployOptions.ExcludeObjectTypes.Value.Expand<bool>(context);
+            if (DeployOptions.ExcludeObjectTypes != null)
+                profile.DeployOptions.ExcludeObjectTypes = DeployOptions.ExcludeObjectTypes?.SelectMany(i => i.Expand<string>(context)?.Split(';').Select(i => ToObjectType(i))).ToArray();
             if (DeployOptions.GenerateSmartDefaults != null)
                 profile.DeployOptions.GenerateSmartDefaults = DeployOptions.GenerateSmartDefaults.Value.Expand<bool>(context);
             if (DeployOptions.IgnoreAnsiNulls != null)
@@ -239,6 +242,16 @@ namespace Alethic.SqlServer.Deployment
                 profile.DeployOptions.VerifyDeployment = DeployOptions.VerifyDeployment.Value.Expand<bool>(context);
 
             return profile;
+        }
+
+        /// <summary>
+        /// Extracts an <see cref="ObjectType"/> from a string value.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        ObjectType ToObjectType(string value)
+        {
+            return (ObjectType)Enum.Parse(typeof(ObjectType), value);
         }
 
     }
