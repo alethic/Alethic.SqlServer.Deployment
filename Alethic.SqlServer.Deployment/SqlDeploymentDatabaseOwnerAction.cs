@@ -19,11 +19,11 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="instanceName"></param>
+        /// <param name="instance"></param>
         /// <param name="databaseName"></param>
         /// <param name="login"></param>
-        public SqlDeploymentDatabaseOwnerAction(string instanceName, string databaseName, string login) :
-            base(instanceName)
+        public SqlDeploymentDatabaseOwnerAction(SqlInstance instance, string databaseName, string login) :
+            base(instance)
         {
             DatabaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
             Login = login ?? throw new ArgumentNullException(nameof(login));

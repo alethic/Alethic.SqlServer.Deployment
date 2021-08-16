@@ -16,6 +16,11 @@ namespace Alethic.SqlServer.Deployment
         public SqlDeploymentExpression Name { get; set; }
 
         /// <summary>
+        /// Describes the authentication method of the instance.
+        /// </summary>
+        public SqlDeploymentExpression? Authentication { get; set; }
+
+        /// <summary>
         /// Describes the connection information to connect to the SQL server instance.
         /// </summary>
         public SqlDeploymentConnection Connection { get; set; }
@@ -61,7 +66,7 @@ namespace Alethic.SqlServer.Deployment
             if (relativeRoot is null)
                 throw new ArgumentNullException(nameof(relativeRoot));
 
-            var context = new SqlDeploymentCompileContext(arguments, Name.Expand<string>(arguments), relativeRoot);
+            var context = new SqlDeploymentCompileContext(arguments, new SqlInstance(Name.Expand<string>(arguments), Authentication?.Expand<SqlAuthenticationMethod>(arguments) ?? SqlAuthenticationMethod.Windows), relativeRoot);
 
             if (Install != null)
                 foreach (var s in Install.Compile(context))

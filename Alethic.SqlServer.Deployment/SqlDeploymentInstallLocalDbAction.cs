@@ -18,17 +18,17 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="instanceName"></param>
+        /// <param name="instance"></param>
         /// <param name="exe"></param>
-        public SqlDeploymentInstallLocalDbAction(string instanceName) :
-            base(instanceName)
+        public SqlDeploymentInstallLocalDbAction(SqlInstance instance) :
+            base(instance)
         {
 
         }
 
         public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
-            var instanceName = InstanceName.Replace(@"(localdb)\", "");
+            var instanceName = Instance.Name.Replace(@"(localdb)\", "");
             var instance = await Task.Run(() => GetOrCreateLocalDbInstance(Api, instanceName));
         }
 

@@ -166,9 +166,9 @@ namespace Alethic.SqlServer.Deployment
         /// <returns></returns>
         async Task ExecuteActionAsync(SqlDeploymentExecuteContext context, SqlDeploymentAction action, CancellationToken cancellationToken)
         {
-            context.Logger.LogDebug("Starting action {Action} against {InstanceName}.", action.GetType().Name, action.InstanceName);
+            context.Logger.LogDebug("Starting action {Action} against {InstanceName}.", action.GetType().Name, action.Instance);
             await action.ExecuteAsync(context, cancellationToken);
-            context.Logger.LogDebug("Finished action {Action} against {InstanceName}.", action.GetType().Name, action.InstanceName);
+            context.Logger.LogDebug("Finished action {Action} against {InstanceName}.", action.GetType().Name, action.Instance);
         }
 
         /// <summary>

@@ -63,7 +63,7 @@ namespace Alethic.SqlServer.Deployment
         {
             // creates the database if it does not exist
             yield return new SqlDeploymentCreateDatabaseAction(
-                context.InstanceName,
+                context.Instance,
                 Name.Expand(context),
                 DefaultDataFilePath?.Expand(context),
                 DefaultLogFilePath?.Expand(context),
@@ -76,7 +76,7 @@ namespace Alethic.SqlServer.Deployment
 
             // potentially alter the owner
             if (Owner != null)
-                yield return new SqlDeploymentDatabaseOwnerAction(context.InstanceName, Name.Expand(context), Owner?.Expand(context));
+                yield return new SqlDeploymentDatabaseOwnerAction(context.Instance, Name.Expand(context), Owner?.Expand(context));
 
             // apply any extended properties
             foreach (var extendedProperty in ExtendedProperties)

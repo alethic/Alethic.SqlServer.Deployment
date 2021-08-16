@@ -27,12 +27,12 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="instanceName"></param>
+        /// <param name="instance"></param>
         /// <param name="name"></param>
         /// <param name="source"></param>
         /// <param name="profile"></param>
-        public SqlDeploymentDatabasePackageAction(string instanceName, string name, string source, DacProfile profile) :
-            base(instanceName)
+        public SqlDeploymentDatabasePackageAction(SqlInstance instance, string name, string source, DacProfile profile) :
+            base(instance)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Source = source ?? throw new ArgumentNullException(nameof(source));

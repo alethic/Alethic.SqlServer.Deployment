@@ -11,19 +11,19 @@ namespace Alethic.SqlServer.Deployment
     {
 
         readonly IDictionary<string, string> arguments;
-        readonly string instanceName;
+        readonly SqlInstance instance;
         readonly string relativeRoot;
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="arguments"></param>
-        /// <param name="instanceName"></param>
+        /// <param name="instance"></param>
         /// <param name="relativeRoot"></param>
-        public SqlDeploymentCompileContext(IDictionary<string, string> arguments, string instanceName, string relativeRoot)
+        public SqlDeploymentCompileContext(IDictionary<string, string> arguments, SqlInstance instance, string relativeRoot)
         {
             this.arguments = arguments ?? new Dictionary<string, string>();
-            this.instanceName = instanceName ?? throw new ArgumentNullException(nameof(instanceName));
+            this.instance = instance ?? throw new ArgumentNullException(nameof(instance));
             this.relativeRoot = relativeRoot ?? throw new ArgumentNullException(nameof(relativeRoot));
         }
 
@@ -33,9 +33,9 @@ namespace Alethic.SqlServer.Deployment
         public IDictionary<string, string> Arguments => arguments;
 
         /// <summary>
-        /// Gets the name of the instance.
+        /// Gets the instance.
         /// </summary>
-        public string InstanceName => instanceName;
+        public SqlInstance Instance => instance;
 
         /// <summary>
         /// Gets the absolute path for relative paths.

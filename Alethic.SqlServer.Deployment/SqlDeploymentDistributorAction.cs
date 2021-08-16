@@ -21,9 +21,9 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="instanceName"></param>
-        public SqlDeploymentDistributorAction(string instanceName) :
-            base(instanceName)
+        /// <param name="instance"></param>
+        public SqlDeploymentDistributorAction(SqlInstance instance) :
+            base(instance)
         {
 
         }
@@ -79,7 +79,7 @@ namespace Alethic.SqlServer.Deployment
                 if (AdminPassword == null)
                     throw new SqlDeploymentException("Cannot configure distributor: missing AdminPassword.");
 
-                context.Logger?.LogInformation("Creating distributor on {InstanceName}.", InstanceName);
+                context.Logger?.LogInformation("Creating distributor on {InstanceName}.", Instance);
                 await cnn.ExecuteNonQueryAsync($@"
                     EXEC sp_adddistributor
                         @distributor = {distributorName},
@@ -87,7 +87,7 @@ namespace Alethic.SqlServer.Deployment
             }
             else if (AdminPassword != null)
             {
-                context.Logger?.LogInformation("Changing distributor password on {InstanceName}.", InstanceName);
+                context.Logger?.LogInformation("Changing distributor password on {InstanceName}.", Instance);
                 await cnn.ExecuteNonQueryAsync($@"
                     EXEC sp_changedistributor_password
                         @password = {AdminPassword}");
@@ -99,7 +99,7 @@ namespace Alethic.SqlServer.Deployment
             var currentDistributionDb = currentDistributionDbs?.FirstOrDefault(i => i.Name == databaseName);
             if (currentDistributionDb == null)
             {
-                context.Logger?.LogInformation("Adding distribution database {DatabaseName} on {InstanceName}.", databaseName, InstanceName);
+                context.Logger?.LogInformation("Adding distribution database {DatabaseName} on {InstanceName}.", databaseName, Instance);
 
                 using var cmd = cnn.CreateCommand();
                 cmd.CommandType = CommandType.StoredProcedure;

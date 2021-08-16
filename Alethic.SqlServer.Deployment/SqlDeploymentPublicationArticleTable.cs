@@ -8,7 +8,7 @@ namespace Alethic.SqlServer.Deployment
 
         public override IEnumerable<SqlDeploymentAction> Compile(string databaseName, string publicationName, SqlDeploymentCompileContext context)
         {
-            yield return new SqlDeploymentPublicationArticleTableAction(context.InstanceName, databaseName, publicationName, Name.Expand(context));
+            yield return new SqlDeploymentPublicationArticleTableAction(context.Instance, databaseName, publicationName, Name.Expand(context));
         }
 
     }

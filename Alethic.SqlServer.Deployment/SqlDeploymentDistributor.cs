@@ -41,7 +41,7 @@ namespace Alethic.SqlServer.Deployment
 
         public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context)
         {
-            yield return new SqlDeploymentDistributorAction(context.InstanceName)
+            yield return new SqlDeploymentDistributorAction(context.Instance)
             {
                 DatabaseName = DatabaseName?.Expand(context),
                 AdminPassword = AdminPassword?.Expand(context),

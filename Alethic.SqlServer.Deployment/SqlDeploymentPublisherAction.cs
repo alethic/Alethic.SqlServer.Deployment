@@ -16,9 +16,9 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="instanceName"></param>
-        public SqlDeploymentPublisherAction(string instanceName) :
-            base(instanceName)
+        /// <param name="instance"></param>
+        public SqlDeploymentPublisherAction(SqlInstance instance) :
+            base(instance)
         {
 
         }
@@ -26,7 +26,7 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Gets the name of the distribution instance to connect to.
         /// </summary>
-        public string DistributorInstanceName { get; internal set; }
+        public SqlInstance DistributorInstance { get; internal set; }
 
         /// <summary>
         /// Gets the distributor admin password for joining the distributor.
@@ -41,7 +41,7 @@ namespace Alethic.SqlServer.Deployment
         public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var publisher = await OpenConnectionAsync(cancellationToken);
-            using var distributor = DistributorInstanceName != null ? await OpenConnectionAsync(DistributorInstanceName, cancellationToken) : publisher;
+            using var distributor = DistributorInstance != null ? await OpenConnectionAsync(DistributorInstance, cancellationToken) : publisher;
 
             // load name of publisher
             var publisherName = await publisher.GetServerPropertyAsync("SERVERNAME", cancellationToken);

@@ -46,7 +46,7 @@ namespace Alethic.SqlServer.Deployment
                 if (Path.IsPathRooted(source) == false)
                     source = Path.Combine(context.RelativeRoot, source);
 
-                yield return new SqlDeploymentDatabasePackageAction(context.InstanceName, name, source, LoadProfile(context));
+                yield return new SqlDeploymentDatabasePackageAction(context.Instance, name, source, LoadProfile(context));
             }
         }
 

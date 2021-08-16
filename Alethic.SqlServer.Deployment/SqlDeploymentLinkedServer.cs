@@ -41,7 +41,7 @@ namespace Alethic.SqlServer.Deployment
                 provider = "MSOLEDBSQL";
 
             yield return new SqlDeploymentLinkedServerAction(
-                context.InstanceName,
+                context.Instance,
                 Name.Expand(context),
                 product,
                 provider,

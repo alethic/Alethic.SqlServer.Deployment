@@ -15,15 +15,20 @@ namespace Alethic.SqlServer.Deployment
         public SqlDeploymentExpression? DistributorInstanceName { get; set; }
 
         /// <summary>
+        /// Gets or sets the authentication method for the distributor instance.
+        /// </summary>
+        public SqlDeploymentExpression? DistributorInstanceAuthentication { get; set; }
+
+        /// <summary>
         /// Gets or sets the admin password to use for connecting to the existing distributor instance.
         /// </summary>
         public SqlDeploymentExpression? DistributorAdminPassword { get; set; }
 
         public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context)
         {
-            yield return new SqlDeploymentPublisherAction(context.InstanceName)
+            yield return new SqlDeploymentPublisherAction(context.Instance)
             {
-                DistributorInstanceName = DistributorInstanceName?.Expand(context),
+                DistributorInstance = new SqlInstance(DistributorInstanceName?.Expand(context), DistributorInstanceAuthentication?.Expand<SqlAuthenticationMethod>(context) ?? SqlAuthenticationMethod.Windows),
                 DistributorAdminPassword = DistributorAdminPassword?.Expand(context),
             };
         }

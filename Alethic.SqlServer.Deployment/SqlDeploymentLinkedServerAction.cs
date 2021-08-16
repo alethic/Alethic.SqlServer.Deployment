@@ -18,7 +18,7 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="instanceName"></param>
+        /// <param name="instance"></param>
         /// <param name="name"></param>
         /// <param name="product"></param>
         /// <param name="provider"></param>
@@ -26,8 +26,8 @@ namespace Alethic.SqlServer.Deployment
         /// <param name="dataSource"></param>
         /// <param name="location"></param>
         /// <param name="catalog"></param>
-        public SqlDeploymentLinkedServerAction(string instanceName, string name, string product, string provider, string providerString, string dataSource, string location, string catalog) :
-            base(instanceName)
+        public SqlDeploymentLinkedServerAction(SqlInstance instance, string name, string product, string provider, string providerString, string dataSource, string location, string catalog) :
+            base(instance)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Product = product;

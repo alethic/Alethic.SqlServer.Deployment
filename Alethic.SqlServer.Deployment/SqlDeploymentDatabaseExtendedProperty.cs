@@ -27,7 +27,7 @@ namespace Alethic.SqlServer.Deployment
         /// <returns></returns>
         public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context, string databaseName)
         {
-            yield return new SqlDeploymentDatabaseExtendedPropertyAction(context.InstanceName, databaseName, Name, Value);
+            yield return new SqlDeploymentDatabaseExtendedPropertyAction(context.Instance, databaseName, Name, Value);
         }
 
     }

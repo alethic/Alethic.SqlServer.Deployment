@@ -25,11 +25,13 @@ namespace Alethic.SqlServer.Deployment
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) == false)
                 throw new SqlDeploymentException("SQL setup is only supported on Windows.");
+            if (context.Instance.Authentication != SqlAuthenticationMethod.Windows)
+                throw new SqlDeploymentException("SQL setup is only supported with Windows authentication.");
 
-            if (context.InstanceName.StartsWith(@"(localdb)\", StringComparison.OrdinalIgnoreCase))
-                yield return new SqlDeploymentInstallLocalDbAction(context.InstanceName);
+            if (context.Instance.Name.StartsWith(@"(localdb)\", StringComparison.OrdinalIgnoreCase))
+                yield return new SqlDeploymentInstallLocalDbAction(context.Instance);
             else
-                yield return new SqlDeploymentInstallAction(context.InstanceName, SetupExe?.Expand(context));
+                yield return new SqlDeploymentInstallAction(context.Instance, SetupExe?.Expand(context));
         }
 
     }

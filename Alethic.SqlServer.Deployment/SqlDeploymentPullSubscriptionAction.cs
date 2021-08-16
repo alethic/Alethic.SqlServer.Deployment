@@ -18,18 +18,18 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="instanceName"></param>
+        /// <param name="instance"></param>
         /// <param name="databaseName"></param>
-        /// <param name="publisherInstanceName"></param>
+        /// <param name="publisherInstance"></param>
         /// <param name="publicationDatabaseName"></param>
         /// <param name="publicationName"></param>
         public SqlDeploymentPullSubscriptionAction(
-            string instanceName,
+            SqlInstance instance,
             string databaseName,
-            string publisherInstanceName,
+            SqlInstance publisherInstance,
             string publicationDatabaseName,
             string publicationName) :
-            base(instanceName, databaseName, publisherInstanceName, publicationDatabaseName, publicationName)
+            base(instance, databaseName, publisherInstance, publicationDatabaseName, publicationName)
         {
 
         }
@@ -39,14 +39,14 @@ namespace Alethic.SqlServer.Deployment
             using var sub = await OpenConnectionAsync(cancellationToken);
             sub.ChangeDatabase(DatabaseName);
 
-            using var pub = await OpenConnectionAsync(PublisherInstanceName, cancellationToken);
+            using var pub = await OpenConnectionAsync(PublisherInstance, cancellationToken);
             pub.ChangeDatabase(PublicationDatabaseName);
 
             await pub.ExecuteNonQueryAsync($@"
-                IF NOT EXISTS ( SELECT * FROM syssubscriptions WHERE srvname = {InstanceName} AND dest_db = {DatabaseName} )
+                IF NOT EXISTS ( SELECT * FROM syssubscriptions WHERE srvname = {Instance} AND dest_db = {DatabaseName} )
                     EXEC sp_addsubscription
                         @publication = {PublicationName},
-                        @subscriber = {InstanceName},
+                        @subscriber = {Instance},
                         @destination_db = {DatabaseName},
                         @subscription_type = N'Pull',
                         @sync_type = N'automatic',
@@ -69,7 +69,7 @@ namespace Alethic.SqlServer.Deployment
                         ON      s.schema_id = t.schema_id
                     LEFT JOIN   syssubscriptions u
                         ON      u.artid = a.artid
-                        AND     u.srvname = {InstanceName}
+                        AND     u.srvname = {Instance}
                     WHERE       p.name = {PublicationName}",
                     cancellationToken: cancellationToken))
                 .Rows.Cast<DataRow>()
@@ -85,7 +85,7 @@ namespace Alethic.SqlServer.Deployment
                 if (!string.IsNullOrEmpty(article.ArticleName) && string.IsNullOrEmpty(article.SubscriberName))
                     await pub.ExecuteSpAddSubscriptionAsync(
                         publication: PublicationName,
-                        subscriber: InstanceName,
+                        subscriber: Instance.Name,
                         subscriberType: 0,
                         subscriptionType: "Pull",
                         destinationDb: DatabaseName,
@@ -98,7 +98,7 @@ namespace Alethic.SqlServer.Deployment
             {
                 await sub.ExecuteSpAddPullSubscriptionAgentAsync(
                     publication: PublicationName,
-                    subscriber: InstanceName,
+                    subscriber: Instance.Name,
                     subscriberDb: DatabaseName,
                     subscriberSecurityMode: 1,
                     cancellationToken: cancellationToken);

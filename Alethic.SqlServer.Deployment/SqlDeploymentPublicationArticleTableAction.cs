@@ -61,12 +61,12 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="instanceName"></param>
+        /// <param name="instance"></param>
         /// <param name="databaseName"></param>
         /// <param name="publicationName"></param>
         /// <param name="name"></param>
-        public SqlDeploymentPublicationArticleTableAction(string instanceName, string databaseName, string publicationName, string name) :
-            base(instanceName, databaseName, publicationName, name)
+        public SqlDeploymentPublicationArticleTableAction(SqlInstance instance, string databaseName, string publicationName, string name) :
+            base(instance, databaseName, publicationName, name)
         {
 
         }

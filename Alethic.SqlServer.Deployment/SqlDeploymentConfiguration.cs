@@ -19,7 +19,7 @@ namespace Alethic.SqlServer.Deployment
         public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context)
         {
             foreach (var kvp in this)
-                yield return new SqlDeploymentConfigurationAction(context.InstanceName, kvp.Key, kvp.Value.Expand<int>(context));
+                yield return new SqlDeploymentConfigurationAction(context.Instance, kvp.Key, kvp.Value.Expand<int>(context));
         }
 
     }

@@ -20,10 +20,10 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="instanceName"></param>
+        /// <param name="instance"></param>
         /// <param name="name"></param>
-        public SqlDeploymentCreateDatabaseAction(string instanceName, string name, string defaultDataFilePath, string defaultLogFilePath, bool overwrite) :
-            base(instanceName)
+        public SqlDeploymentCreateDatabaseAction(SqlInstance instance, string name, string defaultDataFilePath, string defaultLogFilePath, bool overwrite) :
+            base(instance)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             DefaultDataFilePath = defaultDataFilePath;

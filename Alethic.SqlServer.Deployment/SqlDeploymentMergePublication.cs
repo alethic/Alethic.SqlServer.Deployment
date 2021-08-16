@@ -16,7 +16,7 @@ namespace Alethic.SqlServer.Deployment
 
         public override IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context, string databaseName)
         {
-            yield return new SqlDeploymentPublicationMergeAction(context.InstanceName, databaseName, Name);
+            yield return new SqlDeploymentPublicationMergeAction(context.Instance, databaseName, Name);
 
             foreach (var s in base.Compile(context, databaseName))
                 yield return s;

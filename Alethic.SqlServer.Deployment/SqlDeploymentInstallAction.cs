@@ -114,7 +114,7 @@ namespace Alethic.SqlServer.Deployment
         /// </summary>
         /// <param name="instanceName"></param>
         /// <param name="setupExe"></param>
-        public SqlDeploymentInstallAction(string instanceName, string setupExe = null) :
+        public SqlDeploymentInstallAction(SqlInstance instanceName, string setupExe = null) :
             base(instanceName)
         {
             SetupExe = setupExe;
@@ -146,7 +146,7 @@ namespace Alethic.SqlServer.Deployment
         async Task ExecuteAsyncInternal(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
         {
             // acquire breakdown of instance information
-            var serverName = await TryGetServerName(cancellationToken) ?? InstanceName;
+            var serverName = await TryGetServerName(cancellationToken) ?? Instance.Name;
             var m = serverName.Split(new[] { '\\' }, 2);
             var host = m.Length >= 1 ? m[0].TrimOrNull() : null;
             var name = m.Length >= 2 ? m[1].TrimOrNull() : null;
@@ -176,14 +176,14 @@ namespace Alethic.SqlServer.Deployment
             {
                 // required for deployment
                 if (await IsSysAdmin(cancellationToken) != true)
-                    throw new InvalidOperationException($"Unable to verify membership in sysadmin role on '{InstanceName}'.");
+                    throw new InvalidOperationException($"Unable to verify membership in sysadmin role on '{Instance}'.");
 
                 // ensure agent is setup properly
                 await ConfigureSqlAgent(cancellationToken);
                 return;
             }
 
-            throw new InvalidOperationException($"Could not establish connection SQL Server '{InstanceName}'.");
+            throw new InvalidOperationException($"Could not establish connection SQL Server '{Instance}'.");
         }
 
         /// <summary>

@@ -18,9 +18,9 @@ namespace Alethic.SqlServer.Deployment
         public override IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context, string databaseName)
         {
             yield return new SqlDeploymentPushSubscriptionAction(
-                context.InstanceName,
+                context.Instance,
                 databaseName,
-                PublisherInstanceName.Expand(context),
+                new SqlInstance(PublisherInstanceName.Expand(context), PublisherInstanceAuthentication?.Expand<SqlAuthenticationMethod>(context) ?? SqlAuthenticationMethod.Windows),
                 PublicationDatabaseName.Expand(context),
                 PublicationName.Expand(context));
         }

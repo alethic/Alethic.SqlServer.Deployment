@@ -9,21 +9,21 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="instanceName"></param>
+        /// <param name="instance"></param>
         /// <param name="databaseName"></param>
-        /// <param name="publisherInstanceName"></param>
+        /// <param name="publisherInstance"></param>
         /// <param name="publicationDatabaseName"></param>
         /// <param name="publicationName"></param>
         public SqlDeploymentSubscriptionAction(
-            string instanceName,
+            SqlInstance instance,
             string databaseName,
-            string publisherInstanceName,
+            SqlInstance publisherInstance,
             string publicationDatabaseName,
             string publicationName) :
-            base(instanceName)
+            base(instance)
         {
             DatabaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
-            PublisherInstanceName = publisherInstanceName ?? throw new ArgumentNullException(nameof(publisherInstanceName));
+            PublisherInstance = publisherInstance ?? throw new ArgumentNullException(nameof(publisherInstance));
             PublicationDatabaseName = publicationDatabaseName ?? throw new ArgumentNullException(nameof(publicationDatabaseName));
             PublicationName = publicationName ?? throw new ArgumentNullException(nameof(publicationName));
         }
@@ -34,9 +34,9 @@ namespace Alethic.SqlServer.Deployment
         public string DatabaseName { get; }
 
         /// <summary>
-        /// Gets the name of the publisher instance on which the publication exists.
+        /// Gets the instance on which the publication exists.
         /// </summary>
-        public string PublisherInstanceName { get; }
+        public SqlInstance PublisherInstance { get; }
 
         /// <summary>
         /// Gets the name of the publication database.

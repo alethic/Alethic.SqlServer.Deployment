@@ -16,12 +16,12 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="instanceName"></param>
+        /// <param name="instance"></param>
         /// <param name="databaseName"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
-        public SqlDeploymentDatabaseExtendedPropertyAction(string instanceName, string databaseName, string name, string value) :
-            base(instanceName)
+        public SqlDeploymentDatabaseExtendedPropertyAction(SqlInstance instance, string databaseName, string name, string value) :
+            base(instance)
         {
             DatabaseName = databaseName ?? throw new ArgumentNullException(nameof(databaseName));
             Name = name ?? throw new ArgumentNullException(nameof(name));

@@ -17,11 +17,11 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="instanceName"></param>
+        /// <param name="instance"></param>
         /// <param name="name"></param>
         /// <param name="value"></param>
-        public SqlDeploymentConfigurationAction(string instanceName, string name, int value) :
-            base(instanceName)
+        public SqlDeploymentConfigurationAction(SqlInstance instance, string name, int value) :
+            base(instance)
         {
             Name = name;
             Value = value;

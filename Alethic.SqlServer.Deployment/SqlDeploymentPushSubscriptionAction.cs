@@ -18,18 +18,18 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
-        /// <param name="instanceName"></param>
+        /// <param name="instance"></param>
         /// <param name="databaseName"></param>
-        /// <param name="publisherInstanceName"></param>
+        /// <param name="publisherInstance"></param>
         /// <param name="publicationDatabaseName"></param>
         /// <param name="publicationName"></param>
         public SqlDeploymentPushSubscriptionAction(
-            string instanceName,
+            SqlInstance instance,
             string databaseName,
-            string publisherInstanceName,
+            SqlInstance publisherInstance,
             string publicationDatabaseName,
             string publicationName) :
-            base(instanceName, databaseName, publisherInstanceName, publicationDatabaseName, publicationName)
+            base(instance, databaseName, publisherInstance, publicationDatabaseName, publicationName)
         {
 
         }
@@ -40,7 +40,7 @@ namespace Alethic.SqlServer.Deployment
             sub.ChangeDatabase(DatabaseName);
             var subServerName = await sub.GetServerNameAsync(cancellationToken);
 
-            using var pub = await OpenConnectionAsync(PublisherInstanceName, cancellationToken);
+            using var pub = await OpenConnectionAsync(PublisherInstance, cancellationToken);
             pub.ChangeDatabase(PublicationDatabaseName);
             var pubServerName = await pub.GetServerNameAsync(cancellationToken);
 
