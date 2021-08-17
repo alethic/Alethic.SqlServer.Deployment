@@ -86,9 +86,9 @@ namespace Alethic.SqlServer.Deployment.Tool
 
                 // execute plan with specified targets
                 if (Targets.Count > 0)
-                    await new SqlDeploymentExecutor(plan, logger).ExecuteAsync(Targets.ToArray());
+                    await new SqlDeploymentExecutor(plan, logger).ExecuteAsync(Targets.ToArray(), cancellationToken);
                 else
-                    await new SqlDeploymentExecutor(plan, logger).ExecuteAsync();
+                    await new SqlDeploymentExecutor(plan, logger).ExecuteAsync(cancellationToken);
             }
             catch (Exception e)
             {

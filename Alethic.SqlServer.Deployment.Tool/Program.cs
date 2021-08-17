@@ -25,8 +25,8 @@ namespace Alethic.SqlServer.Deployment.Tool
         public static async Task<int> Main(string[] args)
         {
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine(@"Cogito SQL Server Deployment Tool");
-            Console.WriteLine(@"Copyright 2020 Jerome Haltom");
+            Console.WriteLine(@"Alethic SQL Server Deployment Tool");
+            Console.WriteLine(@"Copyright 2021 Jerome Haltom");
             Console.WriteLine();
             Console.ResetColor();
 

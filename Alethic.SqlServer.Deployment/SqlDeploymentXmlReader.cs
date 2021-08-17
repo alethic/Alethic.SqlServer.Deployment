@@ -162,7 +162,7 @@ namespace Alethic.SqlServer.Deployment
         {
             var p = new SqlDeploymentInstance();
             p.Name = (string)element.Attribute("Name");
-            p.ConnectionString = (string)element.Element(Xmlns + "ConnectionString");
+            p.ConnectionString = (string)element.Attribute("ConnectionString");
             p.Install = element.Element(Xmlns + "Install") is XElement setup ? LoadInstall(setup) : null;
 
             foreach (var configurationElement in element.Elements(Xmlns + "Configuration"))

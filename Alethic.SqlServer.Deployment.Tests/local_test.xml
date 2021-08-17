@@ -5,7 +5,7 @@
     <Parameter Name="PathToConversionDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.dacpac" />
     <Parameter Name="PathToExchangeDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.dacpac" />
     <Target Name="SQL">
-        <Instance Name="[SQL_InstanceName]">
+        <Instance Name="[SQL_InstanceName]" ConnectionString="MultipleActiveResultSets=true">
             <Install />
             <Configuration Name="clr enabled" Value="1" />
         </Instance>
