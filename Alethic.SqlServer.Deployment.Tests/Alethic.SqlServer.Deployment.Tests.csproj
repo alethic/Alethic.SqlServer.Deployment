@@ -1,6 +1,6 @@
 ﻿<Project>
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
-  <Import Project="..\Alethic.SqlServer.Deployment.Build\build\Alethic.SqlServer.Deployment.Build.props"/>
+  <Import Project="..\Alethic.SqlServer.Deployment.Build\build\Alethic.SqlServer.Deployment.Build.props" />
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net47</TargetFrameworks>
@@ -8,14 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="5.10.3" />
+    <PackageReference Include="FluentAssertions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="5.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
-    <PackageReference Include="MSTest.TestAdapter" Version="2.2.3" />
-    <PackageReference Include="MSTest.TestFramework" Version="2.2.3" />
-    <PackageReference Include="coverlet.collector" Version="3.0.3">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.5" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.5" />
+    <PackageReference Include="coverlet.collector" Version="3.1.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -38,5 +38,5 @@
   </ItemGroup>
 
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
-  <Import Project="..\Alethic.SqlServer.Deployment.Build\build\Alethic.SqlServer.Deployment.Build.targets"/>
+  <Import Project="..\Alethic.SqlServer.Deployment.Build\build\Alethic.SqlServer.Deployment.Build.targets" />
 </Project>
