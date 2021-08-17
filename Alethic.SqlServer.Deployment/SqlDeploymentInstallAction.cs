@@ -176,14 +176,14 @@ namespace Alethic.SqlServer.Deployment
             {
                 // required for deployment
                 if (await IsSysAdmin(cancellationToken) != true)
-                    throw new InvalidOperationException($"Unable to verify membership in sysadmin role on '{Instance}'.");
+                    throw new InvalidOperationException($"Unable to verify membership in sysadmin role on '{Instance.Name}'.");
 
                 // ensure agent is setup properly
                 await ConfigureSqlAgent(cancellationToken);
                 return;
             }
 
-            throw new InvalidOperationException($"Could not establish connection SQL Server '{Instance}'.");
+            throw new InvalidOperationException($"Could not establish connection SQL Server '{Instance.Name}'.");
         }
 
         /// <summary>

@@ -48,7 +48,6 @@ namespace Alethic.SqlServer.Deployment
 
             var c = new SqlConnection(b.ToString());
             await c.OpenAsync(cancellationToken);
-
             return c;
         }
 
