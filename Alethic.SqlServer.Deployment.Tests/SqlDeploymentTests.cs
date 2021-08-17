@@ -112,16 +112,16 @@ namespace Alethic.SqlServer.Deployment.Tests
             api.DeleteInstance("EFM_" + n.ToString("X8"));
         }
 
-        [TestMethod]
-        public async Task Can_execute_azure_test()
-        {
-            using var l = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Trace));
-            var x = XDocument.Load(File.OpenRead("azure_test.xml"));
-            var d = SqlDeployment.Load(x);
-            var p = d.Compile(GetArgs());
+        //[TestMethod]
+        //public async Task Can_execute_azure_test()
+        //{
+        //    using var l = LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Trace));
+        //    var x = XDocument.Load(File.OpenRead("azure_test.xml"));
+        //    var d = SqlDeployment.Load(x);
+        //    var p = d.Compile(GetArgs());
 
-            await new SqlDeploymentExecutor(p, l.CreateLogger<SqlDeploymentExecutor>()).ExecuteAsync();
-        }
+        //    await new SqlDeploymentExecutor(p, l.CreateLogger<SqlDeploymentExecutor>()).ExecuteAsync();
+        //}
 
     }
 

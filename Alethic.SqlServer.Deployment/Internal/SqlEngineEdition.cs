@@ -1,7 +1,7 @@
 ﻿namespace Alethic.SqlServer.Deployment.Internal
 {
 
-    public enum SqlEngineEdition
+    enum SqlEngineEdition
     {
 
         Personal = 1,
