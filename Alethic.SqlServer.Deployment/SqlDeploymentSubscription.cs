@@ -15,9 +15,9 @@ namespace Alethic.SqlServer.Deployment
         public SqlDeploymentExpression PublisherInstanceName { get; set; }
 
         /// <summary>
-        /// Gets or sets the authentication information of the publisher to subscribe to.
+        /// Gets or sets the connection string information of the publisher to subscribe to.
         /// </summary>
-        public SqlDeploymentExpression? PublisherInstanceAuthentication { get; set; }
+        public SqlDeploymentExpression? PublisherConnectionString { get; set; }
 
         /// <summary>
         /// Gets the name of the database that holds the publication.

@@ -20,7 +20,7 @@ namespace Alethic.SqlServer.Deployment
             yield return new SqlDeploymentPushSubscriptionAction(
                 context.Instance,
                 databaseName,
-                new SqlInstance(PublisherInstanceName.Expand(context), PublisherInstanceAuthentication?.Expand<SqlAuthenticationMethod>(context) ?? SqlAuthenticationMethod.Windows),
+                new SqlInstance(PublisherInstanceName.Expand(context), PublisherConnectionString?.Expand(context)),
                 PublicationDatabaseName.Expand(context),
                 PublicationName.Expand(context));
         }
