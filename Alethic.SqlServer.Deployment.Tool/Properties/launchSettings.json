@@ -2,7 +2,7 @@
     "profiles": {
         "Alethic.SqlServer.Deployment.Tool": {
             "commandName": "Project",
-            "commandLineArgs": "deploy ..\\..\\..\\..\\Alethic.SqlServer.Deployment.Tests\\local_test.xml -a Foo=Bar"
+            "commandLineArgs": "deploy ..\\..\\..\\..\\Alethic.SqlServer.Deployment.Tests\\bin\\Debug\\netcoreapp3.1\\local_test.xml -a Foo=Bar"
         }
     }
 }
