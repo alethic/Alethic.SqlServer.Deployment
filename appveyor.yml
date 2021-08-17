@@ -10,11 +10,11 @@ cache:
 install:
   - choco install gitversion.portable -y
   #- choco install sql-server-express -y
-  #- ps: |-
-  #    Start-Process C:\Windows\System32\msiexec.exe -ArgumentList '/i "https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SqlLocalDB.msi" /qn /norestart /log install.log IACCEPTSQLLOCALDBLICENSETERMS=YES' -Wait
-  #    Start-Sleep -Seconds 5
-  #    Restart-Computer -Force
-  #    Start-Sleep -Seconds 5
+  - ps: |-
+      Start-Process C:\Windows\System32\msiexec.exe -ArgumentList '/i "https://download.microsoft.com/download/7/c/1/7c14e92e-bdcb-4f89-b7cf-93543e7112d1/SqlLocalDB.msi" /qn /norestart /log install.log IACCEPTSQLLOCALDBLICENSETERMS=YES' -Wait
+      Start-Sleep -Seconds 5
+      Restart-Computer -Force
+      Start-Sleep -Seconds 5
   #- ps: |-
   #    if (!(Test-Path "$env:TEMP\SQL2019\SQL2019-SSEI-Dev.exe")) {
   #      mkdir "$env:TEMP\SQL2019" -Force | Out-Null
