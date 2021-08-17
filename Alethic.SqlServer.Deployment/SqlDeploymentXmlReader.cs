@@ -190,12 +190,14 @@ namespace Alethic.SqlServer.Deployment
 
             p.DefaultDataFilePath = (string)element.Attribute("DefaultDataFilePath");
             p.DefaultLogFilePath = (string)element.Attribute("DefaultLogFilePath");
+            p.Create = (string)element.Attribute("Create");
             p.Overwrite = (string)element.Attribute("Overwrite");
 
             if (element.Element(Xmlns + "Package") is XElement packageElement)
             {
                 var l = new SqlDeploymentDatabasePackage();
                 l.Source = (string)packageElement.Attribute("Source");
+                l.LockMode = (string)packageElement.Attribute("LockMode");
 
                 if (packageElement.Element(Xmlns + "DeployOptions") is XElement deployOptionsElement)
                     l.DeployOptions = LoadDatabasePackageDeployOptions(context, deployOptionsElement);

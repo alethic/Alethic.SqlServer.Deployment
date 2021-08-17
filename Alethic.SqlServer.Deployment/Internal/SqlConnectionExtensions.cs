@@ -247,7 +247,7 @@ namespace Alethic.SqlServer.Deployment.Internal
         /// <param name="serverPropertyName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public static async Task<string> GetServerPropertyAsync(this SqlConnection connection, string serverPropertyName, CancellationToken cancellationToken = default)
+        public static async Task<object> GetServerPropertyAsync(this SqlConnection connection, string serverPropertyName, CancellationToken cancellationToken = default)
         {
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
@@ -255,7 +255,19 @@ namespace Alethic.SqlServer.Deployment.Internal
                 throw new ArgumentNullException(nameof(serverPropertyName));
 
             var r = await connection.ExecuteScalarAsync($"SELECT SERVERPROPERTY({serverPropertyName})", cancellationToken: cancellationToken);
-            return r != DBNull.Value ? (string)r : null;
+            return r != DBNull.Value ? r : null;
+        }
+
+        /// <summary>
+        /// Returns the named server property.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="serverPropertyName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public static async Task<T> GetServerPropertyAsync<T>(this SqlConnection connection, string serverPropertyName, CancellationToken cancellationToken = default)
+        {
+            return (T)await connection.GetServerPropertyAsync(serverPropertyName, cancellationToken);
         }
 
         /// <summary>
@@ -266,7 +278,7 @@ namespace Alethic.SqlServer.Deployment.Internal
         /// <returns></returns>
         public static Task<string> GetServerNameAsync(this SqlConnection connection, CancellationToken cancellationToken = default)
         {
-            return connection.GetServerPropertyAsync("SERVERNAME", cancellationToken);
+            return connection.GetServerPropertyAsync<string>("SERVERNAME", cancellationToken);
         }
 
         /// <summary>
@@ -300,7 +312,7 @@ namespace Alethic.SqlServer.Deployment.Internal
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
 
-            var m = await connection.GetServerPropertyAsync("MACHINENAME", cancellationToken);
+            var m = await connection.GetServerPropertyAsync<string>("MACHINENAME", cancellationToken);
             var d = await connection.GetServerDomainName(cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(d))
@@ -320,7 +332,7 @@ namespace Alethic.SqlServer.Deployment.Internal
             if (connection == null)
                 throw new ArgumentNullException(nameof(connection));
 
-            var n = (await connection.GetServerPropertyAsync("InstanceName", cancellationToken))?.TrimOrNull() ?? "MSSQLSERVER";
+            var n = (await connection.GetServerPropertyAsync<string>("InstanceName", cancellationToken))?.TrimOrNull() ?? "MSSQLSERVER";
             var s = n == "MSSQLSERVER" ? null : n;
             return s;
         }
@@ -385,6 +397,11 @@ namespace Alethic.SqlServer.Deployment.Internal
 
                 return (int)result.Value;
             }
+        }
+
+        public static async Task<SqlEngineEdition> GetServerEngineEditionAsync(this SqlConnection connection, CancellationToken cancellationToken = default)
+        {
+            return (SqlEngineEdition)await connection.GetServerPropertyAsync<int>("EngineEdition", cancellationToken);
         }
 
     }

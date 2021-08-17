@@ -97,6 +97,10 @@ namespace Alethic.SqlServer.Deployment
                 }
             }
 
+            // enums can be parsed as string
+            if (typeof(T).IsEnum)
+                return (T)Enum.Parse(typeof(T), expr);
+
             // convert expression to target type
             return (T)Convert.ChangeType(expr, typeof(T));
         }

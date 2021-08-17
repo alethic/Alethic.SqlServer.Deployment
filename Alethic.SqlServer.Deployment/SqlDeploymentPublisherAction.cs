@@ -44,7 +44,7 @@ namespace Alethic.SqlServer.Deployment
             using var distributor = DistributorInstance != null ? await OpenConnectionAsync(DistributorInstance, cancellationToken) : publisher;
 
             // load name of publisher
-            var publisherName = await publisher.GetServerPropertyAsync("SERVERNAME", cancellationToken);
+            var publisherName = await publisher.GetServerNameAsync(cancellationToken);
             if (publisherName == null)
                 throw new InvalidOperationException();
 

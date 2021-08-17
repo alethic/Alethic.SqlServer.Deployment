@@ -1,0 +1,15 @@
+﻿<Deployment xmlns="https://cogito.cx/schemas/SqlServer.Deployment/manifest/2020">
+    <Parameter Name="SQL_InstanceName" DefaultValue="accutraq-dev1.database.windows.net" />
+    <Parameter Name="PathToJcmsDacPac" DefaultValue="Alethic.SqlServer.Deployment.Tests.dacpac" />
+    <Target Name="SQL_JCMS">
+        <Instance Name="[SQL_InstanceName]" ConnectionString="Authentication=ActiveDirectoryInteractive;Database=accutraq">
+            <Database Name="accutraq" Create="false">
+                <Package Source="[PathToJcmsDacPac]" LockMode="Database">
+                    <DeployOptions>
+                        <AllowIncompatiblePlatform>true</AllowIncompatiblePlatform>
+                    </DeployOptions>
+                </Package>
+            </Database>
+        </Instance>
+    </Target>
+</Deployment>

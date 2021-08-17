@@ -1,18 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
-using System.IO.Packaging;
-using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
-using Alethic.SqlServer.Deployment.Internal;
-
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Logging;
 using Microsoft.SqlServer.Dac;
 
 namespace Alethic.SqlServer.Deployment
@@ -31,12 +20,13 @@ namespace Alethic.SqlServer.Deployment
         /// <param name="name"></param>
         /// <param name="source"></param>
         /// <param name="profile"></param>
-        public SqlDeploymentDatabasePackageAction(SqlInstance instance, string name, string source, DacProfile profile) :
+        public SqlDeploymentDatabasePackageAction(SqlInstance instance, string name, string source, DacProfile profile, SqlPackageLockMode lockMode) :
             base(instance)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Profile = profile ?? throw new ArgumentNullException(nameof(profile));
+            LockMode = lockMode;
         }
 
         /// <summary>
@@ -55,6 +45,11 @@ namespace Alethic.SqlServer.Deployment
         public DacProfile Profile { get; }
 
         /// <summary>
+        /// Gets the lock mode for the deployment.
+        /// </summary>
+        public SqlPackageLockMode LockMode { get; }
+
+        /// <summary>
         /// Deploys the database.
         /// </summary>
         /// <param name="context"></param>
@@ -63,7 +58,7 @@ namespace Alethic.SqlServer.Deployment
         public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
         {
             using (var cnn = await OpenConnectionAsync(cancellationToken))
-                await new SqlDacPacDeploy(Source, context.Logger).DeployAsync(cnn, Name, Profile, cancellationToken);
+                await new SqlDacPacDeploy(Source, context.Logger, LockMode).DeployAsync(cnn, Name, Profile, cancellationToken);
         }
 
     }

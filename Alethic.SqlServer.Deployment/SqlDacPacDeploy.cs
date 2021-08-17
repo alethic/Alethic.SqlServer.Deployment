@@ -29,16 +29,19 @@ namespace Alethic.SqlServer.Deployment
 
         readonly string source;
         readonly ILogger logger;
+        readonly SqlPackageLockMode lockMode;
 
         /// <summary>
         /// Initializes a new instance.
         /// </summary>
         /// <param name="source"></param>
         /// <param name="logger"></param>
-        public SqlDacPacDeploy(string source, ILogger logger)
+        /// <param name="lockMode"></param>
+        public SqlDacPacDeploy(string source, ILogger logger, SqlPackageLockMode lockMode = SqlPackageLockMode.Server)
         {
             this.source = source ?? throw new ArgumentNullException(nameof(source));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.lockMode = lockMode;
         }
 
         /// <summary>
@@ -182,7 +185,9 @@ namespace Alethic.SqlServer.Deployment
         /// <param name="cancellationToken"></param>
         async Task SetDacTag(SqlConnection connection, string databaseName, string tag, CancellationToken cancellationToken)
         {
-            connection.ChangeDatabase(databaseName);
+            if (connection.Database != databaseName)
+                connection.ChangeDatabase(databaseName);
+
             await connection.ExecuteNonQueryAsync($@"EXEC sys.sp_addextendedproperty @name = N'DACTAG', @value = {tag}", cancellationToken: cancellationToken);
         }
 
@@ -198,7 +203,8 @@ namespace Alethic.SqlServer.Deployment
             if (await connection.ExecuteScalarAsync((string)$"SELECT db_id('{databaseName}')", cancellationToken: cancellationToken) is short dbid)
             {
                 // switch to database
-                connection.ChangeDatabase(databaseName);
+                if (connection.Database != databaseName)
+                    connection.ChangeDatabase(databaseName);
 
                 // select tag
                 if (await connection.ExecuteScalarAsync((string)$@"SELECT TOP 1 value FROM sys.extended_properties WHERE class = 0 AND name = 'DACTAG'", cancellationToken: cancellationToken) is string value)
@@ -369,6 +375,79 @@ namespace Alethic.SqlServer.Deployment
         }
 
         /// <summary>
+        /// Enters a lock region.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="databaseName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        async Task<bool> EnterLockAsync(SqlConnection connection, string databaseName, CancellationToken cancellationToken)
+        {
+            if (lockMode == SqlPackageLockMode.None)
+                return false;
+
+            if (lockMode == SqlPackageLockMode.Server)
+            {
+                if (await connection.GetServerEngineEditionAsync(cancellationToken) == SqlEngineEdition.AzureSQL)
+                    throw new SqlDeploymentException("Server lock mode not supported on Azure SQL.");
+
+                // lock database for deployment
+                if (connection.Database != "master")
+                    connection.ChangeDatabase("master");
+                if (await connection.GetAppLock($"DATABASE::{databaseName}", timeout: (int)TimeSpan.FromMinutes(5).TotalMilliseconds) < 0)
+                    throw new SqlDeploymentException($"Unable to acquire database lock on '{databaseName}'.");
+
+                return true;
+            }
+
+            if (lockMode == SqlPackageLockMode.Database)
+            {
+                // lock database for deployment
+                if (connection.Database != databaseName)
+                    connection.ChangeDatabase(databaseName);
+                if (await connection.GetAppLock($"DATABASE::{databaseName}", timeout: (int)TimeSpan.FromMinutes(5).TotalMilliseconds) < 0)
+                    throw new SqlDeploymentException($"Unable to acquire database lock on '{databaseName}'.");
+
+                return true;
+            }
+
+            throw new InvalidOperationException();
+        }
+
+        /// <summary>
+        /// Exits a lock region.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="databaseName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        async Task ExitLockAsync(SqlConnection connection, string databaseName, CancellationToken cancellationToken)
+        {
+            if (lockMode == SqlPackageLockMode.None)
+                return;
+
+            if (lockMode == SqlPackageLockMode.Server)
+            {
+                if (connection.Database != "master")
+                    connection.ChangeDatabase("master");
+                await connection.ReleaseAppLock($"DATABASE::{databaseName}");
+
+                return;
+            }
+
+            if (lockMode == SqlPackageLockMode.Database)
+            {
+                if (connection.Database != databaseName)
+                    connection.ChangeDatabase(databaseName);
+                await connection.ReleaseAppLock($"DATABASE::{databaseName}");
+
+                return;
+            }
+
+            throw new InvalidOperationException();
+        }
+
+        /// <summary>
         /// Deploys the database.
         /// </summary>
         /// <param name="connection"></param>
@@ -390,12 +469,11 @@ namespace Alethic.SqlServer.Deployment
                 return;
             }
 
+            // acquire appropriate lock
+            var locked = await EnterLockAsync(connection, databaseName, cancellationToken);
+
             try
             {
-                // lock database for deployment
-                connection.ChangeDatabase("master");
-                if (await connection.GetAppLock($"DATABASE::{databaseName}", timeout: (int)TimeSpan.FromMinutes(5).TotalMilliseconds) < 0)
-                    throw new SqlDeploymentException($"Unable to acquire database lock on '{databaseName}'.");
 
                 // load up the DAC services
                 using var dac = LoadDacPackage(source);
@@ -415,8 +493,7 @@ namespace Alethic.SqlServer.Deployment
 
                     // some items are replicated
                     var helpDbReplicationOption = await connection.ExecuteSpHelpReplicationDbOptionAsync(databaseName, cancellationToken);
-                    if (helpDbReplicationOption.TransactionalPublish ||
-                        helpDbReplicationOption.MergePublish)
+                    if (helpDbReplicationOption != null && (helpDbReplicationOption.TransactionalPublish || helpDbReplicationOption.MergePublish))
                     {
                         if ((int)await connection.ExecuteScalarAsync("SELECT COUNT(*) FROM sysarticles", null, cancellationToken) > 0)
                         {
@@ -437,16 +514,18 @@ namespace Alethic.SqlServer.Deployment
                 }
 
                 // deploy database
-                connection.ChangeDatabase("master");
                 logger.LogInformation("Publishing {DacPacFile} to {Database} at {InstanceName}.", source, databaseName, instanceName);
                 svc.Deploy(dac, databaseName, true, opt, cancellationToken);
 
+                // ensure we're set to the database we just deployed
+                if (connection.Database != databaseName)
+                    connection.ChangeDatabase(databaseName);
+
                 // generate files for file groups
-                connection.ChangeDatabase(databaseName);
                 foreach (var group in await GetFileGroupsWithMissingFiles(connection, cancellationToken))
                     await CreateDefaultFilesForFileGroup(connection, databaseName, group, cancellationToken);
 
-                // record that the version we just deployed
+                // record the version we just deployed
                 await SetDacTag(connection, databaseName, GetDacTag(source), cancellationToken);
             }
             catch (SqlException e)
@@ -459,11 +538,8 @@ namespace Alethic.SqlServer.Deployment
                 try
                 {
                     // we might have been closed as part of the error
-                    if (connection.State == ConnectionState.Open)
-                    {
-                        connection.ChangeDatabase("master");
-                        await connection.ReleaseAppLock($"DATABASE::{databaseName}");
-                    }
+                    if (locked && connection.State == ConnectionState.Open)
+                        await ExitLockAsync(connection, databaseName, cancellationToken);
                 }
                 catch (SqlException e)
                 {

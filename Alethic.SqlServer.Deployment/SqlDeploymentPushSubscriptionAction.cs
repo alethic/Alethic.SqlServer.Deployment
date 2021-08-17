@@ -37,11 +37,13 @@ namespace Alethic.SqlServer.Deployment
         public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var sub = await OpenConnectionAsync(cancellationToken);
-            sub.ChangeDatabase(DatabaseName);
+            if (sub.Database != DatabaseName)
+                sub.ChangeDatabase(DatabaseName);
             var subServerName = await sub.GetServerNameAsync(cancellationToken);
 
             using var pub = await OpenConnectionAsync(PublisherInstance, cancellationToken);
-            pub.ChangeDatabase(PublicationDatabaseName);
+            if (pub.Database != PublicationDatabaseName)
+                pub.ChangeDatabase(PublicationDatabaseName);
             var pubServerName = await pub.GetServerNameAsync(cancellationToken);
 
             await pub.ExecuteNonQueryAsync($@"

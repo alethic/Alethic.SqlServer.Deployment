@@ -66,7 +66,7 @@ namespace Alethic.SqlServer.Deployment
 
         async Task CreateDatabase(SqlDeploymentExecuteContext context, SqlConnection cnn, CancellationToken cancellationToken)
         {
-            var defaultDataFilePath = DefaultDataFilePath ?? Path.Combine(await cnn.GetServerPropertyAsync("InstanceDefaultDataPath", cancellationToken), Name + ".mdf");
+            var defaultDataFilePath = DefaultDataFilePath ?? Path.Combine(await cnn.GetServerPropertyAsync<string>("InstanceDefaultDataPath", cancellationToken), Name + ".mdf");
             var dataFileExistsResult = await cnn.ExecuteXpFileExist(defaultDataFilePath, cancellationToken);
             if (dataFileExistsResult.FileExists == 1 && Overwrite)
             {
@@ -77,7 +77,7 @@ namespace Alethic.SqlServer.Deployment
             if (dataFileExistsResult.FileExists == 1)
                 throw new SqlDeploymentException($"Data file '{defaultDataFilePath}' already exists.");
 
-            var defaultLogFilePath = DefaultLogFilePath ?? Path.Combine(await cnn.GetServerPropertyAsync("InstanceDefaultLogPath", cancellationToken), Name + "_log.ldf");
+            var defaultLogFilePath = DefaultLogFilePath ?? Path.Combine(await cnn.GetServerPropertyAsync<string>("InstanceDefaultLogPath", cancellationToken), Name + "_log.ldf");
             var logFileExistsResult = await cnn.ExecuteXpFileExist(defaultLogFilePath, cancellationToken);
             if (logFileExistsResult.FileExists == 1 && Overwrite)
             {

@@ -47,7 +47,8 @@ namespace Alethic.SqlServer.Deployment
             using var publish = await OpenConnectionAsync(cancellationToken);
 
             // switch to publisher database
-            publish.ChangeDatabase(DatabaseName);
+            if (publish.Database != DatabaseName)
+                publish.ChangeDatabase(DatabaseName);
 
             // ensure replication is enabled on the database
             await publish.ExecuteSpSetReplicationDbOptionAsync(DatabaseName, "publish", "true");

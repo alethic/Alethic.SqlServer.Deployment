@@ -37,10 +37,12 @@ namespace Alethic.SqlServer.Deployment
         public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var sub = await OpenConnectionAsync(cancellationToken);
-            sub.ChangeDatabase(DatabaseName);
+            if (sub.Database != DatabaseName)
+                sub.ChangeDatabase(DatabaseName);
 
             using var pub = await OpenConnectionAsync(PublisherInstance, cancellationToken);
-            pub.ChangeDatabase(PublicationDatabaseName);
+            if (pub.Database != PublicationDatabaseName)
+                pub.ChangeDatabase(PublicationDatabaseName);
 
             await pub.ExecuteNonQueryAsync($@"
                 IF NOT EXISTS ( SELECT * FROM syssubscriptions WHERE srvname = {Instance} AND dest_db = {DatabaseName} )

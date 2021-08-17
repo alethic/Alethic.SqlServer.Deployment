@@ -114,7 +114,9 @@ namespace Alethic.SqlServer.Deployment
         public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
             using var connection = await OpenConnectionAsync(cancellationToken);
-            connection.ChangeDatabase(DatabaseName);
+
+            if (connection.Database != DatabaseName)
+                connection.ChangeDatabase(DatabaseName);
 
             var table = await LoadTableArticle(connection, cancellationToken);
             if (table == null)

@@ -237,7 +237,7 @@ namespace Alethic.SqlServer.Deployment
         /// <returns></returns>
         async Task<string> GetSqlAgentServiceName(SqlConnection connection, CancellationToken cancellationToken)
         {
-            var n = (await connection.GetServerPropertyAsync("InstanceName", cancellationToken))?.TrimOrNull() ?? "MSSQLSERVER";
+            var n = await connection.GetServerInstanceName(cancellationToken);
             var s = n == "MSSQLSERVER" ? "SQLSERVERAGENT" : "SQLAgent$" + n;
             return s;
         }

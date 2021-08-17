@@ -32,6 +32,11 @@ namespace Alethic.SqlServer.Deployment
         public SqlDeploymentDatabasePackageDeployOptions DeployOptions { get; set; } = new SqlDeploymentDatabasePackageDeployOptions();
 
         /// <summary>
+        /// Gets the method by which to lock the database during the deployment.
+        /// </summary>
+        public SqlDeploymentExpression? LockMode { get; set; }
+
+        /// <summary>
         /// Compiles the package deployment configuration.
         /// </summary>
         /// <param name="context"></param>
@@ -46,7 +51,7 @@ namespace Alethic.SqlServer.Deployment
                 if (Path.IsPathRooted(source) == false)
                     source = Path.Combine(context.RelativeRoot, source);
 
-                yield return new SqlDeploymentDatabasePackageAction(context.Instance, name, source, LoadProfile(context));
+                yield return new SqlDeploymentDatabasePackageAction(context.Instance, name, source, LoadProfile(context), LockMode?.Expand<SqlPackageLockMode>(context) ?? SqlPackageLockMode.Server);
             }
         }
 

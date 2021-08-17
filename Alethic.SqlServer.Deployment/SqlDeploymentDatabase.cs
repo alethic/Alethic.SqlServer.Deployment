@@ -15,6 +15,11 @@ namespace Alethic.SqlServer.Deployment
         public SqlDeploymentExpression Name { get; set; }
 
         /// <summary>
+        /// Whether or not the create the database if it does not exist.
+        /// </summary>
+        public SqlDeploymentExpression? Create { get; set; }
+
+        /// <summary>
         /// Gets or sets the path to the DACPAC to be deployed to the database.
         /// </summary>
         public SqlDeploymentDatabasePackage Package { get; set; }
@@ -62,12 +67,13 @@ namespace Alethic.SqlServer.Deployment
         public IEnumerable<SqlDeploymentAction> Compile(SqlDeploymentCompileContext context)
         {
             // creates the database if it does not exist
-            yield return new SqlDeploymentCreateDatabaseAction(
-                context.Instance,
-                Name.Expand(context),
-                DefaultDataFilePath?.Expand(context),
-                DefaultLogFilePath?.Expand(context),
-                Overwrite?.Expand<bool>(context) ?? false);
+            if (bool.TryParse(Create?.Expand(context) ?? "true", out var b) && b)
+                yield return new SqlDeploymentCreateDatabaseAction(
+                    context.Instance,
+                    Name.Expand(context),
+                    DefaultDataFilePath?.Expand(context),
+                    DefaultLogFilePath?.Expand(context),
+                    Overwrite?.Expand<bool>(context) ?? false);
 
             // potentially deploy a DAC package
             if (Package != null)
