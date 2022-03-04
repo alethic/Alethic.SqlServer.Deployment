@@ -160,17 +160,17 @@ namespace Alethic.SqlServer.Deployment
         }
 
         /// <summary>
-        /// Returns <c>true</c> if the database is to be deployed.
+        /// Returns <c>true</c> if the database tag does not match 
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="databaseName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task<bool> IsOutOfDate(SqlConnection connection, string databaseName, CancellationToken cancellationToken)
+        async Task<bool> IsDacTagDifferent(SqlConnection connection, string databaseName, CancellationToken cancellationToken)
         {
             // MD5SUM of the DACPAC is put onto the database to indicate no change
             var tag = GetDacTag(source);
-            if (tag == await GetDacTag(connection, databaseName, cancellationToken))
+            if (tag == await GetDacTagAsync(connection, databaseName, cancellationToken))
                 return false;
 
             return true;
@@ -197,7 +197,7 @@ namespace Alethic.SqlServer.Deployment
         /// <param name="connection"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task<string> GetDacTag(SqlConnection connection, string databaseName, CancellationToken cancellationToken)
+        async Task<string> GetDacTagAsync(SqlConnection connection, string databaseName, CancellationToken cancellationToken)
         {
             // check if database exists
             if (await connection.ExecuteScalarAsync((string)$"SELECT db_id('{databaseName}')", cancellationToken: cancellationToken) is short dbid)
@@ -209,6 +209,60 @@ namespace Alethic.SqlServer.Deployment
                 // select tag
                 if (await connection.ExecuteScalarAsync((string)$@"SELECT TOP 1 value FROM sys.extended_properties WHERE class = 0 AND name = 'DACTAG'", cancellationToken: cancellationToken) is string value)
                     return value;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if the database version is less than the DacPac version.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="databaseName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        async Task<bool> IsDacVersionOutOfDateAsync(DacPackage dac, SqlConnection connection, string databaseName, CancellationToken cancellationToken)
+        {
+            // Version of the DacPac is put onto the database to indicate no change
+            if (dac.Version <= await GetDacVersionAsync(connection, databaseName, cancellationToken))
+                return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Sets the DACVERSION on the given database.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="databaseName"></param>
+        /// <param name="tag"></param>
+        /// <param name="cancellationToken"></param>
+        async Task SetDacVersion(SqlConnection connection, string databaseName, Version version, CancellationToken cancellationToken)
+        {
+            if (connection.Database != databaseName)
+                connection.ChangeDatabase(databaseName);
+
+            await connection.ExecuteNonQueryAsync($@"EXEC sys.sp_addextendedproperty @name = N'DACVERSION', @value = {version.ToString()}", cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets the DACVERSION property for a given database.
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        async Task<Version> GetDacVersionAsync(SqlConnection connection, string databaseName, CancellationToken cancellationToken)
+        {
+            // check if database exists
+            if (await connection.ExecuteScalarAsync((string)$"SELECT db_id('{databaseName}')", cancellationToken: cancellationToken) is short dbid)
+            {
+                // switch to database
+                if (connection.Database != databaseName)
+                    connection.ChangeDatabase(databaseName);
+
+                // select version
+                if (await connection.ExecuteScalarAsync((string)$@"SELECT TOP 1 value FROM sys.extended_properties WHERE class = 0 AND name = 'DACVERSION'", cancellationToken: cancellationToken) is string value)
+                    return value != null && Version.TryParse(value, out var version) ? version : null;
             }
 
             return null;
@@ -454,8 +508,14 @@ namespace Alethic.SqlServer.Deployment
         /// <param name="databaseName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task DeployAsync(SqlConnection connection, string databaseName, DacProfile profile, CancellationToken cancellationToken)
+        public async Task DeployAsync(SqlConnection connection, string databaseName, DacProfile profile, bool ignoreDacTag, bool ignoreDacVersion, CancellationToken cancellationToken)
         {
+            if (connection is null)
+                throw new ArgumentNullException(nameof(connection));
+            if (string.IsNullOrEmpty(databaseName))
+                throw new ArgumentException($"'{nameof(databaseName)}' cannot be null or empty.", nameof(databaseName));
+            if (profile is null)
+                throw new ArgumentNullException(nameof(profile));
             if (File.Exists(source) == false)
                 throw new FileNotFoundException($"Missing DACPAC '{source}'. Ensure project has been built successfully.", source);
 
@@ -463,9 +523,9 @@ namespace Alethic.SqlServer.Deployment
             var instanceName = await connection.GetServerInstanceName(cancellationToken);
 
             // check that existing database does not already exist with tag
-            if (await IsOutOfDate(connection, databaseName, cancellationToken) == false)
+            if (ignoreDacTag == false && await IsDacTagDifferent(connection, databaseName, cancellationToken) == false)
             {
-                logger.LogInformation("Database {Name} is up to date.", databaseName);
+                logger.LogInformation("Database {Name} has a matching tag as the deployment package.", databaseName);
                 return;
             }
 
@@ -477,6 +537,15 @@ namespace Alethic.SqlServer.Deployment
 
                 // load up the DAC services
                 using var dac = LoadDacPackage(source);
+
+                // check whether we actually need an upgrade
+                if (ignoreDacVersion == false && await IsDacVersionOutOfDateAsync(dac, connection, databaseName, cancellationToken))
+                {
+                    logger.LogInformation("Database {Name} is up to date.", databaseName);
+                    return;
+                }
+
+                // initialize dac services
                 var svc = new DacServices(connection.ConnectionString);
                 svc.Message += (s, a) => LogDacServiceMessage(instanceName, databaseName, a);
                 svc.ProgressChanged += (s, a) => LogDacServiceProgress(instanceName, databaseName, a);
@@ -526,6 +595,7 @@ namespace Alethic.SqlServer.Deployment
                     await CreateDefaultFilesForFileGroup(connection, databaseName, group, cancellationToken);
 
                 // record the version we just deployed
+                await SetDacVersion(connection, databaseName, dac.Version, cancellationToken);
                 await SetDacTag(connection, databaseName, GetDacTag(source), cancellationToken);
             }
             catch (SqlException e)

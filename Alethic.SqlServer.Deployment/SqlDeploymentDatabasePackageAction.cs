@@ -20,13 +20,17 @@ namespace Alethic.SqlServer.Deployment
         /// <param name="name"></param>
         /// <param name="source"></param>
         /// <param name="profile"></param>
-        public SqlDeploymentDatabasePackageAction(SqlInstance instance, string name, string source, DacProfile profile, SqlPackageLockMode lockMode) :
+        /// <param name="ignoreDacTag"></param>
+        /// <param name="ignoreDacVersion"></param>
+        public SqlDeploymentDatabasePackageAction(SqlInstance instance, string name, string source, DacProfile profile, SqlPackageLockMode lockMode, bool ignoreDacTag, bool ignoreDacVersion) :
             base(instance)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Source = source ?? throw new ArgumentNullException(nameof(source));
             Profile = profile ?? throw new ArgumentNullException(nameof(profile));
             LockMode = lockMode;
+            IgnoreDacTag = ignoreDacTag;
+            IgnoreDacVersion = ignoreDacVersion;
         }
 
         /// <summary>
@@ -50,6 +54,16 @@ namespace Alethic.SqlServer.Deployment
         public SqlPackageLockMode LockMode { get; }
 
         /// <summary>
+        /// Ignore comparison of the DACTAG with the target database.
+        /// </summary>
+        public bool IgnoreDacTag { get; set; }
+
+        /// <summary>
+        /// Ignore comparison of the DACVERSION with the target database.
+        /// </summary>
+        public bool IgnoreDacVersion { get; set; }
+
+        /// <summary>
         /// Deploys the database.
         /// </summary>
         /// <param name="context"></param>
@@ -58,7 +72,7 @@ namespace Alethic.SqlServer.Deployment
         public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
         {
             using (var cnn = await OpenConnectionAsync(cancellationToken))
-                await new SqlDacPacDeploy(Source, context.Logger, LockMode).DeployAsync(cnn, Name, Profile, cancellationToken);
+                await new SqlDacPacDeploy(Source, context.Logger, LockMode).DeployAsync(cnn, Name, Profile, IgnoreDacTag, IgnoreDacVersion, cancellationToken);
         }
 
     }

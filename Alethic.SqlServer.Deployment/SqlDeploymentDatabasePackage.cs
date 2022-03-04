@@ -37,6 +37,16 @@ namespace Alethic.SqlServer.Deployment
         public SqlDeploymentExpression? LockMode { get; set; }
 
         /// <summary>
+        /// Gets whether or not the DACTAG comparison will be ignored.
+        /// </summary>
+        public SqlDeploymentExpression? IgnoreDacTag { get; set; }
+
+        /// <summary>
+        /// Gets whether or not the DACVERSION comparison will be ignored.
+        /// </summary>
+        public SqlDeploymentExpression? IgnoreDacVersion { get; set; }
+
+        /// <summary>
         /// Compiles the package deployment configuration.
         /// </summary>
         /// <param name="context"></param>
@@ -51,7 +61,7 @@ namespace Alethic.SqlServer.Deployment
                 if (Path.IsPathRooted(source) == false)
                     source = Path.Combine(context.RelativeRoot, source);
 
-                yield return new SqlDeploymentDatabasePackageAction(context.Instance, name, source, LoadProfile(context), LockMode?.Expand<SqlPackageLockMode>(context) ?? SqlPackageLockMode.Server);
+                yield return new SqlDeploymentDatabasePackageAction(context.Instance, name, source, LoadProfile(context), LockMode?.Expand<SqlPackageLockMode>(context) ?? SqlPackageLockMode.Server, IgnoreDacTag?.Expand<bool>(context) ?? false, IgnoreDacVersion?.Expand<bool>(context) ?? false);
             }
         }
 
