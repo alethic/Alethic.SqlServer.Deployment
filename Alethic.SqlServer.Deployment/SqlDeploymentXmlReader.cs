@@ -198,6 +198,8 @@ namespace Alethic.SqlServer.Deployment
                 var l = new SqlDeploymentDatabasePackage();
                 l.Source = (string)packageElement.Attribute("Source");
                 l.LockMode = (string)packageElement.Attribute("LockMode");
+                l.IgnoreDacTag = (string)packageElement.Attribute("IgnoreDacTag");
+                l.IgnoreDacVersion = (string)packageElement.Attribute("IgnoreDacVersion");
 
                 if (packageElement.Element(Xmlns + "DeployOptions") is XElement deployOptionsElement)
                     l.DeployOptions = LoadDatabasePackageDeployOptions(context, deployOptionsElement);

@@ -534,7 +534,6 @@ namespace Alethic.SqlServer.Deployment
 
             try
             {
-
                 // load up the DAC services
                 using var dac = LoadDacPackage(source);
 
