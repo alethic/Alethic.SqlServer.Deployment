@@ -9,8 +9,7 @@
             Properties="
                 %(ProjectReferenceWithConfiguration.SetConfiguration);
                 %(ProjectReferenceWithConfiguration.SetPlatform);
-                SQLDBExtensionsRefPath=$(MSBuildThisFileDirectory);
-                Version=$(Version)">
+                SQLDBExtensionsRefPath=$(MSBuildThisFileDirectory);">
             <Output TaskParameter="TargetOutputs" ItemName="_SqlProjectOutput" />
         </MSBuild>
         <ItemGroup>
