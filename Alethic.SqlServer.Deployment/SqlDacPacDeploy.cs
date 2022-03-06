@@ -224,10 +224,11 @@ namespace Alethic.SqlServer.Deployment
         async Task<bool> IsDacVersionOutOfDateAsync(DacPackage dac, SqlConnection connection, string databaseName, CancellationToken cancellationToken)
         {
             // Version of the DacPac is put onto the database to indicate no change
-            if (dac.Version <= await GetDacVersionAsync(connection, databaseName, cancellationToken))
-                return false;
+            var version = await GetDacVersionAsync(connection, databaseName, cancellationToken);
+            if (version == null || version < dac.Version)
+                return true;
 
-            return true;
+            return false;
         }
 
         /// <summary>
@@ -538,7 +539,7 @@ namespace Alethic.SqlServer.Deployment
                 using var dac = LoadDacPackage(source);
 
                 // check whether we actually need an upgrade
-                if (ignoreDacVersion == false && await IsDacVersionOutOfDateAsync(dac, connection, databaseName, cancellationToken))
+                if (ignoreDacVersion == false && await IsDacVersionOutOfDateAsync(dac, connection, databaseName, cancellationToken) == false)
                 {
                     logger.LogInformation("Database {Name} is up to date.", databaseName);
                     return;
