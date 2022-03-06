@@ -243,7 +243,7 @@ namespace Alethic.SqlServer.Deployment
             if (connection.Database != databaseName)
                 connection.ChangeDatabase(databaseName);
 
-            await connection.ExecuteNonQueryAsync($@"EXEC sys.sp_addextendedproperty @name = N'DACVERSION', @value = {version.ToString()}", cancellationToken: cancellationToken);
+            await connection.ExecuteNonQueryAsync($@"EXEC sys.sp_addextendedproperty @name = N'DACVERSION', @value = {version}", cancellationToken: cancellationToken);
         }
 
         /// <summary>
