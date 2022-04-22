@@ -10,7 +10,7 @@
     <PackageReference Include="MartinCostello.SqlLocalDb" Version="3.0.1" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="3.0.0" />
-    <PackageReference Include="Microsoft.SqlServer.DACFx" Version="150.5164.1" />
+    <PackageReference Include="Microsoft.SqlServer.DACFx" Version="160.5400.1" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
     <PackageReference Include="System.IO.Packaging" Version="5.0.0" />
