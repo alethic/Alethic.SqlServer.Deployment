@@ -64,7 +64,7 @@ namespace Alethic.SqlServer.Deployment.Tool
         /// <returns></returns>
         public async Task<int> OnExecuteAsync(CancellationToken cancellationToken)
         {
-            var manifest = Path.IsPathFullyQualified(Manifest) == false ? Path.GetFullPath(Manifest, Environment.CurrentDirectory) : Manifest;
+            var manifest = Path.GetFullPath(Manifest);
             if (File.Exists(manifest) == false)
             {
                 logger.LogError("Could not find SQL Deployment manifest file: {Manifest}.", manifest);

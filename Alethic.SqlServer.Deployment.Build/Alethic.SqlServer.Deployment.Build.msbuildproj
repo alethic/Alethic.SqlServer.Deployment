@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.Build.NoTargets/3.0.4">
+﻿<Project Sdk="Microsoft.Build.NoTargets">
     <PropertyGroup>
-        <TargetFramework>netstandard1.0</TargetFramework>
+        <TargetFramework>netstandard2.0</TargetFramework>
         <Description>Extends a .NET project such that it can establish ProjectReferences to SSDT projects, including importing the target projects generated DACPAC output into the output of the augmented project.</Description>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IncludeBuildOutput>false</IncludeBuildOutput>
