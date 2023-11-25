@@ -35,6 +35,29 @@ namespace Alethic.SqlServer.Deployment
         public abstract Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken);
 
         /// <summary>
+        /// Gets the connection string to use for opening a connection to the targeted SQL instance.
+        /// </summary>
+        /// <param name="instance"></param>
+        /// <returns></returns>
+        protected string GetConnectionString(SqlInstance instance)
+        {
+            var b = new SqlConnectionStringBuilder(instance.ConnectionString ?? "");
+            if (string.IsNullOrEmpty(b.DataSource))
+                b.DataSource = instance.Name;
+
+            return b.ToString();
+        }
+
+        /// <summary>
+        /// Gets the connection string to use for opening a connection to the targeted SQL instance.
+        /// </summary>
+        /// <returns></returns>
+        protected string GetConnectionString()
+        {
+            return GetConnectionString(Instance);
+        }
+
+        /// <summary>
         /// Opens a new connection to the targeted SQL instance.
         /// </summary>
         /// <param name="instance"></param>
@@ -42,11 +65,7 @@ namespace Alethic.SqlServer.Deployment
         /// <returns></returns>
         protected async Task<SqlConnection> OpenConnectionAsync(SqlInstance instance, CancellationToken cancellationToken)
         {
-            var b = new SqlConnectionStringBuilder(instance.ConnectionString ?? "");
-            if (string.IsNullOrEmpty(b.DataSource))
-                b.DataSource = instance.Name;
-
-            var c = new SqlConnection(b.ToString());
+            var c = new SqlConnection(GetConnectionString(instance));
             await c.OpenAsync(cancellationToken);
             return c;
         }

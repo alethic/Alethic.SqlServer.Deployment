@@ -71,8 +71,7 @@ namespace Alethic.SqlServer.Deployment
         /// <returns></returns>
         public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
         {
-            using (var cnn = await OpenConnectionAsync(cancellationToken))
-                await new SqlDacPacDeploy(Source, context.Logger, LockMode).DeployAsync(cnn, Name, Profile, IgnoreDacTag, IgnoreDacVersion, cancellationToken);
+            await new SqlDacPacDeploy(Source, context.Logger, LockMode).DeployAsync(GetConnectionString(), Name, Profile, IgnoreDacTag, IgnoreDacVersion, cancellationToken);
         }
 
     }

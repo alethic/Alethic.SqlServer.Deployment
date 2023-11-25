@@ -505,20 +505,24 @@ namespace Alethic.SqlServer.Deployment
         /// <summary>
         /// Deploys the database.
         /// </summary>
-        /// <param name="connection"></param>
+        /// <param name="connectionString"></param>
         /// <param name="databaseName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task DeployAsync(SqlConnection connection, string databaseName, DacProfile profile, bool ignoreDacTag, bool ignoreDacVersion, CancellationToken cancellationToken)
+        public async Task DeployAsync(string connectionString, string databaseName, DacProfile profile, bool ignoreDacTag, bool ignoreDacVersion, CancellationToken cancellationToken)
         {
-            if (connection is null)
-                throw new ArgumentNullException(nameof(connection));
+            if (connectionString is null)
+                throw new ArgumentNullException(nameof(connectionString));
             if (string.IsNullOrEmpty(databaseName))
                 throw new ArgumentException($"'{nameof(databaseName)}' cannot be null or empty.", nameof(databaseName));
             if (profile is null)
                 throw new ArgumentNullException(nameof(profile));
             if (File.Exists(source) == false)
                 throw new FileNotFoundException($"Missing DACPAC '{source}'. Ensure project has been built successfully.", source);
+
+            // open a new connection for this operation
+            using var connection = new SqlConnection(connectionString);
+            await connection.OpenAsync(cancellationToken);
 
             // will use to identify instance
             var instanceName = await connection.GetServerInstanceName(cancellationToken);
@@ -546,7 +550,7 @@ namespace Alethic.SqlServer.Deployment
                 }
 
                 // initialize dac services
-                var svc = new DacServices(connection.ConnectionString);
+                var svc = new DacServices(connectionString);
                 svc.Message += (s, a) => LogDacServiceMessage(instanceName, databaseName, a);
                 svc.ProgressChanged += (s, a) => LogDacServiceProgress(instanceName, databaseName, a);
                 var prf = profile ?? new DacProfile();
