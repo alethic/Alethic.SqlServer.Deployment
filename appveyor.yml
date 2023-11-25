@@ -53,8 +53,8 @@ before_test:
       $x.Node.OwnerDocument.Save($p)
 
 test_script:
-  - cmd: vstest.console /logger:Appveyor /settings:Alethic.SqlServer.Deployment.runsettings "Alethic.SqlServer.Deployment.Tests\bin\Release\net47\Alethic.SqlServer.Deployment.Tests.dll"
-  - cmd: vstest.console /logger:Appveyor /settings:Alethic.SqlServer.Deployment.runsettings "Alethic.SqlServer.Deployment.Tests\bin\Release\netcoreapp3.1\Alethic.SqlServer.Deployment.Tests.dll"
+  - cmd: vstest.console /logger:Appveyor /settings:Alethic.SqlServer.Deployment.runsettings "Alethic.SqlServer.Deployment.Tests\bin\Release\net472\Alethic.SqlServer.Deployment.Tests.dll"
+  - cmd: vstest.console /logger:Appveyor /settings:Alethic.SqlServer.Deployment.runsettings "Alethic.SqlServer.Deployment.Tests\bin\Release\net6.0\Alethic.SqlServer.Deployment.Tests.dll"
 
 artifacts:
   - path: pkg\*.nupkg
