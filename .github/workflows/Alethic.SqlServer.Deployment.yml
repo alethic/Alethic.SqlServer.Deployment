@@ -1,4 +1,4 @@
-name: IKVM.Core
+name: Alethic.SqlServer.Deployment
 
 on:
   push:
@@ -92,11 +92,99 @@ jobs:
       with:
         name: tests
         path: dist/tests.tar.gz
+  test:
+    strategy:
+      matrix:
+        run:
+        - Alethic.SqlServer.Deployment.Tests
+        sys:
+        - windows
+        - linux
+        - macos
+        tfm:
+        - net461
+        - net6.0
+        - net8.0
+        exclude:
+        - tfm: net461
+          sys: linux
+        - tfm: net461
+          sys: macos
+    name: Test (${{ matrix.run }}:${{ matrix.tfm }}:${{ matrix.sys }})
+    needs:
+    - build
+    runs-on: ${{ fromJSON('{"windows":["windows-2022"],"linux":["ubuntu-22.04"],"macos":["macos-latest"]}')[matrix.sys] }}
+    steps:
+    - name: Setup .NET 6.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 6.0.x
+    - name: Setup .NET 7.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 7.0.x
+    - name: Setup .NET 8.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Add NuGet Source (GitHub)
+      shell: pwsh
+      run: dotnet nuget add source --username USERNAME --password $env:GITHUB_TOKEN --store-password-in-clear-text --name alethic $env:GITHUB_REPOS
+      env:
+        GITHUB_REPOS: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Download Tests
+      uses: actions/download-artifact@v3
+      with:
+        name: tests
+    - name: Restore Tests
+      run: tar xzvf tests.tar.gz
+    - name: Execute Tests
+      timeout-minutes: 480
+      shell: pwsh
+      run: |
+        # assign powershell variables
+        $run = "${{ matrix.run }}"
+        $tfm = "${{ matrix.tfm }}"
+        $sys = "${{ matrix.sys }}"
+
+        # suite name can contain filter expression after ?
+        $split = $run.IndexOf("?")
+        if ($split -gt -1) {
+            $tst = $run.Substring(0, $split)
+            $qry = $run.Substring($split + 1)
+        } else {
+            $tst = $run
+        }
+
+        # scan for test assemblies
+        $tests = $(gci .\tests\$tst\$tfm -Recurse -Filter '*.Tests.dll')
+
+        # if a query was specified, add to test command
+        if ($tests) {
+            if ($qry -ne "" -and $qry -ne $null) {
+                Add-Content $env:GITHUB_ENV "`nRET=TestResults--$tst-$qry--$tfm--$sys"
+                dotnet test -f $tfm --blame -v 2 --results-directory "TestResults" --logger:"console;verbosity=detailed" --logger:trx --collect "Code Coverage" --filter "$qry" $tests
+            } else {
+                Add-Content $env:GITHUB_ENV "`nRET=TestResults--$tst--$tfm--$sys"
+                dotnet test -f $tfm --blame -v 2 --results-directory "TestResults" --logger:"console;verbosity=detailed" --logger:trx --collect "Code Coverage" $tests
+            }
+        }
+    - name: Archive Test Results
+      if: always() && startsWith(env.RET, 'TestResults--')
+      run: tar czvf TestResults.tar.gz TestResults
+    - name: Upload Test Results
+      if: always() && startsWith(env.RET, 'TestResults--')
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.RET }}
+        path: TestResults.tar.gz
   release:
     name: Release
     if: github.ref == 'refs/heads/main'
     needs:
     - build
+    - test
     runs-on: ubuntu-22.04
     steps:
     - name: Checkout Source
