@@ -15,6 +15,8 @@
     <ItemGroup>
         <PackageProjectReference Include="..\Alethic.SqlServer.Deployment\Alethic.SqlServer.Deployment.csproj">
             <PackageTargetPath>.</PackageTargetPath>
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         </PackageProjectReference>
     </ItemGroup>
 
