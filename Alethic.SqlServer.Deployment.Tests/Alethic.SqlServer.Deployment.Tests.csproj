@@ -3,7 +3,7 @@
   <Import Project="..\Alethic.SqlServer.Deployment.Build\build\Alethic.SqlServer.Deployment.Build.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net8.0;net9.0;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0;net8.0;net472</TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
