@@ -124,7 +124,7 @@ jobs:
         GITHUB_REPOS: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Download Tests
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: tests
     - name: Restore Tests
@@ -165,7 +165,7 @@ jobs:
       run: tar czvf TestResults.tar.gz TestResults
     - name: Upload Test Results
       if: always() && startsWith(env.RET, 'TestResults--')
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ env.RET }}
         path: TestResults.tar.gz
