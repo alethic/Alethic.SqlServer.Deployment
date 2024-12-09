@@ -94,7 +94,7 @@ jobs:
         sys:
         - windows
         tfm:
-        - net461
+        - net472
         - net6.0
         - net8.0
     name: Test (${{ matrix.run }}:${{ matrix.tfm }}:${{ matrix.sys }})
