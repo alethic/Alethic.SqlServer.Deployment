@@ -1,12 +1,18 @@
 name: Alethic.SqlServer.Deployment
 
 on:
+  workflow_dispatch:
   push:
     branches:
     - main
+    - develop
   pull_request:
     branches:
     - main
+    - develop
+  release:
+    types:
+    - created
 
 jobs:
   build:
@@ -193,23 +199,24 @@ jobs:
         name: nuget
         path: dist/nuget
     - name: Create Release
-      if: github.ref == 'refs/heads/main' || github.event.head_commit.message == '+push'
-      uses: ncipollo/release-action@v1.14.0
+      if: github.ref_type == 'tag'
+      uses: ncipollo/release-action@v1
       with:
         tag: ${{ steps.GitVersion.outputs.semVer }}
+        allowUpdates: true
+        omitBodyDuringUpdate: true
         artifacts: dist/nuget/*.nupkg,dist/nuget/*.snupkg
-        draft: false
-        generateReleaseNotes: true
-        prerelease: ${{ github.ref == 'refs/heads/develop' }}
+        makeLatest: true
         token: ${{ secrets.GITHUB_TOKEN }}
     - name: Push NuGet (GitHub)
+      if: github.event_name != 'pull_request'
       shell: pwsh
       run: dotnet nuget push dist/nuget/*.nupkg --source $env:GITHUB_REPOS --api-key $env:GITHUB_TOKEN --skip-duplicate
       env:
         GITHUB_REPOS: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Push NuGet
-      if: github.ref == 'refs/heads/main' || github.event.head_commit.message == '+push'
+      if: github.ref_type == 'tag'
       shell: pwsh
       run: dotnet nuget push dist/nuget/*.nupkg --source $env:NUGET_REPOS --api-key $env:NUGET_TOKEN --skip-duplicate
       env:
