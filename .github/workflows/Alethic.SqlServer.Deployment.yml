@@ -11,7 +11,7 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-22.04
+    runs-on: windows-latest
     steps:
     - name: Checkout Source
       uses: actions/checkout@v4
