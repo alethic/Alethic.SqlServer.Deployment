@@ -55,7 +55,7 @@ jobs:
     - name: Build
       shell: pwsh
       run: |
-        dotnet msbuild /m /bl `
+        msbuild /m /bl `
           /p:Configuration="Release" `
           /p:Platform="Any CPU" `
           /p:Version=${env:GitVersion_FullSemVer} `
