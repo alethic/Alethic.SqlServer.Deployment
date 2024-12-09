@@ -24,10 +24,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Alethic.SqlServer.Deployment\Alethic.SqlServer.Deployment.csproj" />
         <ProjectReference Include="..\Alethic.SqlServer.Deployment.Tests.Database\Alethic.SqlServer.Deployment.Tests.Database.sqlproj">
             <CopySqlProjectOutput>true</CopySqlProjectOutput>
         </ProjectReference>
+        <ProjectReference Include="..\Alethic.SqlServer.Deployment\Alethic.SqlServer.Deployment.csproj" />
     </ItemGroup>
 
     <ItemGroup>
