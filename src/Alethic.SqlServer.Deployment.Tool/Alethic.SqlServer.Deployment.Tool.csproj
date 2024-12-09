@@ -5,7 +5,6 @@
         <TargetFrameworks>net8.0</TargetFrameworks>
         <PackAsTool>true</PackAsTool>
         <ToolCommandName>sqldeploy</ToolCommandName>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Provides a .NET tool to deploy SQL Server instances and instance configuration across multiple SQL servers.</Description>
     </PropertyGroup>
 
@@ -14,6 +13,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="IKVM.Core.MSBuild" Version="0.1.103">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.1" />
         <PackageReference Include="McMaster.Extensions.Hosting.CommandLine" Version="4.1.1" />
         <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" />
