@@ -93,17 +93,10 @@ jobs:
         - Alethic.SqlServer.Deployment.Tests
         sys:
         - windows
-        - linux
-        - macos
         tfm:
         - net461
         - net6.0
         - net8.0
-        exclude:
-        - tfm: net461
-          sys: linux
-        - tfm: net461
-          sys: macos
     name: Test (${{ matrix.run }}:${{ matrix.tfm }}:${{ matrix.sys }})
     needs:
     - build
