@@ -9,6 +9,7 @@
         <RunSettingsFilePath>$(MSBuildThisFileDirectory)\Alethic.SqlServer.Deployment.runsettings</RunSettingsFilePath>
     </PropertyGroup>
     <ItemGroup>
+        <SourceRoot Include="$(MSBuildThisFileDirectory)\" />
         <None Include="$(MSBuildThisFileDirectory)icon.png" Pack="true" PackagePath="" />
     </ItemGroup>
 </Project>
