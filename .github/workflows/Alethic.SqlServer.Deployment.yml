@@ -1,0 +1,146 @@
+name: IKVM.Core
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout Source
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: recursive
+    - name: Setup .NET 6.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 6.0.x
+    - name: Setup .NET 7.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 7.0.x
+    - name: Setup .NET 8.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v1
+      with:
+        versionSpec: 5.x
+    - name: Execute GitVersion
+      uses: gittools/actions/gitversion/execute@v1
+      with:
+        useConfigFile: true
+    - name: Add NuGet Source (GitHub)
+      shell: pwsh
+      run: dotnet nuget add source --username USERNAME --password $env:GITHUB_TOKEN --store-password-in-clear-text --name alethic $env:GITHUB_REPOS
+      env:
+        GITHUB_REPOS: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Cache NuGet
+      uses: actions/cache@v4
+      with:
+        path: ${{ runner.temp }}/nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.msbuildproj') }}-1
+        restore-keys: ${{ runner.os }}-nuget-
+    - name: NuGet Restore
+      run: dotnet restore Alethic.SqlServer.Deployment.sln
+    - name: Build
+      shell: pwsh
+      run: |
+        dotnet msbuild /m /bl `
+          /p:Configuration="Release" `
+          /p:Platform="Any CPU" `
+          /p:Version=${env:GitVersion_FullSemVer} `
+          /p:AssemblyVersion=${env:GitVersion_AssemblySemVer} `
+          /p:InformationalVersion=${env:GitVersion_InformationalVersion} `
+          /p:FileVersion=${env:GitVersion_AssemblySemFileVer} `
+          /p:PackageVersion=${env:GitVersion_NuGetVersionV2} `
+          /p:RepositoryUrl="${env:GITHUB_SERVER_URL}/${env:GITHUB_REPOSITORY}.git" `
+          /p:PackageProjectUrl="${env:GITHUB_SERVER_URL}/${env:GITHUB_REPOSITORY}" `
+          /p:BuildInParallel=true `
+          /p:CreateHardLinksForAdditionalFilesIfPossible=true `
+          /p:CreateHardLinksForCopyAdditionalFilesIfPossible=true `
+          /p:CreateHardLinksForCopyFilesToOutputDirectoryIfPossible=true `
+          /p:CreateHardLinksForCopyLocalIfPossible=true `
+          /p:CreateHardLinksForPublishFilesIfPossible=true `
+          /p:ContinuousIntegrationBuild=true `
+          Alethic.SqlServer.Deployment.dist.msbuildproj
+    - name: Upload MSBuild Log
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: msbuild.binlog
+        path: msbuild.binlog
+    - name: Upload NuGet Packages
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget
+        path: dist/nuget
+    - name: Package Tests
+      run: tar czvf tests.tar.gz tests
+      working-directory: dist
+    - name: Upload Tests
+      uses: actions/upload-artifact@v4
+      with:
+        name: tests
+        path: dist/tests.tar.gz
+  release:
+    name: Release
+    if: github.ref == 'refs/heads/main'
+    needs:
+    - build
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout Source
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Setup .NET 8.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Install GitVersion
+      uses: gittools/actions/gitversion/setup@v1
+      with:
+        versionSpec: 5.x
+    - name: Execute GitVersion
+      id: GitVersion
+      uses: gittools/actions/gitversion/execute@v1
+      with:
+        useConfigFile: true
+    - name: Download NuGet Packages
+      uses: actions/download-artifact@v4
+      with:
+        name: nuget
+        path: dist/nuget
+    - name: Create Release
+      if: github.ref == 'refs/heads/main' || github.event.head_commit.message == '+push'
+      uses: ncipollo/release-action@v1.11.2
+      with:
+        tag: ${{ steps.GitVersion.outputs.semVer }}
+        artifacts: dist/nuget/*.nupkg,dist/nuget/*.snupkg
+        draft: false
+        generateReleaseNotes: true
+        prerelease: ${{ github.ref == 'refs/heads/develop' }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Push NuGet (GitHub)
+      shell: pwsh
+      run: dotnet nuget push dist/nuget/*.nupkg --source $env:GITHUB_REPOS --api-key $env:GITHUB_TOKEN --skip-duplicate
+      env:
+        GITHUB_REPOS: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Push NuGet
+      if: github.ref == 'refs/heads/main' || github.event.head_commit.message == '+push'
+      shell: pwsh
+      run: dotnet nuget push dist/nuget/*.nupkg --source $env:NUGET_REPOS --api-key $env:NUGET_TOKEN --skip-duplicate
+      env:
+        NUGET_REPOS: https://api.nuget.org/v3/index.json
+        NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
