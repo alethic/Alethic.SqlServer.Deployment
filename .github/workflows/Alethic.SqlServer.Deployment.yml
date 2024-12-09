@@ -31,11 +31,11 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v1
+      uses: gittools/actions/gitversion/setup@v3
       with:
         versionSpec: 5.x
     - name: Execute GitVersion
-      uses: gittools/actions/gitversion/execute@v1
+      uses: gittools/actions/gitversion/execute@v3
       with:
         useConfigFile: true
     - name: Add NuGet Source (GitHub)
@@ -196,12 +196,12 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v1
+      uses: gittools/actions/gitversion/setup@v3
       with:
         versionSpec: 5.x
     - name: Execute GitVersion
       id: GitVersion
-      uses: gittools/actions/gitversion/execute@v1
+      uses: gittools/actions/gitversion/execute@v3
       with:
         useConfigFile: true
     - name: Download NuGet Packages
