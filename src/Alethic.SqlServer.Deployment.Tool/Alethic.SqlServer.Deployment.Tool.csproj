@@ -7,7 +7,6 @@
         <ToolCommandName>sqldeploy</ToolCommandName>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Description>Provides a .NET tool to deploy SQL Server instances and instance configuration across multiple SQL servers.</Description>
-        <Copyright>Jerome Haltom</Copyright>
     </PropertyGroup>
 
     <ItemGroup>

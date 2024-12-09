@@ -84,7 +84,6 @@ var t2 = Task.Run(() => e.ExecuteAsync("TargetB"));
 await Task.WhenAll(t1, t2);
 ```
 
-
 ## Tool
 A .NET Core Global Tool is available as `Alethic.SqlServer.Deployment.Tool`. This tool supports a `deploy` command, accepting the manifest path as an argument; along with additional `-a` arguments to specify arguments.
 
