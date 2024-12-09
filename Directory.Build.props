@@ -2,12 +2,9 @@
     <PropertyGroup>
         <Authors>Jerome Haltom</Authors>
         <Company>Alethic Solutions</Company>
-        <RepositoryUrl>https://github.com/alethic/Alethic.SqlServer.Deployment</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
-        <PackageProjectUrl>https://github.com/alethic/Alethic.SqlServer.Deployment</PackageProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageIcon>icon.png</PackageIcon>
-        <LangVersion>8.0</LangVersion>
+        <LangVersion>12.0</LangVersion>
         <PackageTags>sql dacpac dacfx dac</PackageTags>
         <RunSettingsFilePath>$(MSBuildThisFileDirectory)\Alethic.SqlServer.Deployment.runsettings</RunSettingsFilePath>
     </PropertyGroup>
