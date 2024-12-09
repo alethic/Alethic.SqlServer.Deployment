@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.Build.NoTargets">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="IKVM.Core.MSBuild" Version="0.1.103">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageProjectReference Include="..\..\Alethic.SqlServer.Deployment\Alethic.SqlServer.Deployment.csproj">
+            <PackageTargetPath>.</PackageTargetPath>
+        </PackageProjectReference>
+    </ItemGroup>
+
+</Project>

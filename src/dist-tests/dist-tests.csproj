@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.Build.NoTargets">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="IKVM.Core.MSBuild" Version="0.1.103">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <TestTarget Include="Alethic.SqlServer.Deployment.Tests|net472" ProjectName="Alethic.SqlServer.Deployment.Tests" TargetFramework="net472" />
+        <TestTarget Include="Alethic.SqlServer.Deployment.Tests|net6.0" ProjectName="Alethic.SqlServer.Deployment.Tests" TargetFramework="net6.0" />
+        <TestTarget Include="Alethic.SqlServer.Deployment.Tests|net8.0" ProjectName="Alethic.SqlServer.Deployment.Tests" TargetFramework="net8.0" />
+    </ItemGroup>
+
+    <!-- Runs once per TFM/RID combination to generate individual output. -->
+    <Target Name="GetCopyToOutputDirectoryItemsByTestTarget" BeforeTargets="BeforeBuild" Inputs="@(TestTarget)" Outputs="%(Identity)\null">
+
+        <!-- batch values to properties -->
+        <PropertyGroup>
+            <_ProjectName>%(TestTarget.ProjectName)</_ProjectName>
+            <_ProjectFile>%(TestTarget.ProjectFile)</_ProjectFile>
+            <_ProjectFile Condition=" '$(_ProjectFile)' == '' ">..\..\$(_ProjectName)\$(_ProjectName).csproj</_ProjectFile>
+            <_TargetFramework>%(TestTarget.TargetFramework)</_TargetFramework>
+        </PropertyGroup>
+
+        <!-- output for the TFM/RID -->
+        <ItemGroup>
+            <PublishProjectReference Include="$(_ProjectFile)">
+                <SetTargetFramework>TargetFramework=$(_TargetFramework)</SetTargetFramework>
+                <ProjectTargetPath>$(_ProjectName)\$(_TargetFramework)</ProjectTargetPath>
+            </PublishProjectReference>
+        </ItemGroup>
+    </Target>
+
+</Project>
