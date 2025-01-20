@@ -6,12 +6,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Build" Version="16.9.0" PrivateAssets="All" />
         <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.9.0" PrivateAssets="All" />
         <PackageReference Include="System.IO.Packaging" Version="9.0.1" />
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="IKVM.Core.MSBuild" Version="0.1.106">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
