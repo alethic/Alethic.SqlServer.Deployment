@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="IKVM.Core.MSBuild" Version="0.1.103">
+        <PackageReference Include="IKVM.Core.MSBuild" Version="0.1.106">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -19,6 +19,11 @@
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
         </PackageProjectReference>
         <PackageProjectReference Include="..\Alethic.SqlServer.Deployment.Tool\Alethic.SqlServer.Deployment.Tool.csproj">
+            <PackageTargetPath>.</PackageTargetPath>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </PackageProjectReference>
+        <PackageProjectReference Include="..\Alethic.SqlServer.Deployment.Build\Alethic.SqlServer.Deployment.Build.msbuildproj">
             <PackageTargetPath>.</PackageTargetPath>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
