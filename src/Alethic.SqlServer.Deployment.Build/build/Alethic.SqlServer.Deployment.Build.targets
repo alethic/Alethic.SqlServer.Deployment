@@ -4,7 +4,7 @@
         <MSBuild
             Condition="'%(Extension)' == '.sqlproj' AND '%(ProjectReferenceWithConfiguration.CopySqlProjectOutput)' == 'true'"
             Projects="@(ProjectReferenceWithConfiguration)"
-            Targets="SqlBuild;GetTargetPath;GetSqlTargetPath;GetSqlReferenceCopyLocalPaths"
+            Targets="SqlBuild;GetTargetPath;GetSqlTargetPath"
             BuildInParallel="$(BuildInParallel)"
             Properties="
                 %(ProjectReferenceWithConfiguration.SetConfiguration);
