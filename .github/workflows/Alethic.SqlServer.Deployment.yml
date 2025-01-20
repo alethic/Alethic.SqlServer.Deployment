@@ -40,8 +40,6 @@ jobs:
       uses: gittools/actions/gitversion/execute@v3
       with:
         useConfigFile: true
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v2
     - name: Add NuGet Source (GitHub)
       shell: pwsh
       run: dotnet nuget add source --username USERNAME --password $env:GITHUB_TOKEN --store-password-in-clear-text --name alethic $env:GITHUB_REPOS
@@ -59,7 +57,7 @@ jobs:
     - name: Build
       shell: pwsh
       run: |
-        msbuild /m /bl `
+        dotnet msbuild /m /bl `
           /p:Configuration="Release" `
           /p:Platform="Any CPU" `
           /p:Version=${env:GitVersion_FullSemVer} `
