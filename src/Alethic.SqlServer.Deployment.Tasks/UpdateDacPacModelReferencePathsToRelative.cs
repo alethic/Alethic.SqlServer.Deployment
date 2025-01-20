@@ -16,6 +16,7 @@
     public class UpdateDacPacModelReferencePathsToRelative : Task
     {
 
+        [Required]
         [Output]
         public string? Target { get; set; }
 
