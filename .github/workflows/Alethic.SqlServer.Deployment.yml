@@ -168,7 +168,6 @@ jobs:
         path: TestResults.tar.gz
   release:
     name: Release
-    if: github.ref == 'refs/heads/main'
     needs:
     - build
     - test
