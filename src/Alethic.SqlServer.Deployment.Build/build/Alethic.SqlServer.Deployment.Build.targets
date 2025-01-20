@@ -8,8 +8,7 @@
             BuildInParallel="$(BuildInParallel)"
             Properties="
                 %(ProjectReferenceWithConfiguration.SetConfiguration);
-                %(ProjectReferenceWithConfiguration.SetPlatform);
-                SQLDBExtensionsRefPath=$(MSBuildThisFileDirectory);">
+                %(ProjectReferenceWithConfiguration.SetPlatform);">
             <Output TaskParameter="TargetOutputs" ItemName="_SqlProjectOutput" />
         </MSBuild>
         <ItemGroup>

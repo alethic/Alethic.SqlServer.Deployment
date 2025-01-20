@@ -24,6 +24,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Alethic.SqlServer.Deployment.Tests.Database\Alethic.SqlServer.Deployment.Tests.Database.sqlproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <CopySqlProjectOutput>true</CopySqlProjectOutput>
         </ProjectReference>
         <ProjectReference Include="..\Alethic.SqlServer.Deployment\Alethic.SqlServer.Deployment.csproj" />
