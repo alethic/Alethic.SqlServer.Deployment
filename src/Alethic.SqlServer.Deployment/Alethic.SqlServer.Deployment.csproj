@@ -6,7 +6,7 @@
 
     <ItemGroup>
         <PackageReference Include="Cogito.Core" Version="3.1.36" />
-        <PackageReference Include="IKVM.Core.MSBuild" Version="0.1.103">
+        <PackageReference Include="IKVM.Core.MSBuild" Version="0.1.106">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

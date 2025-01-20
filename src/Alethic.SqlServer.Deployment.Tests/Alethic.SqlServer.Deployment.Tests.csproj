@@ -1,6 +1,4 @@
-﻿<Project>
-    <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
-    <Import Project="..\Alethic.SqlServer.Deployment.Build\build\Alethic.SqlServer.Deployment.Build.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFrameworks>net6.0;net8.0;net472</TargetFrameworks>
@@ -8,7 +6,7 @@
 
     <ItemGroup>
         <PackageReference Include="FluentAssertions" Version="7.0.0" />
-        <PackageReference Include="IKVM.Core.MSBuild" Version="0.1.103">
+        <PackageReference Include="IKVM.Core.MSBuild" Version="0.1.106">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -23,10 +21,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Alethic.SqlServer.Deployment.Tests.Database\Alethic.SqlServer.Deployment.Tests.Database.sqlproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <CopySqlProjectOutput>true</CopySqlProjectOutput>
-        </ProjectReference>
         <ProjectReference Include="..\Alethic.SqlServer.Deployment\Alethic.SqlServer.Deployment.csproj" />
     </ItemGroup>
 
@@ -42,6 +36,4 @@
         </None>
     </ItemGroup>
 
-    <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
-    <Import Project="..\Alethic.SqlServer.Deployment.Build\build\Alethic.SqlServer.Deployment.Build.targets" />
 </Project>

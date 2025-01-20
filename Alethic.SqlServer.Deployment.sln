@@ -29,7 +29,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alethic.SqlServer.Deploymen
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alethic.SqlServer.Deployment.Tool", "src\Alethic.SqlServer.Deployment.Tool\Alethic.SqlServer.Deployment.Tool.csproj", "{64D0E0DD-C5FC-4386-A2F9-7F5E169CEAE0}"
 EndProject
-Project("{42EA0DBD-9CF1-443E-919E-BE9C484E4577}") = "Alethic.SqlServer.Deployment.Tests.Database", "src\Alethic.SqlServer.Deployment.Tests.Database\Alethic.SqlServer.Deployment.Tests.Database.sqlproj", "{96E84498-20F6-4202-9FD8-91981196E43B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alethic.SqlServer.Deployment.Tasks", "src\Alethic.SqlServer.Deployment.Tasks\Alethic.SqlServer.Deployment.Tasks.csproj", "{9B2419F4-459C-40A1-A6EA-DA217A013C06}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,10 +61,10 @@ Global
 		{64D0E0DD-C5FC-4386-A2F9-7F5E169CEAE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64D0E0DD-C5FC-4386-A2F9-7F5E169CEAE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64D0E0DD-C5FC-4386-A2F9-7F5E169CEAE0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{96E84498-20F6-4202-9FD8-91981196E43B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{96E84498-20F6-4202-9FD8-91981196E43B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{96E84498-20F6-4202-9FD8-91981196E43B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{96E84498-20F6-4202-9FD8-91981196E43B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B2419F4-459C-40A1-A6EA-DA217A013C06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B2419F4-459C-40A1-A6EA-DA217A013C06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B2419F4-459C-40A1-A6EA-DA217A013C06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B2419F4-459C-40A1-A6EA-DA217A013C06}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -8,6 +8,23 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="IKVM.Core.MSBuild" Version="0.1.106">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PublishProjectReference Include="..\Alethic.SqlServer.Deployment.Tasks\Alethic.SqlServer.Deployment.Tasks.csproj">
+            <SetTargetFramework>TargetFramework=netstandard2.0</SetTargetFramework>
+            <PublishTargetPath Condition=" '$(TargetFramework)' == 'netstandard2.0' ">tasks</PublishTargetPath>
+            <CopyToOutputDirectory Condition=" '$(TargetFramework)' == 'netstandard2.0' ">PreserveNewest</CopyToOutputDirectory>
+            <PublishPackagePath>tasks\netstandard2.0</PublishPackagePath>
+            <Pack>true</Pack>
+        </PublishProjectReference>
+    </ItemGroup>
+
+    <ItemGroup>
         <None Include="build\**\*">
             <Pack>true</Pack>
             <PackagePath>build</PackagePath>

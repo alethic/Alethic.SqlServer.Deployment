@@ -1,3 +1,14 @@
 <Project>
-    
+
+    <PropertyGroup>
+        <MSBuildRuntimeVersion Condition=" '$(MSBuildRuntimeVersion)' == '' ">$([System.Runtime.InteropServices.RuntimeInformation]:: FrameworkDescription.ToString())</MSBuildRuntimeVersion>
+        <AlethicSqlServerDeploymentTaskFolder Condition=" '$(MSBuildRuntimeType)' == 'Core' ">netstandard2.0</AlethicSqlServerDeploymentTaskFolder>
+        <AlethicSqlServerDeploymentTaskFolder Condition=" '$(MSBuildRuntimeType)' != 'Core' ">netstandard2.0</AlethicSqlServerDeploymentTaskFolder>
+        <AlethicSqlServerDeploymentTaskFactory Condition=" '$(MSBuildRuntimeType)' == 'Core' ">TaskHostFactory</AlethicSqlServerDeploymentTaskFactory>
+        <AlethicSqlServerDeploymentTaskFactory Condition=" '$(MSBuildRuntimeType)' != 'Core' ">TaskHostFactory</AlethicSqlServerDeploymentTaskFactory>
+        <AlethicSqlServerDeploymentTaskAssembly>$(MSBuildThisFileDirectory)..\tasks\$(AlethicSqlServerDeploymentTaskFolder)\Alethic.SqlServer.Deployment.Tasks.dll</AlethicSqlServerDeploymentTaskAssembly>
+    </PropertyGroup>
+
+    <UsingTask TaskName="UpdateDacPacModelReferencePathsToRelative" AssemblyFile="$(AlethicSqlServerDeploymentTaskAssembly)" TaskFactory="$(AlethicSqlServerDeploymentTaskFactory)" Condition="Exists('$(AlethicSqlServerDeploymentTaskAssembly)')" />
+
 </Project>
