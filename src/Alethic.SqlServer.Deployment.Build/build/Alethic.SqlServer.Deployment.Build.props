@@ -1,7 +1,7 @@
 <Project>
 
     <PropertyGroup>
-        <MSBuildRuntimeVersion Condition=" '$(MSBuildRuntimeVersion)' == '' ">$([System.Runtime.InteropServices.RuntimeInformation]:: FrameworkDescription.ToString())</MSBuildRuntimeVersion>
+        <MSBuildRuntimeVersion Condition=" '$(MSBuildRuntimeVersion)' == '' ">$([System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription.ToString())</MSBuildRuntimeVersion>
         <AlethicSqlServerDeploymentTaskFolder Condition=" '$(MSBuildRuntimeType)' == 'Core' ">netstandard2.0</AlethicSqlServerDeploymentTaskFolder>
         <AlethicSqlServerDeploymentTaskFolder Condition=" '$(MSBuildRuntimeType)' != 'Core' ">netstandard2.0</AlethicSqlServerDeploymentTaskFolder>
         <AlethicSqlServerDeploymentTaskFactory Condition=" '$(MSBuildRuntimeType)' == 'Core' ">TaskHostFactory</AlethicSqlServerDeploymentTaskFactory>
