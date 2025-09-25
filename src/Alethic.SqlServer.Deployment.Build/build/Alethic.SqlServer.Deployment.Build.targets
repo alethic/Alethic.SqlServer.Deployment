@@ -6,14 +6,15 @@
             Projects="@(ProjectReferenceWithConfiguration)"
             Targets="SqlBuild;GetTargetPath;GetSqlTargetPath"
             BuildInParallel="$(BuildInParallel)"
-            Properties="
-                %(ProjectReferenceWithConfiguration.SetConfiguration);
-                %(ProjectReferenceWithConfiguration.SetPlatform);">
+            Properties="%(ProjectReferenceWithConfiguration.SetConfiguration);%(ProjectReferenceWithConfiguration.SetPlatform);">
             <Output TaskParameter="TargetOutputs" ItemName="_SqlProjectOutput" />
         </MSBuild>
+        <RemoveDuplicates Inputs="@(_SqlProjectOutput)">
+            <Output TaskParameter="Filtered" ItemName="_SqlProjectOutputFiltered" />
+        </RemoveDuplicates>
         <ItemGroup>
-            <SqlProjectItems Include="@(_SqlProjectOutput)" Condition=" '%(Extension)' != '.dacpac' " />
-            <SqlPackageItems Include="@(_SqlProjectOutput)" Condition=" '%(Extension)' == '.dacpac' " />
+            <SqlProjectItems Include="@(_SqlProjectOutputFiltered)" Condition=" '%(Extension)' != '.dacpac' " />
+            <SqlPackageItems Include="@(_SqlProjectOutputFiltered)" Condition=" '%(Extension)' == '.dacpac' " />
         </ItemGroup>
     </Target>
 
