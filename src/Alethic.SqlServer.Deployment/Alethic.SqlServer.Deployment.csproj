@@ -11,12 +11,12 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="MartinCostello.SqlLocalDb" Version="3.4.0" />
-        <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
-        <PackageReference Include="Microsoft.SqlServer.DACFx" Version="162.5.57" />
+        <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.9" />
+        <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.1" />
+        <PackageReference Include="Microsoft.SqlServer.DACFx" Version="170.1.61" />
         <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
         <PackageReference Include="System.IO.FileSystem.AccessControl" Version="5.0.0" />
-        <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.1" />
+        <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.9" />
     </ItemGroup>
 
 </Project>
