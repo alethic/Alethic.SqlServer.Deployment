@@ -10,7 +10,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="MartinCostello.SqlLocalDb" Version="3.4.0" />
+        <PackageReference Include="MartinCostello.SqlLocalDb" Version="4.0.0" />
         <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.9" />
         <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.1" />
         <PackageReference Include="Microsoft.SqlServer.DACFx" Version="170.1.61" />
