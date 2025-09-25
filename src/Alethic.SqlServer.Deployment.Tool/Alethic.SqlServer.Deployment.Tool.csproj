@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFrameworks>net8.0</TargetFrameworks>
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>sqldeploy</ToolCommandName>
+        <Description>Provides a .NET tool to deploy SQL Server instances and instance configuration across multiple SQL servers.</Description>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="..\..\LICENSE" Link="LICENSE" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="IKVM.Core.MSBuild" Version="0.1.103">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.1" />
+        <PackageReference Include="McMaster.Extensions.Hosting.CommandLine" Version="4.1.1" />
+        <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+        <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Alethic.SqlServer.Deployment\Alethic.SqlServer.Deployment.csproj" />
+    </ItemGroup>
+
+</Project>

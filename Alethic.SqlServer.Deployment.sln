@@ -5,8 +5,9 @@ VisualStudioVersion = 17.8.34316.72
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7271F8CF-C4EC-47FE-91F3-FF3331482C4F}"
 	ProjectSection(SolutionItems) = preProject
+		Alethic.SqlServer.Deployment.dist.msbuildproj = Alethic.SqlServer.Deployment.dist.msbuildproj
 		Alethic.SqlServer.Deployment.runsettings = Alethic.SqlServer.Deployment.runsettings
-		appveyor.yml = appveyor.yml
+		.github\workflows\Alethic.SqlServer.Deployment.yml = .github\workflows\Alethic.SqlServer.Deployment.yml
 		Directory.Build.props = Directory.Build.props
 		GitVersion.yml = GitVersion.yml
 		global.json = global.json
@@ -14,15 +15,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Alethic.SqlServer.Deployment", "Alethic.SqlServer.Deployment\Alethic.SqlServer.Deployment.csproj", "{7FB1B797-E231-4258-9EBC-AC36841E21F9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dist-nuget", "src\dist-nuget\dist-nuget.csproj", "{4AA4CA3E-D0F0-4143-9CF6-470A62FC9E6C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Alethic.SqlServer.Deployment.Tool", "Alethic.SqlServer.Deployment.Tool\Alethic.SqlServer.Deployment.Tool.csproj", "{181B6161-7166-4B9B-BBE0-75D72F205CE9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dist-tests", "src\dist-tests\dist-tests.csproj", "{454825CD-4AB9-44FC-B677-0D058A5F37F2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Alethic.SqlServer.Deployment.Tests", "Alethic.SqlServer.Deployment.Tests\Alethic.SqlServer.Deployment.Tests.csproj", "{111BB047-2B87-4276-9C1D-5107687607A3}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dist", "dist", "{9E379588-E96D-4B90-A034-13FC5064BE6C}"
 EndProject
-Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Alethic.SqlServer.Deployment.Tests.Database", "Alethic.SqlServer.Deployment.Tests.Database\Alethic.SqlServer.Deployment.Tests.Database.sqlproj", "{503A38A6-7E4D-42CB-BD26-D3406D603A1C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alethic.SqlServer.Deployment", "src\Alethic.SqlServer.Deployment\Alethic.SqlServer.Deployment.csproj", "{3A76B435-9CDB-4179-B6E7-9A2A3CCE4D6D}"
 EndProject
-Project("{13B669BE-BB05-4DDF-9536-439F39A36129}") = "Alethic.SqlServer.Deployment.Build", "Alethic.SqlServer.Deployment.Build\Alethic.SqlServer.Deployment.Build.msbuildproj", "{95A3AE1E-8DF1-4FB4-ACBB-4D4FD6381BE1}"
+Project("{13B669BE-BB05-4DDF-9536-439F39A36129}") = "Alethic.SqlServer.Deployment.Build", "src\Alethic.SqlServer.Deployment.Build\Alethic.SqlServer.Deployment.Build.msbuildproj", "{12CEA019-D2C1-48DC-B3D8-EC33AAB4DFE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alethic.SqlServer.Deployment.Tests", "src\Alethic.SqlServer.Deployment.Tests\Alethic.SqlServer.Deployment.Tests.csproj", "{5D5C80AA-7E43-4C78-A91C-8FC29017A0D6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alethic.SqlServer.Deployment.Tool", "src\Alethic.SqlServer.Deployment.Tool\Alethic.SqlServer.Deployment.Tool.csproj", "{64D0E0DD-C5FC-4386-A2F9-7F5E169CEAE0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alethic.SqlServer.Deployment.Tasks", "src\Alethic.SqlServer.Deployment.Tasks\Alethic.SqlServer.Deployment.Tasks.csproj", "{9B2419F4-459C-40A1-A6EA-DA217A013C06}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,31 +37,41 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7FB1B797-E231-4258-9EBC-AC36841E21F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7FB1B797-E231-4258-9EBC-AC36841E21F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7FB1B797-E231-4258-9EBC-AC36841E21F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7FB1B797-E231-4258-9EBC-AC36841E21F9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{181B6161-7166-4B9B-BBE0-75D72F205CE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{181B6161-7166-4B9B-BBE0-75D72F205CE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{181B6161-7166-4B9B-BBE0-75D72F205CE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{181B6161-7166-4B9B-BBE0-75D72F205CE9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{111BB047-2B87-4276-9C1D-5107687607A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{111BB047-2B87-4276-9C1D-5107687607A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{111BB047-2B87-4276-9C1D-5107687607A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{111BB047-2B87-4276-9C1D-5107687607A3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{503A38A6-7E4D-42CB-BD26-D3406D603A1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{503A38A6-7E4D-42CB-BD26-D3406D603A1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{503A38A6-7E4D-42CB-BD26-D3406D603A1C}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{503A38A6-7E4D-42CB-BD26-D3406D603A1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{503A38A6-7E4D-42CB-BD26-D3406D603A1C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{503A38A6-7E4D-42CB-BD26-D3406D603A1C}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{95A3AE1E-8DF1-4FB4-ACBB-4D4FD6381BE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{95A3AE1E-8DF1-4FB4-ACBB-4D4FD6381BE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{95A3AE1E-8DF1-4FB4-ACBB-4D4FD6381BE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{95A3AE1E-8DF1-4FB4-ACBB-4D4FD6381BE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AA4CA3E-D0F0-4143-9CF6-470A62FC9E6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AA4CA3E-D0F0-4143-9CF6-470A62FC9E6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AA4CA3E-D0F0-4143-9CF6-470A62FC9E6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AA4CA3E-D0F0-4143-9CF6-470A62FC9E6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{454825CD-4AB9-44FC-B677-0D058A5F37F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{454825CD-4AB9-44FC-B677-0D058A5F37F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{454825CD-4AB9-44FC-B677-0D058A5F37F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{454825CD-4AB9-44FC-B677-0D058A5F37F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A76B435-9CDB-4179-B6E7-9A2A3CCE4D6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A76B435-9CDB-4179-B6E7-9A2A3CCE4D6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A76B435-9CDB-4179-B6E7-9A2A3CCE4D6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A76B435-9CDB-4179-B6E7-9A2A3CCE4D6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12CEA019-D2C1-48DC-B3D8-EC33AAB4DFE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12CEA019-D2C1-48DC-B3D8-EC33AAB4DFE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12CEA019-D2C1-48DC-B3D8-EC33AAB4DFE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12CEA019-D2C1-48DC-B3D8-EC33AAB4DFE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D5C80AA-7E43-4C78-A91C-8FC29017A0D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D5C80AA-7E43-4C78-A91C-8FC29017A0D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D5C80AA-7E43-4C78-A91C-8FC29017A0D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D5C80AA-7E43-4C78-A91C-8FC29017A0D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64D0E0DD-C5FC-4386-A2F9-7F5E169CEAE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64D0E0DD-C5FC-4386-A2F9-7F5E169CEAE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64D0E0DD-C5FC-4386-A2F9-7F5E169CEAE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64D0E0DD-C5FC-4386-A2F9-7F5E169CEAE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B2419F4-459C-40A1-A6EA-DA217A013C06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B2419F4-459C-40A1-A6EA-DA217A013C06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B2419F4-459C-40A1-A6EA-DA217A013C06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B2419F4-459C-40A1-A6EA-DA217A013C06}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4AA4CA3E-D0F0-4143-9CF6-470A62FC9E6C} = {9E379588-E96D-4B90-A034-13FC5064BE6C}
+		{454825CD-4AB9-44FC-B677-0D058A5F37F2} = {9E379588-E96D-4B90-A034-13FC5064BE6C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF4B3820-4206-4316-82A5-DEA5792C6A71}

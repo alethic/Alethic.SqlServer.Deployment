@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.Build.NoTargets">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="IKVM.Core.MSBuild" Version="0.1.106">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageProjectReference Include="..\Alethic.SqlServer.Deployment\Alethic.SqlServer.Deployment.csproj">
+            <PackageTargetPath>.</PackageTargetPath>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </PackageProjectReference>
+        <PackageProjectReference Include="..\Alethic.SqlServer.Deployment.Tool\Alethic.SqlServer.Deployment.Tool.csproj">
+            <PackageTargetPath>.</PackageTargetPath>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </PackageProjectReference>
+        <PackageProjectReference Include="..\Alethic.SqlServer.Deployment.Build\Alethic.SqlServer.Deployment.Build.msbuildproj">
+            <PackageTargetPath>.</PackageTargetPath>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </PackageProjectReference>
+    </ItemGroup>
+
+</Project>

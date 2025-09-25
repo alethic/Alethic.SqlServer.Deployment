@@ -1,0 +1,53 @@
+<Project>
+
+    <Target Name="GetSqlProjectOutputItems" DependsOnTargets="ResolveProjectReferences">
+        <MSBuild
+            Condition="'%(Extension)' == '.sqlproj' AND '%(ProjectReferenceWithConfiguration.CopySqlProjectOutput)' == 'true'"
+            Projects="@(ProjectReferenceWithConfiguration)"
+            Targets="SqlBuild;GetTargetPath;GetSqlTargetPath"
+            BuildInParallel="$(BuildInParallel)"
+            Properties="%(ProjectReferenceWithConfiguration.SetConfiguration);%(ProjectReferenceWithConfiguration.SetPlatform);">
+            <Output TaskParameter="TargetOutputs" ItemName="_SqlProjectOutput" />
+        </MSBuild>
+        <RemoveDuplicates Inputs="@(_SqlProjectOutput)">
+            <Output TaskParameter="Filtered" ItemName="_SqlProjectOutputFiltered" />
+        </RemoveDuplicates>
+        <ItemGroup>
+            <SqlProjectItems Include="@(_SqlProjectOutputFiltered)" Condition=" '%(Extension)' != '.dacpac' " />
+            <SqlPackageItems Include="@(_SqlProjectOutputFiltered)" Condition=" '%(Extension)' == '.dacpac' " />
+        </ItemGroup>
+    </Target>
+
+    <Target Name="UpdateSqlProjectDacPacs" DependsOnTargets="GetSqlProjectOutputItems" Inputs="@(SqlPackageItems)" Outputs="$(IntermediateOutputPath)%(SqlPackageItems.Filename)%(SqlPackageItems.Extension)">
+        <Copy SourceFiles="@(SqlPackageItems)" DestinationFiles="$(IntermediateOutputPath)%(SqlPackageItems.Filename).tmp%(SqlPackageItems.Extension)" />
+        <UpdateDacPacModelReferencePathsToRelative Target="$(IntermediateOutputPath)%(SqlPackageItems.Filename).tmp%(SqlPackageItems.Extension)" />
+        <Copy SourceFiles="$(IntermediateOutputPath)%(SqlPackageItems.Filename).tmp%(SqlPackageItems.Extension)" DestinationFiles="$(IntermediateOutputPath)%(SqlPackageItems.Filename)%(SqlPackageItems.Extension)" />
+        <ItemGroup>
+            <FileWrites Include="$(IntermediateOutputPath)%(SqlPackageItems.Filename).tmp%(SqlPackageItems.Extension)" />
+            <FileWrites Include="$(IntermediateOutputPath)%(SqlPackageItems.Filename)%(SqlPackageItems.Extension)" />
+        </ItemGroup>
+    </Target>
+
+    <Target Name="GetSqlProjectCopyToOutputDirectoryItems" DependsOnTargets="GetSqlProjectOutputItems;UpdateSqlProjectDacPacs" BeforeTargets="DefaultCopyToPublishDirectoryMetadata">
+        <ItemGroup>
+            <ContentWithTargetPath Include="@(SqlPackageItems->'$(IntermediateOutputPath)%(Filename)%(Extension)')">
+                <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+                <TargetPath>%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+            </ContentWithTargetPath>
+            <ContentWithTargetPath Include="@(SqlProjectItems)">
+                <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+                <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+                <TargetPath>%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+            </ContentWithTargetPath>
+        </ItemGroup>
+    </Target>
+    
+    <PropertyGroup>
+        <GetCopyToOutputDirectoryItemsDependsOn>
+            $(GetCopyToOutputDirectoryItemsDependsOn);
+            GetSqlProjectCopyToOutputDirectoryItems
+        </GetCopyToOutputDirectoryItemsDependsOn>
+    </PropertyGroup>
+
+</Project>

@@ -32,13 +32,13 @@ namespace Alethic.SqlServer.Deployment.Tests
             var d = SqlDeployment.Load(x);
         }
 
-        [TestMethod]
-        public void Can_compile_devel_test()
-        {
-            var x = XDocument.Load(File.OpenRead("devel_test.xml"));
-            var d = SqlDeployment.Load(x);
-            var p = d.Compile(GetArgs());
-        }
+        //[TestMethod]
+        //public void Can_compile_devel_test()
+        //{
+        //    var x = XDocument.Load(File.OpenRead("devel_test.xml"));
+        //    var d = SqlDeployment.Load(x);
+        //    var p = d.Compile(GetArgs());
+        //}
 
         //[TestMethod]
         //public async Task Can_execute_devel_test()

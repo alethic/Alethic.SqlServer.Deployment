@@ -1,0 +1,6 @@
+﻿<Project DefaultTargets="Build" Sdk="Microsoft.Build.Sql/1.0.0-rc1">
+    <PropertyGroup>
+        <DSP>Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider</DSP>
+    </PropertyGroup>
+
+</Project>
