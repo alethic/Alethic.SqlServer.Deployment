@@ -26,7 +26,9 @@ namespace Alethic.SqlServer.Deployment
         /// <param name="dataSource"></param>
         /// <param name="location"></param>
         /// <param name="catalog"></param>
-        public SqlDeploymentLinkedServerAction(SqlInstance instance, string name, string product, string provider, string providerString, string dataSource, string location, string catalog) :
+        /// <param name="remoteUser"></param>
+        /// <param name="remotePassword"></param>
+        public SqlDeploymentLinkedServerAction(SqlInstance instance, string name, string product, string provider, string providerString, string dataSource, string location, string catalog, string remoteUser = null, string remotePassword = null) :
             base(instance)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -36,6 +38,8 @@ namespace Alethic.SqlServer.Deployment
             DataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
             Location = location;
             Catalog = catalog;
+            RemoteUser = remoteUser;
+            RemotePassword = remotePassword;
         }
 
         /// <summary>
@@ -74,6 +78,17 @@ namespace Alethic.SqlServer.Deployment
         public string Catalog { get; }
 
         /// <summary>
+        /// Gets the remote login the linked server authenticates with, mapped for all local
+        /// logins. When null local logins map to themselves instead.
+        /// </summary>
+        public string RemoteUser { get; }
+
+        /// <summary>
+        /// Gets the password of the remote login.
+        /// </summary>
+        public string RemotePassword { get; }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="cnn"></param>
@@ -109,81 +124,111 @@ namespace Alethic.SqlServer.Deployment
         {
             using (var cnn = await OpenConnectionAsync(cancellationToken))
             {
-                // check that server already exists
-                if (await ShouldExecute(cnn, cancellationToken) == false)
-                    return;
+                // recreate the server definition when it is missing or differs; the login mapping
+                // and connectivity test below run either way, so a changed remote credential
+                // takes effect on redeploy without recreating a matching server
+                if (await ShouldExecute(cnn, cancellationToken))
+                    await CreateServerAsync(cnn, cancellationToken);
 
+                // replace whatever mapping exists for the default (all local logins) entry
                 await cnn.ExecuteNonQueryAsync($@"
-                    IF EXISTS ( SELECT * FROM sys.servers WHERE name = {Name} )
-                    BEGIN
-                        EXEC sp_dropserver
-                            @server = {Name},
-                            @droplogins = 'droplogins'
-                    END");
+                    BEGIN TRY
+                        EXEC sp_droplinkedsrvlogin
+                            @rmtsrvname = {Name},
+                            @locallogin = NULL
+                    END TRY
+                    BEGIN CATCH
+                    END CATCH");
 
-                using (var cmd = cnn.CreateCommand())
-                {
-                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.CommandText = "sp_addlinkedserver";
-
-                    var p0 = cmd.CreateParameter();
-                    p0.ParameterName = "@server";
-                    p0.Value = Name;
-                    cmd.Parameters.Add(p0);
-
-                    var p1 = cmd.CreateParameter();
-                    p1.ParameterName = "@srvproduct";
-                    p1.Value = Product ?? "";
-                    cmd.Parameters.Add(p1);
-
-                    var p2 = cmd.CreateParameter();
-                    p2.ParameterName = "@datasrc";
-                    p2.Value = DataSource;
-                    cmd.Parameters.Add(p2);
-
-                    if (Provider != null)
-                    {
-                        var p3 = cmd.CreateParameter();
-                        p3.ParameterName = "@provider";
-                        p3.Value = Provider;
-                        cmd.Parameters.Add(p3);
-                    }
-
-                    if (ProviderString != null)
-                    {
-                        var p4 = cmd.CreateParameter();
-                        p4.ParameterName = "@provstr";
-                        p4.Value = ProviderString;
-                        cmd.Parameters.Add(p4);
-                    }
-
-                    if (Location != null)
-                    {
-                        var p5 = cmd.CreateParameter();
-                        p5.ParameterName = "@location";
-                        p5.Value = Location;
-                        cmd.Parameters.Add(p5);
-                    }
-
-                    if (Catalog != null)
-                    {
-                        var p6 = cmd.CreateParameter();
-                        p6.ParameterName = "@catalog";
-                        p6.Value = Catalog;
-                        cmd.Parameters.Add(p6);
-                    }
-
-                    await cmd.ExecuteNonQueryAsync();
-                }
-
-                await cnn.ExecuteNonQueryAsync($@"
-                    EXEC sp_addlinkedsrvlogin
-                        @rmtsrvname = {Name},
-                        @locallogin = NULL,
-                        @useself = N'True'");
+                if (RemoteUser != null)
+                    await cnn.ExecuteNonQueryAsync($@"
+                        EXEC sp_addlinkedsrvlogin
+                            @rmtsrvname = {Name},
+                            @locallogin = NULL,
+                            @useself = N'False',
+                            @rmtuser = {RemoteUser},
+                            @rmtpassword = {RemotePassword}");
+                else
+                    await cnn.ExecuteNonQueryAsync($@"
+                        EXEC sp_addlinkedsrvlogin
+                            @rmtsrvname = {Name},
+                            @locallogin = NULL,
+                            @useself = N'True'");
 
                 // ensure the linked server is configured correctly and accessible
                 await cnn.ExecuteNonQueryAsync($"EXEC sp_testlinkedserver @servername = {Name}");
+            }
+        }
+
+        /// <summary>
+        /// Drops any existing linked server definition and creates the configured one.
+        /// </summary>
+        /// <param name="cnn"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        async Task CreateServerAsync(SqlConnection cnn, CancellationToken cancellationToken)
+        {
+            await cnn.ExecuteNonQueryAsync($@"
+                IF EXISTS ( SELECT * FROM sys.servers WHERE name = {Name} )
+                BEGIN
+                    EXEC sp_dropserver
+                        @server = {Name},
+                        @droplogins = 'droplogins'
+                END");
+
+            using (var cmd = cnn.CreateCommand())
+            {
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.CommandText = "sp_addlinkedserver";
+
+                var p0 = cmd.CreateParameter();
+                p0.ParameterName = "@server";
+                p0.Value = Name;
+                cmd.Parameters.Add(p0);
+
+                var p1 = cmd.CreateParameter();
+                p1.ParameterName = "@srvproduct";
+                p1.Value = Product ?? "";
+                cmd.Parameters.Add(p1);
+
+                var p2 = cmd.CreateParameter();
+                p2.ParameterName = "@datasrc";
+                p2.Value = DataSource;
+                cmd.Parameters.Add(p2);
+
+                if (Provider != null)
+                {
+                    var p3 = cmd.CreateParameter();
+                    p3.ParameterName = "@provider";
+                    p3.Value = Provider;
+                    cmd.Parameters.Add(p3);
+                }
+
+                if (ProviderString != null)
+                {
+                    var p4 = cmd.CreateParameter();
+                    p4.ParameterName = "@provstr";
+                    p4.Value = ProviderString;
+                    cmd.Parameters.Add(p4);
+                }
+
+                if (Location != null)
+                {
+                    var p5 = cmd.CreateParameter();
+                    p5.ParameterName = "@location";
+                    p5.Value = Location;
+                    cmd.Parameters.Add(p5);
+                }
+
+                if (Catalog != null)
+                {
+                    var p6 = cmd.CreateParameter();
+                    p6.ParameterName = "@catalog";
+                    p6.Value = Catalog;
+                    cmd.Parameters.Add(p6);
+                }
+
+                await cmd.ExecuteNonQueryAsync();
             }
         }
 

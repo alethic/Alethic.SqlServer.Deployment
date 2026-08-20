@@ -77,6 +77,47 @@ namespace Alethic.SqlServer.Deployment.Tests
             Assert.AreEqual(0, p.Targets["Conditional"].Actions.Length);
         }
 
+        /// <summary>
+        /// A manifest with a linked server whose credentials come from optional parameters.
+        /// </summary>
+        const string LinkedServerManifestXml = @"
+<Deployment xmlns=""https://cogito.cx/schemas/SqlServer.Deployment/manifest/2020"">
+    <Parameter Name=""RemoteUser"" DefaultValue="""" />
+    <Parameter Name=""RemotePassword"" DefaultValue="""" />
+    <Target Name=""Link"">
+        <Instance Name=""(localdb)\Test"">
+            <LinkedServer Name=""REMOTE"" Product="""" Provider=""SQLNCLI"" DataSource=""remote,1433"" RemoteUser=""[RemoteUser]"" RemotePassword=""[RemotePassword]"" />
+        </Instance>
+    </Target>
+</Deployment>";
+
+        [TestMethod]
+        public void LinkedServer_should_compile_remote_credentials()
+        {
+            var d = SqlDeployment.Load(XDocument.Parse(LinkedServerManifestXml));
+            var p = d.Compile(new Dictionary<string, string>() { ["RemoteUser"] = "user", ["RemotePassword"] = "password" });
+            var a = (SqlDeploymentLinkedServerAction)p.Targets["Link"].Actions[0];
+            Assert.AreEqual("user", a.RemoteUser);
+            Assert.AreEqual("password", a.RemotePassword);
+        }
+
+        [TestMethod]
+        public void LinkedServer_empty_credentials_should_compile_as_absent()
+        {
+            var d = SqlDeployment.Load(XDocument.Parse(LinkedServerManifestXml));
+            var p = d.Compile();
+            var a = (SqlDeploymentLinkedServerAction)p.Targets["Link"].Actions[0];
+            Assert.IsNull(a.RemoteUser);
+            Assert.IsNull(a.RemotePassword);
+        }
+
+        [TestMethod]
+        public void LinkedServer_user_without_password_should_fail_compile()
+        {
+            var d = SqlDeployment.Load(XDocument.Parse(LinkedServerManifestXml));
+            Assert.ThrowsException<SqlDeploymentException>(() => d.Compile(new Dictionary<string, string>() { ["RemoteUser"] = "user" }));
+        }
+
         [TestMethod]
         public void Can_load_devel_test()
         {
