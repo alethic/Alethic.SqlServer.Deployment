@@ -334,6 +334,8 @@ namespace Alethic.SqlServer.Deployment
             p.DataSource = (string)element.Attribute("DataSource");
             p.Location = (string)element.Attribute("Location");
             p.Catalog = (string)element.Attribute("Catalog");
+            p.RemoteUser = (string)element.Attribute("RemoteUser");
+            p.RemotePassword = (string)element.Attribute("RemotePassword");
             return p;
         }
 
