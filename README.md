@@ -4,6 +4,8 @@ The `Alethic.SqlServer.Deployment` package provides a library to enable deployme
 ## Configuration
 `Alethic.SqlServer.Deployment` works by processing a SQL deployment manifest file. This file is an XML file which defines a number of named `Target` elements. Each `Target` element can contain one or more `Instance` elements. And within each `Instance` element configuration can be specified.
 
+`Target` elements can specify an optional `Condition` attribute. The attribute value is expanded against the deployment arguments and must result in a boolean value: usually a variable reference such as `Condition="[DeployExtras]"` paired with a `Parameter` defaulting to `false`. A `Target` whose condition evaluates to false compiles to an empty set of steps: it can still be named for execution and used as a dependency, but executes nothing. (In the future the attribute may grow into a full boolean expression language; today it is plain variable expansion.)
+
 `Target` elements can also define `DependsOn` elements to specify `Target`s that must be run successfully first. This allows complex dependency hierarchies to be built, and deployment of a single required `Target` to commense without encuring the cost of deploying more than is strictly necessary for the task. This facilitates unit testing across multiple SQL instances or SQL databases. Unit tests need only initiate the deployment for the target that they specifically require. Parallelism inherit in a dependency model like this is exploited: targets that can execute concurrently do execute concurrently.
 
 The following example demonstrates the configuration of two LocalDB instances, each one containing a single database deployed from a DACPAC.

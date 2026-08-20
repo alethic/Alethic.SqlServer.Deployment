@@ -15,6 +15,15 @@ namespace Alethic.SqlServer.Deployment
         public string Name { get; set; }
 
         /// <summary>
+        /// Gets or sets an optional condition that determines whether the target contributes its
+        /// steps to the plan. The expression is expanded against the deployment arguments and must
+        /// result in a boolean value. A target whose condition evaluates to false compiles to an
+        /// empty set of steps: it remains addressable by name and as a dependency, but executes
+        /// nothing.
+        /// </summary>
+        public SqlDeploymentExpression? Condition { get; set; }
+
+        /// <summary>
         /// Gets the other <see cref="SqlDeploymentTarget"/>s that this one depends on.
         /// </summary>
         public ICollection<SqlDeploymentTarget> DependsOn { get; } = new List<SqlDeploymentTarget>();
@@ -32,6 +41,9 @@ namespace Alethic.SqlServer.Deployment
         /// <returns></returns>
         public IEnumerable<SqlDeploymentAction> Compile(IDictionary<string, string> arguments, string relativeRoot)
         {
+            if (Condition?.Expand<bool>(arguments) == false)
+                yield break;
+
             foreach (var instance in Instances)
                 foreach (var step in instance.Compile(arguments, relativeRoot))
                     yield return step;

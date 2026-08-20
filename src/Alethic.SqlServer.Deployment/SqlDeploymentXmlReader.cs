@@ -143,6 +143,7 @@ namespace Alethic.SqlServer.Deployment
         {
             var p = new SqlDeploymentTarget();
             p.Name = (string)element.Attribute("Name");
+            p.Condition = (string)element.Attribute("Condition");
 
             foreach (var d in element.Elements(Xmlns + "DependsOn"))
             {

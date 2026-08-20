@@ -25,6 +25,58 @@ namespace Alethic.SqlServer.Deployment.Tests
             };
         }
 
+        /// <summary>
+        /// A manifest with a conditional target, and a second target that depends on it.
+        /// </summary>
+        const string ConditionManifestXml = @"
+<Deployment xmlns=""https://cogito.cx/schemas/SqlServer.Deployment/manifest/2020"">
+    <Parameter Name=""Flag"" DefaultValue=""false"" />
+    <Target Name=""Conditional"" Condition=""[Flag]"">
+        <Instance Name=""(localdb)\Test"">
+            <Configuration Name=""clr enabled"" Value=""1"" />
+        </Instance>
+    </Target>
+    <Target Name=""Dependent"">
+        <DependsOn Name=""Conditional"" />
+        <Instance Name=""(localdb)\Test"">
+            <Configuration Name=""clr enabled"" Value=""1"" />
+        </Instance>
+    </Target>
+</Deployment>";
+
+        [TestMethod]
+        public void Condition_true_should_compile_target_steps()
+        {
+            var d = SqlDeployment.Load(XDocument.Parse(ConditionManifestXml));
+            var p = d.Compile(new Dictionary<string, string>() { ["Flag"] = "true" });
+            Assert.AreEqual(1, p.Targets["Conditional"].Actions.Length);
+        }
+
+        [TestMethod]
+        public void Condition_false_should_compile_no_target_steps()
+        {
+            var d = SqlDeployment.Load(XDocument.Parse(ConditionManifestXml));
+            var p = d.Compile(new Dictionary<string, string>() { ["Flag"] = "false" });
+            Assert.AreEqual(0, p.Targets["Conditional"].Actions.Length);
+        }
+
+        [TestMethod]
+        public void Condition_false_target_should_remain_addressable_as_dependency()
+        {
+            var d = SqlDeployment.Load(XDocument.Parse(ConditionManifestXml));
+            var p = d.Compile(new Dictionary<string, string>() { ["Flag"] = "false" });
+            Assert.AreEqual(1, p.Targets["Dependent"].Actions.Length);
+            CollectionAssert.Contains(p.Targets["Dependent"].DependsOn, "Conditional");
+        }
+
+        [TestMethod]
+        public void Condition_should_expand_parameter_default_value()
+        {
+            var d = SqlDeployment.Load(XDocument.Parse(ConditionManifestXml));
+            var p = d.Compile();
+            Assert.AreEqual(0, p.Targets["Conditional"].Actions.Length);
+        }
+
         [TestMethod]
         public void Can_load_devel_test()
         {
