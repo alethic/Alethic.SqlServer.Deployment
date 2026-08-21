@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Cogito.Collections;
 using Alethic.SqlServer.Deployment.Internal;
 
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 
 namespace Alethic.SqlServer.Deployment
@@ -172,13 +173,50 @@ namespace Alethic.SqlServer.Deployment
         {
             if (context.DryRun && action.SupportsDryRun == false)
             {
-                context.Logger.LogInformation("Dry run: skipping {Action} against {InstanceName}; the action does not support dry run and a real deployment would apply it.", action.GetType().Name, action.Instance);
+                context.Logger.LogInformation("Dry run: would execute {Action} against {InstanceName}; the action cannot report its changes in detail.", action.GetType().Name, action.Instance);
+                return;
+            }
+
+            if (context.DryRun)
+            {
+                // a reporting action inspects the target to build its report; when the target
+                // cannot be inspected - commonly because an earlier action that would have
+                // provided it was itself only reported - the report degrades to a warning
+                // instead of failing the remainder of the run; failures that no target state
+                // can explain (a corrupt package, an internal error) still fail the run
+                try
+                {
+                    context.Logger.LogDebug("Starting action {Action} against {InstanceName}.", action.GetType().Name, action.Instance);
+                    await action.ExecuteAsync(context, cancellationToken);
+                    context.Logger.LogDebug("Finished action {Action} against {InstanceName}.", action.GetType().Name, action.Instance);
+                }
+                catch (Exception e) when (IsSqlFailure(e))
+                {
+                    context.Logger.LogWarning("Dry run: could not inspect {InstanceName} for {Action}; the report for this step is incomplete. A real deployment executes the preceding steps first, which may provide what was missing here. ({Message})", action.Instance, action.GetType().Name, e.Message);
+                }
+
                 return;
             }
 
             context.Logger.LogDebug("Starting action {Action} against {InstanceName}.", action.GetType().Name, action.Instance);
             await action.ExecuteAsync(context, cancellationToken);
             context.Logger.LogDebug("Finished action {Action} against {InstanceName}.", action.GetType().Name, action.Instance);
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if the exception is, or wraps, a SQL error - a failure the state
+        /// of the target can explain, as opposed to a defect in the deployment itself. DacFx
+        /// wraps the SQL errors it encounters, so the inner exceptions are searched.
+        /// </summary>
+        /// <param name="exception"></param>
+        /// <returns></returns>
+        static bool IsSqlFailure(Exception exception)
+        {
+            for (var e = exception; e != null; e = e.InnerException)
+                if (e is SqlException)
+                    return true;
+
+            return false;
         }
 
         /// <summary>

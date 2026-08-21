@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Alethic.SqlServer.Deployment.Internal;
 
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 
 namespace Alethic.SqlServer.Deployment
 {
@@ -88,6 +89,9 @@ namespace Alethic.SqlServer.Deployment
         /// </summary>
         public string RemotePassword { get; }
 
+        /// <inheritdoc />
+        public override bool SupportsDryRun => true;
+
         /// <summary>
         /// 
         /// </summary>
@@ -124,6 +128,24 @@ namespace Alethic.SqlServer.Deployment
         {
             using (var cnn = await OpenConnectionAsync(cancellationToken))
             {
+                // a dry run reports each step and changes nothing; the mapping refresh and
+                // connectivity test are unconditional on a real deploy (the stored remote
+                // password cannot be read back for comparison), so they report unconditionally
+                if (context.DryRun)
+                {
+                    if (await ShouldExecute(cnn, cancellationToken))
+                        context.Logger.LogInformation("Dry run: would drop and recreate linked server {Name} pointing at {DataSource}.", Name, DataSource);
+                    else
+                        context.Logger.LogInformation("Dry run: linked server {Name} definition already matches.", Name);
+
+                    if (RemoteUser != null)
+                        context.Logger.LogInformation("Dry run: would refresh the default login mapping of {Name} to remote login {RemoteUser} and test connectivity.", Name, RemoteUser);
+                    else
+                        context.Logger.LogInformation("Dry run: would refresh the default login mapping of {Name} to self (passthrough) and test connectivity.", Name);
+
+                    return;
+                }
+
                 // recreate the server definition when it is missing or differs; the login mapping
                 // and connectivity test below run either way, so a changed remote credential
                 // takes effect on redeploy without recreating a matching server
