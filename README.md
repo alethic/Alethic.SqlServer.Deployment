@@ -33,6 +33,19 @@ The following example demonstrates the configuration of two LocalDB instances, e
 </Deployment>
 ```
 
+### Trusted Assemblies
+
+Under `clr strict security` (the default since SQL Server 2017) a database cannot `CREATE ASSEMBLY` for an unsigned SQLCLR assembly unless the server trusts it. A `TrustedAssembly` element on an `Instance` registers an assembly's hash (via `sys.sp_add_trusted_assembly`) before that instance's databases deploy, so a DACPAC carrying CLR assemblies deploys to a fresh database without signing them or enabling `TRUSTWORTHY`. It is idempotent, a no-op before SQL Server 2017, and requires `CONTROL SERVER`.
+
+```
+<Instance Name="[InstanceName]">
+    <Configuration Name="clr enabled" Value="1" />
+    <TrustedAssembly Source="MyClrHelpers.dll" Description="MyClrHelpers" />
+</Instance>
+```
+
+Specify either `Source` — a path to the assembly file, hashed with SHA-512 at deploy time; relative paths resolve against the manifest directory — or `Hash`, a precomputed SHA-512 as a hexadecimal string (an optional `0x` prefix is allowed) for when the file is not available. `Description` is optional.
+
 This file, if saved as `Example.xml` can be executed from the .NET Core Global Tool:
 
 ```

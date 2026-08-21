@@ -169,6 +169,7 @@ namespace Alethic.SqlServer.Deployment
             foreach (var configurationElement in element.Elements(Xmlns + "Configuration"))
                 p.Configuration[(string)configurationElement.Attribute("Name")] = (string)configurationElement.Attribute("Value");
 
+            p.TrustedAssemblies.AddRange(element.Elements(Xmlns + "TrustedAssembly").Select(i => LoadTrustedAssembly(context, i)));
             p.Databases.AddRange(element.Elements(Xmlns + "Database").Select(i => LoadDatabase(context, i)));
             p.LinkedServers.AddRange(element.Elements(Xmlns + "LinkedServer").Select(i => LoadLinkedServer(context, i)));
             p.Distributor = element.Element(Xmlns + "Distributor") is XElement distributor ? LoadDistributor(context, distributor) : null;
@@ -321,6 +322,15 @@ namespace Alethic.SqlServer.Deployment
             var p = new SqlDeploymentDatabaseExtendedProperty();
             p.Name = (string)element.Attribute("Name");
             p.Value = (string)element.Attribute("Value");
+            return p;
+        }
+
+        static SqlDeploymentTrustedAssembly LoadTrustedAssembly(ReaderContext context, XElement element)
+        {
+            var p = new SqlDeploymentTrustedAssembly();
+            p.Source = (string)element.Attribute("Source");
+            p.Hash = (string)element.Attribute("Hash");
+            p.Description = (string)element.Attribute("Description");
             return p;
         }
 
