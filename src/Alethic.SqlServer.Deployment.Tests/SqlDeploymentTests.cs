@@ -118,6 +118,43 @@ namespace Alethic.SqlServer.Deployment.Tests
             Assert.ThrowsException<SqlDeploymentException>(() => d.Compile(new Dictionary<string, string>() { ["RemoteUser"] = "user" }));
         }
 
+        /// <summary>
+        /// A manifest with a trusted assembly registered by an explicit hash.
+        /// </summary>
+        const string TrustedAssemblyManifestXml = @"
+<Deployment xmlns=""https://cogito.cx/schemas/SqlServer.Deployment/manifest/2020"">
+    <Target Name=""Trust"">
+        <Instance Name=""(localdb)\Test"">
+            <TrustedAssembly Hash=""0x0102ABCD"" Description=""MyAssembly"" />
+        </Instance>
+    </Target>
+</Deployment>";
+
+        [TestMethod]
+        public void TrustedAssembly_should_compile_hash_and_description()
+        {
+            var d = SqlDeployment.Load(XDocument.Parse(TrustedAssemblyManifestXml));
+            var p = d.Compile();
+            var a = (SqlDeploymentTrustedAssemblyAction)p.Targets["Trust"].Actions[0];
+            CollectionAssert.AreEqual(new byte[] { 0x01, 0x02, 0xAB, 0xCD }, a.Hash);
+            Assert.AreEqual("MyAssembly", a.Description);
+        }
+
+        [TestMethod]
+        public void TrustedAssembly_without_source_or_hash_should_fail_compile()
+        {
+            const string xml = @"
+<Deployment xmlns=""https://cogito.cx/schemas/SqlServer.Deployment/manifest/2020"">
+    <Target Name=""Trust"">
+        <Instance Name=""(localdb)\Test"">
+            <TrustedAssembly Description=""MyAssembly"" />
+        </Instance>
+    </Target>
+</Deployment>";
+            var d = SqlDeployment.Load(XDocument.Parse(xml));
+            Assert.ThrowsException<SqlDeploymentException>(() => d.Compile());
+        }
+
         [TestMethod]
         public void Can_load_devel_test()
         {

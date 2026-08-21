@@ -31,6 +31,11 @@ namespace Alethic.SqlServer.Deployment
         public SqlDeploymentConfiguration Configuration { get; } = new SqlDeploymentConfiguration();
 
         /// <summary>
+        /// Gets the CLR assemblies to register in the instance's trusted assembly list.
+        /// </summary>
+        public ICollection<SqlDeploymentTrustedAssembly> TrustedAssemblies { get; } = new List<SqlDeploymentTrustedAssembly>();
+
+        /// <summary>
         /// Gets the information regarding the databases to deploy to the instance.
         /// </summary>
         public ICollection<SqlDeploymentDatabase> Databases { get; } = new List<SqlDeploymentDatabase>();
@@ -69,6 +74,11 @@ namespace Alethic.SqlServer.Deployment
 
             if (Configuration != null)
                 foreach (var s in Configuration.Compile(context))
+                    yield return s;
+
+            // trusted assemblies register before the databases deploy, so CREATE ASSEMBLY succeeds
+            foreach (var i in TrustedAssemblies)
+                foreach (var s in i.Compile(context))
                     yield return s;
 
             foreach (var i in LinkedServers)
