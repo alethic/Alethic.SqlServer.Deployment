@@ -175,6 +175,11 @@ namespace Alethic.SqlServer.Deployment.Tests
             </Database>
         </Instance>
     </Target>
+    <Target Name=""Trust"">
+        <Instance Name=""dry-run-test.invalid"">
+            <TrustedAssembly Hash=""0x0102ABCD"" Description=""MyAssembly"" />
+        </Instance>
+    </Target>
 </Deployment>";
 
         [TestMethod]
@@ -204,22 +209,30 @@ namespace Alethic.SqlServer.Deployment.Tests
         }
 
         [TestMethod]
-        public void LinkedServer_should_not_support_dry_run()
+        public void LinkedServer_should_support_dry_run()
         {
             var d = SqlDeployment.Load(XDocument.Parse(DryRunManifestXml));
             var p = d.Compile();
-            Assert.IsFalse(p.Targets["Link"].Actions[0].SupportsDryRun);
+            Assert.IsTrue(p.Targets["Link"].Actions[0].SupportsDryRun);
         }
 
         [TestMethod]
-        public async Task Dry_run_should_skip_actions_that_do_not_support_it()
+        public void TrustedAssembly_should_not_support_dry_run()
+        {
+            var d = SqlDeployment.Load(XDocument.Parse(DryRunManifestXml));
+            var p = d.Compile();
+            Assert.IsFalse(p.Targets["Trust"].Actions[0].SupportsDryRun);
+        }
+
+        [TestMethod]
+        public async Task Dry_run_should_not_execute_actions_that_cannot_report()
         {
             var d = SqlDeployment.Load(XDocument.Parse(DryRunManifestXml));
             var p = d.Compile();
 
-            // the linked server action would have to connect to the unresolvable instance; only
-            // the dry run executor skipping it entirely lets execution complete
-            await new SqlDeploymentExecutor(p, NullLogger.Instance, true).ExecuteAsync("Link");
+            // the trusted assembly action would have to connect to the unresolvable instance;
+            // only the dry run executor reporting it without executing it lets execution complete
+            await new SqlDeploymentExecutor(p, NullLogger.Instance, true).ExecuteAsync("Trust");
         }
 
         [TestMethod]
