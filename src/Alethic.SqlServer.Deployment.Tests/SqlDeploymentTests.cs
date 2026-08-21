@@ -159,24 +159,25 @@ namespace Alethic.SqlServer.Deployment.Tests
 
         /// <summary>
         /// A manifest whose actions are unreachable: the instance name does not resolve, and the
-        /// package source does not exist. Only a dry run that skips or avoids them can complete.
+        /// package source does not exist. Only a dry run that reports without executing, and
+        /// degrades where it cannot inspect, can complete.
         /// </summary>
         const string DryRunManifestXml = @"
 <Deployment xmlns=""https://cogito.cx/schemas/SqlServer.Deployment/manifest/2020"">
     <Target Name=""Link"">
-        <Instance Name=""dry-run-test.invalid"">
+        <Instance Name=""dry-run-test.invalid"" ConnectionString=""Connect Timeout=1"">
             <LinkedServer Name=""REMOTE"" Product="""" Provider=""SQLNCLI"" DataSource=""remote,1433"" />
         </Instance>
     </Target>
     <Target Name=""Database"">
-        <Instance Name=""dry-run-test.invalid"">
+        <Instance Name=""dry-run-test.invalid"" ConnectionString=""Connect Timeout=1"">
             <Database Name=""Db"">
                 <Package Source=""missing.dacpac"" />
             </Database>
         </Instance>
     </Target>
     <Target Name=""Trust"">
-        <Instance Name=""dry-run-test.invalid"">
+        <Instance Name=""dry-run-test.invalid"" ConnectionString=""Connect Timeout=1"">
             <TrustedAssembly Hash=""0x0102ABCD"" Description=""MyAssembly"" />
         </Instance>
     </Target>
@@ -233,6 +234,17 @@ namespace Alethic.SqlServer.Deployment.Tests
             // the trusted assembly action would have to connect to the unresolvable instance;
             // only the dry run executor reporting it without executing it lets execution complete
             await new SqlDeploymentExecutor(p, NullLogger.Instance, true).ExecuteAsync("Trust");
+        }
+
+        [TestMethod]
+        public async Task Dry_run_should_degrade_when_the_target_cannot_be_inspected()
+        {
+            var d = SqlDeployment.Load(XDocument.Parse(DryRunManifestXml));
+            var p = d.Compile();
+
+            // the linked server action reports by inspecting the instance, which does not
+            // resolve; the dry run warns that the report is incomplete instead of failing
+            await new SqlDeploymentExecutor(p, NullLogger.Instance, true).ExecuteAsync("Link");
         }
 
         [TestMethod]
