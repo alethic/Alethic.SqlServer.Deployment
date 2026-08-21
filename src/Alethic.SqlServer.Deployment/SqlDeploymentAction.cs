@@ -28,6 +28,13 @@ namespace Alethic.SqlServer.Deployment
         public SqlInstance Instance { get; }
 
         /// <summary>
+        /// Gets whether the action can execute under a dry run, reporting what it would change
+        /// without changing anything. Actions that return <c>false</c> are skipped entirely by
+        /// the executor when the execution is a dry run.
+        /// </summary>
+        public virtual bool SupportsDryRun => false;
+
+        /// <summary>
         /// Applies the step to the instance.
         /// </summary>
         /// <param name="context"></param>

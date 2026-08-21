@@ -63,6 +63,9 @@ namespace Alethic.SqlServer.Deployment
         /// </summary>
         public bool IgnoreDacVersion { get; set; }
 
+        /// <inheritdoc />
+        public override bool SupportsDryRun => true;
+
         /// <summary>
         /// Deploys the database.
         /// </summary>
@@ -71,7 +74,7 @@ namespace Alethic.SqlServer.Deployment
         /// <returns></returns>
         public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken)
         {
-            await new SqlDacPacDeploy(Source, context.Logger, LockMode).DeployAsync(GetConnectionString(), Name, Profile, IgnoreDacTag, IgnoreDacVersion, cancellationToken);
+            await new SqlDacPacDeploy(Source, context.Logger, LockMode).DeployAsync(GetConnectionString(), Name, Profile, IgnoreDacTag, IgnoreDacVersion, context.DryRun, cancellationToken);
         }
 
     }
