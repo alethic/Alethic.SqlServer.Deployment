@@ -58,6 +58,12 @@ namespace Alethic.SqlServer.Deployment.Tool
         public List<string> Arguments { get; set; } = new List<string>();
 
         /// <summary>
+        /// Gets or sets whether the deployment is a dry run: report what would change, change nothing.
+        /// </summary>
+        [Option("--dry-run", "report what the deployment would change without changing anything", CommandOptionType.NoValue)]
+        public bool DryRun { get; set; }
+
+        /// <summary>
         /// Executes the deployment.
         /// </summary>
         /// <param name="cancellationToken"></param>
@@ -86,9 +92,9 @@ namespace Alethic.SqlServer.Deployment.Tool
 
                 // execute plan with specified targets
                 if (Targets.Count > 0)
-                    await new SqlDeploymentExecutor(plan, logger).ExecuteAsync(Targets.ToArray(), cancellationToken);
+                    await new SqlDeploymentExecutor(plan, logger, DryRun).ExecuteAsync(Targets.ToArray(), cancellationToken);
                 else
-                    await new SqlDeploymentExecutor(plan, logger).ExecuteAsync(cancellationToken);
+                    await new SqlDeploymentExecutor(plan, logger, DryRun).ExecuteAsync(cancellationToken);
             }
             catch (Exception e)
             {

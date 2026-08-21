@@ -503,13 +503,19 @@ namespace Alethic.SqlServer.Deployment
         }
 
         /// <summary>
-        /// Deploys the database.
+        /// Deploys the database. When <paramref name="dryRun"/> is set, nothing is changed:
+        /// instead a DacFx deploy report is generated against the target and its operations and
+        /// alerts are logged.
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="databaseName"></param>
+        /// <param name="profile"></param>
+        /// <param name="ignoreDacTag"></param>
+        /// <param name="ignoreDacVersion"></param>
+        /// <param name="dryRun"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task DeployAsync(string connectionString, string databaseName, DacProfile profile, bool ignoreDacTag, bool ignoreDacVersion, CancellationToken cancellationToken)
+        public async Task DeployAsync(string connectionString, string databaseName, DacProfile profile, bool ignoreDacTag, bool ignoreDacVersion, bool dryRun = false, CancellationToken cancellationToken = default)
         {
             if (connectionString is null)
                 throw new ArgumentNullException(nameof(connectionString));
@@ -534,8 +540,8 @@ namespace Alethic.SqlServer.Deployment
                 return;
             }
 
-            // acquire appropriate lock
-            var locked = await EnterLockAsync(connection, databaseName, cancellationToken);
+            // a dry run changes nothing, so it also takes no lock
+            var locked = dryRun == false && await EnterLockAsync(connection, databaseName, cancellationToken);
 
             try
             {
@@ -558,6 +564,13 @@ namespace Alethic.SqlServer.Deployment
 
                 // will specifically drop these
                 opt.DoNotAlterReplicatedObjects = false;
+
+                // report what a deployment would do, without doing any of it
+                if (dryRun)
+                {
+                    await DryRunAsync(svc, dac, connection, databaseName, opt, instanceName, cancellationToken);
+                    return;
+                }
 
                 // check if database exists
                 if (await connection.ExecuteScalarAsync((string)$"SELECT db_id('{databaseName}')") is short dbid)
@@ -621,6 +634,49 @@ namespace Alethic.SqlServer.Deployment
                     throw;
                 }
             }
+        }
+
+        /// <summary>
+        /// Generates a DacFx deploy report against the target database and logs its alerts and
+        /// operations, changing nothing.
+        /// </summary>
+        /// <param name="svc"></param>
+        /// <param name="dac"></param>
+        /// <param name="connection"></param>
+        /// <param name="databaseName"></param>
+        /// <param name="opt"></param>
+        /// <param name="instanceName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        async Task DryRunAsync(DacServices svc, DacPackage dac, SqlConnection connection, string databaseName, DacDeployOptions opt, string instanceName, CancellationToken cancellationToken)
+        {
+            // a report needs an existing target; without one the deployment would simply create
+            // the database and apply the entire model
+            if (await connection.ExecuteScalarAsync((string)$"SELECT db_id('{databaseName}')", cancellationToken: cancellationToken) is not short)
+            {
+                logger.LogInformation("Dry run: database {Name} at {InstanceName} does not exist; a deployment would create it and apply the full model of {DacPacFile}.", databaseName, instanceName, source);
+                return;
+            }
+
+            logger.LogInformation("Dry run: generating deploy report for {DacPacFile} against {Database} at {InstanceName}.", source, databaseName, instanceName);
+            var reportXml = XDocument.Parse(svc.GenerateDeployReport(dac, databaseName, opt, cancellationToken));
+
+            foreach (var alert in reportXml.Root.Elements(dacRptNs + "Alerts").Elements(dacRptNs + "Alert"))
+                foreach (var issue in alert.Elements(dacRptNs + "Issue"))
+                    logger.LogWarning("Dry run: {Alert}: {Issue}", (string)alert.Attribute("Name"), (string)issue.Attribute("Value"));
+
+            var count = 0;
+            foreach (var operation in reportXml.Root.Elements(dacRptNs + "Operations").Elements(dacRptNs + "Operation"))
+                foreach (var item in operation.Elements(dacRptNs + "Item"))
+                {
+                    logger.LogInformation("Dry run: would {Operation} {Type} {Value}", (string)operation.Attribute("Name"), (string)item.Attribute("Type"), (string)item.Attribute("Value"));
+                    count++;
+                }
+
+            if (count == 0)
+                logger.LogInformation("Dry run: no schema operations for {Database}; a deployment would still run the package's pre/post-deployment scripts.", databaseName);
+            else
+                logger.LogInformation("Dry run: {Count} schema operation(s) for {Database}; a deployment would also run the package's pre/post-deployment scripts.", count, databaseName);
         }
 
     }

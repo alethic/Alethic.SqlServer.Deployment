@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Alethic.SqlServer.Deployment.Tests
@@ -153,6 +155,71 @@ namespace Alethic.SqlServer.Deployment.Tests
 </Deployment>";
             var d = SqlDeployment.Load(XDocument.Parse(xml));
             Assert.ThrowsException<SqlDeploymentException>(() => d.Compile());
+        }
+
+        /// <summary>
+        /// A manifest whose actions are unreachable: the instance name does not resolve, and the
+        /// package source does not exist. Only a dry run that skips or avoids them can complete.
+        /// </summary>
+        const string DryRunManifestXml = @"
+<Deployment xmlns=""https://cogito.cx/schemas/SqlServer.Deployment/manifest/2020"">
+    <Target Name=""Link"">
+        <Instance Name=""dry-run-test.invalid"">
+            <LinkedServer Name=""REMOTE"" Product="""" Provider=""SQLNCLI"" DataSource=""remote,1433"" />
+        </Instance>
+    </Target>
+    <Target Name=""Database"">
+        <Instance Name=""dry-run-test.invalid"">
+            <Database Name=""Db"">
+                <Package Source=""missing.dacpac"" />
+            </Database>
+        </Instance>
+    </Target>
+</Deployment>";
+
+        [TestMethod]
+        public void Execute_context_should_default_to_not_dry_run()
+        {
+            Assert.IsFalse(new SqlDeploymentExecuteContext(NullLogger.Instance).DryRun);
+            Assert.IsTrue(new SqlDeploymentExecuteContext(NullLogger.Instance, true).DryRun);
+        }
+
+        [TestMethod]
+        public void Configuration_should_support_dry_run()
+        {
+            var d = SqlDeployment.Load(XDocument.Parse(ConditionManifestXml));
+            var p = d.Compile(new Dictionary<string, string>() { ["Flag"] = "true" });
+            Assert.IsTrue(p.Targets["Conditional"].Actions[0].SupportsDryRun);
+        }
+
+        [TestMethod]
+        public void Create_database_and_package_should_support_dry_run()
+        {
+            var d = SqlDeployment.Load(XDocument.Parse(DryRunManifestXml));
+            var p = d.Compile();
+            Assert.IsInstanceOfType(p.Targets["Database"].Actions[0], typeof(SqlDeploymentCreateDatabaseAction));
+            Assert.IsTrue(p.Targets["Database"].Actions[0].SupportsDryRun);
+            Assert.IsInstanceOfType(p.Targets["Database"].Actions[1], typeof(SqlDeploymentDatabasePackageAction));
+            Assert.IsTrue(p.Targets["Database"].Actions[1].SupportsDryRun);
+        }
+
+        [TestMethod]
+        public void LinkedServer_should_not_support_dry_run()
+        {
+            var d = SqlDeployment.Load(XDocument.Parse(DryRunManifestXml));
+            var p = d.Compile();
+            Assert.IsFalse(p.Targets["Link"].Actions[0].SupportsDryRun);
+        }
+
+        [TestMethod]
+        public async Task Dry_run_should_skip_actions_that_do_not_support_it()
+        {
+            var d = SqlDeployment.Load(XDocument.Parse(DryRunManifestXml));
+            var p = d.Compile();
+
+            // the linked server action would have to connect to the unresolvable instance; only
+            // the dry run executor skipping it entirely lets execution complete
+            await new SqlDeploymentExecutor(p, NullLogger.Instance, true).ExecuteAsync("Link");
         }
 
         [TestMethod]

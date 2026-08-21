@@ -37,6 +37,9 @@ namespace Alethic.SqlServer.Deployment
         /// </summary>
         public int Value { get; }
 
+        /// <inheritdoc />
+        public override bool SupportsDryRun => true;
+
         /// <summary>
         /// Applies the configuration value.
         /// </summary>
@@ -59,6 +62,12 @@ namespace Alethic.SqlServer.Deployment
             // has the value changed?
             if (config.ConfigValue != Value || config.RunValue != Value)
             {
+                if (context.DryRun)
+                {
+                    context.Logger.LogInformation("Dry run: would set server configuration '{Name}' to {Value} (currently {ConfigValue}/{RunValue}).", Name, Value, config.ConfigValue, config.RunValue);
+                    return;
+                }
+
                 context.Logger.LogInformation("Setting server configuration '{Name}' to {Value}.", Name, Value);
                 await cnn.ExecuteSpConfigure(Name, Value, cancellationToken);
                 await cnn.ExecuteNonQueryAsync($"RECONFIGURE", cancellationToken: cancellationToken);

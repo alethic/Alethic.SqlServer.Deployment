@@ -21,6 +21,7 @@ namespace Alethic.SqlServer.Deployment
 
         readonly SqlDeploymentPlan plan;
         readonly ILogger logger;
+        readonly bool dryRun;
 
         readonly ConcurrentDictionary<SqlDeploymentAction, Lazy<AsyncJob<bool>>> tasks = new ConcurrentDictionary<SqlDeploymentAction, Lazy<AsyncJob<bool>>>();
 
@@ -28,10 +29,13 @@ namespace Alethic.SqlServer.Deployment
         /// Initializes a new instance.
         /// </summary>
         /// <param name="plan"></param>
-        public SqlDeploymentExecutor(SqlDeploymentPlan plan, ILogger logger)
+        /// <param name="logger"></param>
+        /// <param name="dryRun">When <c>true</c>, actions report what they would change but change nothing; actions that cannot report are skipped.</param>
+        public SqlDeploymentExecutor(SqlDeploymentPlan plan, ILogger logger, bool dryRun = false)
         {
             this.plan = plan ?? throw new ArgumentNullException(nameof(plan));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.dryRun = dryRun;
         }
 
         /// <summary>
@@ -42,7 +46,7 @@ namespace Alethic.SqlServer.Deployment
         public async Task ExecuteAsync(CancellationToken cancellationToken = default)
         {
             logger.LogInformation("Executing all targets...");
-            await ExecuteAsync(new SqlDeploymentExecuteContext(logger), plan.Targets.Values, cancellationToken);
+            await ExecuteAsync(new SqlDeploymentExecuteContext(logger, dryRun), plan.Targets.Values, cancellationToken);
             logger.LogInformation("Done executing all targets.");
         }
 
@@ -58,7 +62,7 @@ namespace Alethic.SqlServer.Deployment
                 throw new ArgumentNullException(nameof(targetName));
 
             logger.LogInformation("Executing {Target}...", targetName);
-            await ExecuteAsync(new SqlDeploymentExecuteContext(logger), targetName, cancellationToken);
+            await ExecuteAsync(new SqlDeploymentExecuteContext(logger, dryRun), targetName, cancellationToken);
             logger.LogInformation("Done executing {Target}.", targetName);
         }
 
@@ -75,7 +79,7 @@ namespace Alethic.SqlServer.Deployment
 
             logger.LogInformation("Executing {Targets}...", targetNames);
             var targets = targetNames.Select(i => plan.Targets.GetOrDefault(i)).Where(i => i != null);
-            await ExecuteAsync(new SqlDeploymentExecuteContext(logger), targets, cancellationToken);
+            await ExecuteAsync(new SqlDeploymentExecuteContext(logger, dryRun), targets, cancellationToken);
             logger.LogInformation("Done executing {Targets}.", targetNames);
         }
 
@@ -166,6 +170,12 @@ namespace Alethic.SqlServer.Deployment
         /// <returns></returns>
         async Task ExecuteActionAsync(SqlDeploymentExecuteContext context, SqlDeploymentAction action, CancellationToken cancellationToken)
         {
+            if (context.DryRun && action.SupportsDryRun == false)
+            {
+                context.Logger.LogInformation("Dry run: skipping {Action} against {InstanceName}; the action does not support dry run and a real deployment would apply it.", action.GetType().Name, action.Instance);
+                return;
+            }
+
             context.Logger.LogDebug("Starting action {Action} against {InstanceName}.", action.GetType().Name, action.Instance);
             await action.ExecuteAsync(context, cancellationToken);
             context.Logger.LogDebug("Finished action {Action} against {InstanceName}.", action.GetType().Name, action.Instance);

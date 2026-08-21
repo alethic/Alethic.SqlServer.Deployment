@@ -51,6 +51,9 @@ namespace Alethic.SqlServer.Deployment
         /// </summary>
         public bool Overwrite { get; }
 
+        /// <inheritdoc />
+        public override bool SupportsDryRun => true;
+
         /// <summary>
         /// Creates the database.
         /// </summary>
@@ -61,7 +64,15 @@ namespace Alethic.SqlServer.Deployment
         {
             using var cnn = await OpenConnectionAsync(cancellationToken);
             if ((string)await cnn.ExecuteScalarAsync($"SELECT name FROM sys.databases WHERE name = {Name}") == null)
+            {
+                if (context.DryRun)
+                {
+                    context.Logger.LogInformation("Dry run: would create database {DatabaseName}.", Name);
+                    return;
+                }
+
                 await CreateDatabase(context, cnn, cancellationToken);
+            }
         }
 
         async Task CreateDatabase(SqlDeploymentExecuteContext context, SqlConnection cnn, CancellationToken cancellationToken)
