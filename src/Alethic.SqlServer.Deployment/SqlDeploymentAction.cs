@@ -29,8 +29,9 @@ namespace Alethic.SqlServer.Deployment
 
         /// <summary>
         /// Gets whether the action can execute under a dry run, reporting what it would change
-        /// without changing anything. Actions that return <c>false</c> are skipped entirely by
-        /// the executor when the execution is a dry run.
+        /// without changing anything. For actions that return <c>false</c> the executor reports
+        /// that the action would execute, and does not execute it, when the execution is a dry
+        /// run.
         /// </summary>
         public virtual bool SupportsDryRun => false;
 

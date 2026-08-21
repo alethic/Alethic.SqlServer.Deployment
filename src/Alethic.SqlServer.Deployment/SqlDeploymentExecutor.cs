@@ -172,7 +172,7 @@ namespace Alethic.SqlServer.Deployment
         {
             if (context.DryRun && action.SupportsDryRun == false)
             {
-                context.Logger.LogInformation("Dry run: skipping {Action} against {InstanceName}; the action does not support dry run and a real deployment would apply it.", action.GetType().Name, action.Instance);
+                context.Logger.LogInformation("Dry run: would execute {Action} against {InstanceName}; the action cannot report its changes in detail.", action.GetType().Name, action.Instance);
                 return;
             }
 
