@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -93,36 +94,69 @@ namespace Alethic.SqlServer.Deployment
         public override bool SupportsDryRun => true;
 
         /// <summary>
-        /// 
+        /// Describes how the linked server on the instance differs from this one: an entry for each property that
+        /// differs, or a single entry when it doesn't exist. Empty when it matches.
         /// </summary>
         /// <param name="cnn"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task<bool> ShouldExecute(SqlConnection cnn, CancellationToken cancellationToken)
+        async Task<List<string>> GetDifferencesAsync(SqlConnection cnn, CancellationToken cancellationToken)
         {
+            var differences = new List<string>();
+
             var t = await cnn.LoadDataTableAsync(@$"
                 SELECT      *
                 FROM        sys.servers
                 WHERE       name = {Name}");
             if (t.Rows.Count == 0)
-                return true;
+            {
+                differences.Add("it does not exist");
+                return differences;
+            }
 
             var r = t.Rows[0];
-            if (Product != null && (string)r["product"] != Product)
-                return true;
-            if (Provider != null && (string)r["provider"] != Provider)
-                return true;
-            if (ProviderString != null && (string)r["provider_string"] != ProviderString)
-                return true;
-            if (DataSource != null && (string)r["data_source"] != DataSource)
-                return true;
-            if (Location != null && (string)r["location"] != Location)
-                return true;
-            if (Catalog != null && (string)r["catalog"] != Catalog)
-                return true;
+            Compare(differences, "product", r["product"], Product, true);
+            Compare(differences, "provider", r["provider"], Provider, true);
+            Compare(differences, "data source", r["data_source"], DataSource, true);
+            Compare(differences, "location", r["location"], Location, true);
+            Compare(differences, "catalog", r["catalog"], Catalog, true);
 
-            return false;
+            // a provider string can carry credentials, so only that it differs is reported
+            Compare(differences, "provider string", r["provider_string"], ProviderString, false);
+
+            return differences;
         }
+
+        /// <summary>
+        /// Adds a description of the property to the differences when its current value is not the configured one. A
+        /// property configured as null is not compared.
+        /// </summary>
+        /// <param name="differences"></param>
+        /// <param name="property"></param>
+        /// <param name="current"></param>
+        /// <param name="configured"></param>
+        /// <param name="showValues"></param>
+        static void Compare(List<string> differences, string property, object current, string configured, bool showValues)
+        {
+            if (configured == null)
+                return;
+
+            var value = current as string;
+            if (value == configured)
+                return;
+
+            if (showValues)
+                differences.Add($"its {property} is {Describe(value)} rather than {Describe(configured)}");
+            else
+                differences.Add($"its {property} differs");
+        }
+
+        /// <summary>
+        /// Describes a property's value for the log.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        static string Describe(string value) => value == null ? "unset" : $"'{value}'";
 
         public override async Task ExecuteAsync(SqlDeploymentExecuteContext context, CancellationToken cancellationToken = default)
         {
@@ -131,10 +165,12 @@ namespace Alethic.SqlServer.Deployment
                 // a dry run reports each step and changes nothing; the mapping refresh and
                 // connectivity test are unconditional on a real deploy (the stored remote
                 // password cannot be read back for comparison), so they report unconditionally
+                var differences = await GetDifferencesAsync(cnn, cancellationToken);
+
                 if (context.DryRun)
                 {
-                    if (await ShouldExecute(cnn, cancellationToken))
-                        context.Logger.LogInformation("Dry run: would drop and recreate linked server {Name} pointing at {DataSource}.", Name, DataSource);
+                    if (differences.Count > 0)
+                        context.Logger.LogInformation("Dry run: would drop and recreate linked server {Name} pointing at {DataSource}, because {Differences}.", Name, DataSource, string.Join("; ", differences));
                     else
                         context.Logger.LogInformation("Dry run: linked server {Name} definition already matches.", Name);
 
@@ -149,8 +185,15 @@ namespace Alethic.SqlServer.Deployment
                 // recreate the server definition when it is missing or differs; the login mapping
                 // and connectivity test below run either way, so a changed remote credential
                 // takes effect on redeploy without recreating a matching server
-                if (await ShouldExecute(cnn, cancellationToken))
+                if (differences.Count > 0)
+                {
+                    context.Logger.LogInformation("Recreating linked server {Name} pointing at {DataSource}, because {Differences}.", Name, DataSource, string.Join("; ", differences));
                     await CreateServerAsync(cnn, cancellationToken);
+                }
+                else
+                {
+                    context.Logger.LogInformation("Linked server {Name} definition already matches.", Name);
+                }
 
                 // replace whatever mapping exists for the default (all local logins) entry
                 await cnn.ExecuteNonQueryAsync($@"
@@ -163,6 +206,7 @@ namespace Alethic.SqlServer.Deployment
                     END CATCH");
 
                 if (RemoteUser != null)
+                {
                     await cnn.ExecuteNonQueryAsync($@"
                         EXEC sp_addlinkedsrvlogin
                             @rmtsrvname = {Name},
@@ -170,15 +214,30 @@ namespace Alethic.SqlServer.Deployment
                             @useself = N'False',
                             @rmtuser = {RemoteUser},
                             @rmtpassword = {RemotePassword}");
+                    context.Logger.LogInformation("Mapped all local logins of linked server {Name} to remote login {RemoteUser}.", Name, RemoteUser);
+                }
                 else
+                {
                     await cnn.ExecuteNonQueryAsync($@"
                         EXEC sp_addlinkedsrvlogin
                             @rmtsrvname = {Name},
                             @locallogin = NULL,
                             @useself = N'True'");
+                    context.Logger.LogInformation("Mapped all local logins of linked server {Name} to themselves (passthrough).", Name);
+                }
 
                 // ensure the linked server is configured correctly and accessible
-                await cnn.ExecuteNonQueryAsync($"EXEC sp_testlinkedserver @servername = {Name}");
+                try
+                {
+                    await cnn.ExecuteNonQueryAsync($"EXEC sp_testlinkedserver @servername = {Name}");
+                }
+                catch (SqlException e)
+                {
+                    context.Logger.LogError("Linked server {Name} pointing at {DataSource} failed its connectivity test: {Message}", Name, DataSource, e.Message);
+                    throw;
+                }
+
+                context.Logger.LogInformation("Linked server {Name} pointing at {DataSource} answered its connectivity test.", Name, DataSource);
             }
         }
 
