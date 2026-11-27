@@ -60,6 +60,11 @@ namespace Alethic.SqlServer.Deployment
         public ICollection<SqlDeploymentSubscription> Subscriptions { get; } = new List<SqlDeploymentSubscription>();
 
         /// <summary>
+        /// Gets the users to ensure in this database, after its package deploys.
+        /// </summary>
+        public ICollection<SqlDeploymentDatabaseUser> Users { get; } = new List<SqlDeploymentDatabaseUser>();
+
+        /// <summary>
         /// Generates the steps required to ensure the database.
         /// </summary>
         /// <param name="context"></param>
@@ -83,6 +88,12 @@ namespace Alethic.SqlServer.Deployment
             // potentially alter the owner
             if (Owner != null)
                 yield return new SqlDeploymentDatabaseOwnerAction(context.Instance, Name.Expand(context), Owner?.Expand(context));
+
+            // users after the package, so the roles it defines exist for them to join; and on every
+            // deployment, unlike a package's post-deployment script, which a matching tag skips
+            foreach (var user in Users)
+                foreach (var s in user.Compile(context, Name.Expand(context)))
+                    yield return s;
 
             // apply any extended properties
             foreach (var extendedProperty in ExtendedProperties)

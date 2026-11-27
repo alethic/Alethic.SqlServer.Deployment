@@ -170,6 +170,7 @@ namespace Alethic.SqlServer.Deployment
                 p.Configuration[(string)configurationElement.Attribute("Name")] = (string)configurationElement.Attribute("Value");
 
             p.TrustedAssemblies.AddRange(element.Elements(Xmlns + "TrustedAssembly").Select(i => LoadTrustedAssembly(context, i)));
+            p.Logins.AddRange(element.Elements(Xmlns + "Login").Select(i => LoadLogin(context, i)));
             p.Databases.AddRange(element.Elements(Xmlns + "Database").Select(i => LoadDatabase(context, i)));
             p.LinkedServers.AddRange(element.Elements(Xmlns + "LinkedServer").Select(i => LoadLinkedServer(context, i)));
             p.Distributor = element.Element(Xmlns + "Distributor") is XElement distributor ? LoadDistributor(context, distributor) : null;
@@ -211,6 +212,9 @@ namespace Alethic.SqlServer.Deployment
 
             foreach (var extendedPropertyElement in element.Elements(Xmlns + "ExtendedProperty"))
                 p.ExtendedProperties.Add(LoadExtendedProperty(context, extendedPropertyElement));
+
+            foreach (var userElement in element.Elements(Xmlns + "User"))
+                p.Users.Add(LoadDatabaseUser(context, userElement));
 
             if (element.Element(Xmlns + "Publications") is XElement publicationsElement)
                 p.Publications.AddRange(LoadPublications(context, publicationsElement));
@@ -331,6 +335,25 @@ namespace Alethic.SqlServer.Deployment
             p.Source = (string)element.Attribute("Source");
             p.Hash = (string)element.Attribute("Hash");
             p.Description = (string)element.Attribute("Description");
+            return p;
+        }
+
+        static SqlDeploymentDatabaseUser LoadDatabaseUser(ReaderContext context, XElement element)
+        {
+            var p = new SqlDeploymentDatabaseUser();
+            p.Login = (string)element.Attribute("Login");
+            p.Name = (string)element.Attribute("Name");
+            foreach (var roleElement in element.Elements(Xmlns + "Role"))
+                p.Roles.Add((string)roleElement.Attribute("Name"));
+            return p;
+        }
+
+        static SqlDeploymentLogin LoadLogin(ReaderContext context, XElement element)
+        {
+            var p = new SqlDeploymentLogin();
+            p.Name = (string)element.Attribute("Name");
+            p.Type = (string)element.Attribute("Type");
+            p.Password = (string)element.Attribute("Password");
             return p;
         }
 
