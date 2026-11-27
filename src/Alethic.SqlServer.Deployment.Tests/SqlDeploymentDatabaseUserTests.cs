@@ -98,7 +98,7 @@ namespace Alethic.SqlServer.Deployment.Tests
             await WithDatabaseAsync(async (database, login) =>
             {
                 // a user of the login's name, mapped to some other login, as a restore from another server leaves it
-                var other = "AlethicOther_" + Guid.NewGuid().ToString("N")[..8];
+                var other = "AlethicOther_" + Guid.NewGuid().ToString("N").Substring(0, 8);
                 await RunAsync("master", $"CREATE LOGIN [{other}] WITH PASSWORD = N'Pr00f-Passw0rd!'");
                 try
                 {
@@ -143,7 +143,7 @@ namespace Alethic.SqlServer.Deployment.Tests
         {
             await WithDatabaseAsync(async (database, login) =>
             {
-                Func<Task> execute = () => ExecuteAsync(database, "AlethicMissing_" + Guid.NewGuid().ToString("N")[..8], "app");
+                Func<Task> execute = () => ExecuteAsync(database, "AlethicMissing_" + Guid.NewGuid().ToString("N").Substring(0, 8), "app");
                 await execute.Should().ThrowAsync<SqlDeploymentException>();
                 (await ScalarAsync(database, "SELECT COUNT(*) FROM sys.database_principals WHERE name LIKE N'AlethicMissing[_]%'")).Should().Be(0);
             });
@@ -168,7 +168,7 @@ namespace Alethic.SqlServer.Deployment.Tests
             if (await TryOpenAsync() == false)
                 Assert.Inconclusive("LocalDB is not available.");
 
-            var suffix = Guid.NewGuid().ToString("N")[..8];
+            var suffix = Guid.NewGuid().ToString("N").Substring(0, 8);
             var database = "AlethicUser_" + suffix;
             var login = "AlethicLogin_" + suffix;
 
