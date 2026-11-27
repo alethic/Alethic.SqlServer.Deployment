@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Packaging;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -45,11 +46,15 @@ namespace Alethic.SqlServer.Deployment
         }
 
         /// <summary>
-        /// Gets the DACTAG to be used to identify modifications to the given DAC file.
+        /// Gets the DACTAG to be used to identify modifications to the given DAC file, deployed with
+        /// the given SQLCMD variable values. The same package deployed with different variable values
+        /// is a different deployment, so the values contribute to the tag; with no values the tag is
+        /// the package's alone.
         /// </summary>
         /// <param name="file"></param>
+        /// <param name="variables"></param>
         /// <returns></returns>
-        string GetDacTag(string file)
+        internal static string GetDacTag(string file, IDictionary<string, string> variables)
         {
             if (File.Exists(file) == false)
                 throw new FileNotFoundException();
@@ -60,7 +65,7 @@ namespace Alethic.SqlServer.Deployment
                 var b = new byte[sha1.InputBlockSize];
 
                 // hash each set of hashable data
-                foreach (var stream in GetStreamsToHashForDacTag(file))
+                foreach (var stream in GetStreamsToHashForDacTag(file).Concat(GetStreamsToHashForVariables(variables)))
                     while ((s = stream.Read(b, 0, b.Length)) > 0)
                         sha1.TransformBlock(b, 0, s, b, 0);
 
@@ -78,7 +83,7 @@ namespace Alethic.SqlServer.Deployment
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        IEnumerable<Stream> GetStreamsToHashForDacTag(string file)
+        static IEnumerable<Stream> GetStreamsToHashForDacTag(string file)
         {
             using (var pkg = Package.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
@@ -103,12 +108,29 @@ namespace Alethic.SqlServer.Deployment
         }
 
         /// <summary>
+        /// Yields the SQLCMD variable values to contribute to the DACTAG hash: each name and value,
+        /// ordered by name, every one terminated by a NUL so no two sets of values run together the
+        /// same way. Nothing when there are none, so a package deployed without variables keeps the
+        /// tag it always had.
+        /// </summary>
+        /// <param name="variables"></param>
+        /// <returns></returns>
+        static IEnumerable<Stream> GetStreamsToHashForVariables(IDictionary<string, string> variables)
+        {
+            if (variables == null)
+                yield break;
+
+            foreach (var variable in variables.OrderBy(i => i.Key, StringComparer.Ordinal))
+                yield return new MemoryStream(Encoding.UTF8.GetBytes(variable.Key + "\0" + (variable.Value ?? "") + "\0"));
+        }
+
+        /// <summary>
         /// Gets the specified part from the package, or returns <c>null</c>.
         /// </summary>
         /// <param name="pkg"></param>
         /// <param name="partUri"></param>
         /// <returns></returns>
-        PackagePart GetPart(Package pkg, string partUri)
+        static PackagePart GetPart(Package pkg, string partUri)
         {
             var u = new Uri(partUri, UriKind.Relative);
             return pkg.PartExists(u) ? pkg.GetPart(u) : null;
@@ -119,7 +141,7 @@ namespace Alethic.SqlServer.Deployment
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        byte[] ParseHex(string input)
+        static byte[] ParseHex(string input)
         {
             var i = 0;
             var x = 0;
@@ -191,10 +213,10 @@ namespace Alethic.SqlServer.Deployment
         /// <param name="databaseName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        async Task<bool> IsDacTagDifferent(SqlConnection connection, string connectionString, string databaseName, CancellationToken cancellationToken)
+        async Task<bool> IsDacTagDifferent(SqlConnection connection, string connectionString, string databaseName, IDictionary<string, string> variables, CancellationToken cancellationToken)
         {
             // MD5SUM of the DACPAC is put onto the database to indicate no change
-            var tag = GetDacTag(source);
+            var tag = GetDacTag(source, variables);
             if (tag == await GetDacTagAsync(connection, connectionString, databaseName, cancellationToken))
                 return false;
 
@@ -235,24 +257,6 @@ namespace Alethic.SqlServer.Deployment
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Returns <c>true</c> if the database version is less than the DacPac version.
-        /// </summary>
-        /// <param name="connection"></param>
-        /// <param name="connectionString"></param>
-        /// <param name="databaseName"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        async Task<bool> IsDacVersionOutOfDateAsync(DacPackage dac, SqlConnection connection, string connectionString, string databaseName, CancellationToken cancellationToken)
-        {
-            // Version of the DacPac is put onto the database to indicate no change
-            var version = await GetDacVersionAsync(connection, connectionString, databaseName, cancellationToken);
-            if (version == null || version < dac.Version)
-                return true;
-
-            return false;
         }
 
         /// <summary>
@@ -558,7 +562,7 @@ namespace Alethic.SqlServer.Deployment
             var instanceName = await connection.GetServerInstanceName(cancellationToken);
 
             // check that existing database does not already exist with tag
-            if (ignoreDacTag == false && await IsDacTagDifferent(connection, connectionString, databaseName, cancellationToken) == false)
+            if (ignoreDacTag == false && await IsDacTagDifferent(connection, connectionString, databaseName, profile.DeployOptions.SqlCommandVariableValues, cancellationToken) == false)
             {
                 logger.LogInformation("Database {Name} has a matching tag as the deployment package.", databaseName);
                 return;
@@ -572,10 +576,13 @@ namespace Alethic.SqlServer.Deployment
                 // load up the DAC services
                 using var dac = LoadDacPackage(source);
 
-                // check whether we actually need an upgrade
-                if (ignoreDacVersion == false && await IsDacVersionOutOfDateAsync(dac, connection, connectionString, databaseName, cancellationToken) == false)
+                // the tag has already said whether this deployment differs from the last one; the
+                // version only guards against deploying an older package over a database a newer
+                // one has already been deployed to - the same version deploys again, so a change
+                // to its SQLCMD variable values alone takes effect
+                if (ignoreDacVersion == false && await GetDacVersionAsync(connection, connectionString, databaseName, cancellationToken) is Version deployed && deployed > dac.Version)
                 {
-                    logger.LogInformation("Database {Name} is up to date.", databaseName);
+                    logger.LogWarning("Database {Name} is at version {DatabaseVersion}, newer than the package's {PackageVersion}; not deploying an older package over it.", databaseName, deployed, dac.Version);
                     return;
                 }
 
@@ -635,7 +642,7 @@ namespace Alethic.SqlServer.Deployment
 
                     // record the version we just deployed
                     await SetDacVersion(database, databaseName, dac.Version, cancellationToken);
-                    await SetDacTag(database, databaseName, GetDacTag(source), cancellationToken);
+                    await SetDacTag(database, databaseName, GetDacTag(source, opt.SqlCommandVariableValues), cancellationToken);
                 }
             }
             catch (SqlException e)

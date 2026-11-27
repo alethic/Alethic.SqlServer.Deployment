@@ -57,6 +57,45 @@ Or supply the SHA-512 directly with `Hash`, as a hexadecimal string with an opti
 
 `Description` is optional in both cases. When both `Source` and `Hash` are given, `Hash` wins.
 
+### Logins
+
+A `Login` element on an `Instance` ensures a server login exists, before that instance's databases deploy, so the users a DACPAC maps to it can be created. `Type` is required: `Sql` for a SQL Server login (`CREATE LOGIN ... WITH PASSWORD`), or `Windows` for a Windows account, group or managed service account (`CREATE LOGIN ... FROM WINDOWS`).
+
+```
+<Instance Name="[InstanceName]">
+    <Login Name="[AppLogin]" Type="[AppLoginType]" Password="[AppLoginPassword]" />
+</Instance>
+```
+
+What is given decides what the step does; what is missing is left alone:
+
+| Type | Password | Login missing | Login exists |
+| --- | --- | --- | --- |
+| `Sql` | given | created with the password | its password is set to the one given |
+| `Sql` | absent | the deployment fails | validated as a SQL login |
+| `Windows` | not allowed | created from Windows | validated as a Windows login or group |
+
+An absent or empty `Name` compiles to nothing, so a manifest can wire the login to parameters that default to empty and leave logins alone wherever they are not set. A login that exists as the other type fails the deployment rather than being replaced, and no login is ever dropped. A password that already matches is not reset. Under a dry run the step reports what it would create or change.
+
+### Users
+
+A `User` element on a `Database` ensures a database user mapped to a server login, and its membership of database roles, after the database's `Package` deploys, so the roles its DACPAC defines exist to be joined. It runs on every deployment: unlike a post-deployment script, a matching package tag does not skip it, and a DACPAC cannot model a user whose login differs between environments.
+
+```
+<Database Name="[DatabaseName]">
+    <Package Source="[PathToDacPac]" />
+    <User Login="[AppLogin]">
+        <Role Name="app" />
+    </User>
+</Database>
+```
+
+`Name` is the user's name, the login's when absent. The user is found by the login's SID, whatever its name; failing that, a user of its `Name` mapped to another login, or to none, as a restore from another server leaves it, is mapped to the login; failing that, it is created `FOR LOGIN`. It then joins each `Role` it is not already a member of; a role that does not exist fails the deployment. The login's own user in a database it owns is `dbo`, which joins no role. An absent or empty `Login` compiles to nothing. No user is ever dropped, and no membership removed. Under a dry run the step reports what it would create, map or join.
+
+### Packages: when a database deploys
+
+A `Package` records a tag on its database once deployed: a hash of the DACPAC's content and of the SQLCMD variable values it was deployed with. A deployment whose tag matches the database's is skipped, so a database deploys again when the package changes or when its variable values do. The DACPAC's version only guards against deploying an older package over a newer one: a database whose recorded version is newer than the package's is left alone. `IgnoreDacTag` and `IgnoreDacVersion` turn either check off.
+
 This file, if saved as `Example.xml` can be executed from the .NET Core Global Tool:
 
 ```

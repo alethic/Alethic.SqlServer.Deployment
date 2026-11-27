@@ -36,6 +36,11 @@ namespace Alethic.SqlServer.Deployment
         public ICollection<SqlDeploymentTrustedAssembly> TrustedAssemblies { get; } = new List<SqlDeploymentTrustedAssembly>();
 
         /// <summary>
+        /// Gets the server logins to ensure on the instance.
+        /// </summary>
+        public ICollection<SqlDeploymentLogin> Logins { get; } = new List<SqlDeploymentLogin>();
+
+        /// <summary>
         /// Gets the information regarding the databases to deploy to the instance.
         /// </summary>
         public ICollection<SqlDeploymentDatabase> Databases { get; } = new List<SqlDeploymentDatabase>();
@@ -78,6 +83,11 @@ namespace Alethic.SqlServer.Deployment
 
             // trusted assemblies register before the databases deploy, so CREATE ASSEMBLY succeeds
             foreach (var i in TrustedAssemblies)
+                foreach (var s in i.Compile(context))
+                    yield return s;
+
+            // logins exist before the databases deploy, so a database's users can map to them
+            foreach (var i in Logins)
                 foreach (var s in i.Compile(context))
                     yield return s;
 
