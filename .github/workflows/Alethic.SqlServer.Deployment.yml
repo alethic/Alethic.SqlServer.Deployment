@@ -2,6 +2,11 @@ name: Alethic.SqlServer.Deployment
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish this build to nuget.org, creating the GitHub release if one does not exist.
+        type: boolean
+        default: false
   push:
     branches:
     - main
@@ -20,34 +25,20 @@ jobs:
     runs-on: windows-latest
     steps:
     - name: Checkout Source
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
         submodules: recursive
-    - name: Setup .NET 8.0
-      uses: actions/setup-dotnet@v4
+    - name: Setup .NET 10.0
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v3
+      uses: gittools/actions/gitversion/setup@v4
       with:
-        versionSpec: 5.x
+        versionSpec: 6.x
     - name: Execute GitVersion
-      uses: gittools/actions/gitversion/execute@v3
-      with:
-        useConfigFile: true
-    - name: Add NuGet Source (GitHub)
-      shell: pwsh
-      run: dotnet nuget add source --username USERNAME --password $env:GITHUB_TOKEN --store-password-in-clear-text --name alethic $env:GITHUB_REPOS
-      env:
-        GITHUB_REPOS: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Cache NuGet
-      uses: actions/cache@v4
-      with:
-        path: ${{ runner.temp }}/nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.msbuildproj') }}-1
-        restore-keys: ${{ runner.os }}-nuget-
+      uses: gittools/actions/gitversion/execute@v4
     - name: NuGet Restore
       run: dotnet restore Alethic.SqlServer.Deployment.sln
     - name: Build
@@ -60,7 +51,7 @@ jobs:
           /p:AssemblyVersion=${env:GitVersion_AssemblySemVer} `
           /p:InformationalVersion=${env:GitVersion_InformationalVersion} `
           /p:FileVersion=${env:GitVersion_AssemblySemFileVer} `
-          /p:PackageVersion=${env:GitVersion_NuGetVersionV2} `
+          /p:PackageVersion=${env:GitVersion_FullSemVer} `
           /p:RepositoryType=git `
           /p:RepositoryUrl="${env:GITHUB_SERVER_URL}/${env:GITHUB_REPOSITORY}.git" `
           /p:PackageProjectUrl="${env:GITHUB_SERVER_URL}/${env:GITHUB_REPOSITORY}" `
@@ -69,12 +60,12 @@ jobs:
           Alethic.SqlServer.Deployment.dist.msbuildproj
     - name: Upload MSBuild Log
       if: ${{ always() }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: msbuild.binlog
         path: msbuild.binlog
     - name: Upload NuGet Packages
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: nuget
         path: dist/nuget
@@ -82,37 +73,37 @@ jobs:
       run: tar czvf tests.tar.gz tests
       working-directory: dist
     - name: Upload Tests
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: tests
         path: dist/tests.tar.gz
   test:
     strategy:
+      fail-fast: false
       matrix:
         run:
         - Alethic.SqlServer.Deployment.Tests
+        # The tests deploy to LocalDB, which runs on Windows alone.
         sys:
-        - windows
+        - win-x64
         tfm:
         - net472
         - net8.0
     name: Test (${{ matrix.run }}:${{ matrix.tfm }}:${{ matrix.sys }})
     needs:
     - build
-    runs-on: ${{ fromJSON('{"windows":["windows-2022"],"linux":["ubuntu-22.04"],"macos":["macos-latest"]}')[matrix.sys] }}
+    runs-on: ${{ fromJSON('{"win-x64":["windows-2022"]}')[matrix.sys] }}
     steps:
     - name: Setup .NET 8.0
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: 8.0.x
-    - name: Add NuGet Source (GitHub)
-      shell: pwsh
-      run: dotnet nuget add source --username USERNAME --password $env:GITHUB_TOKEN --store-password-in-clear-text --name alethic $env:GITHUB_REPOS
-      env:
-        GITHUB_REPOS: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Setup .NET 10.0
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.0.x
     - name: Download Tests
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: tests
     - name: Restore Tests
@@ -135,78 +126,119 @@ jobs:
             $tst = $run
         }
 
-        # scan for test assemblies
-        $tests = $(gci .\tests\$tst\$tfm -Recurse -Filter '*.Tests.dll')
-
-        # if a query was specified, add to test command
-        if ($tests) {
+        # scan and process test assemblies; on .NET Framework the suite is an executable of its own
+        $tests = $(gi .\tests\$tst\$tfm\*.Tests.dll -ErrorAction SilentlyContinue)
+        $exe = $(gi .\tests\$tst\$tfm\*.Tests.exe -ErrorAction SilentlyContinue)
+        if (-not $tests -and $exe) {
+            $argl = @("--results-directory", "TestResults", "--report-trx")
             if ($qry -ne "" -and $qry -ne $null) {
+                $argl += @("--filter", $qry)
                 Add-Content $env:GITHUB_ENV "`nRET=TestResults--$tst-$qry--$tfm--$sys"
-                dotnet test -f $tfm --blame -v 2 --results-directory "TestResults" --logger:"console;verbosity=detailed" --logger:trx --collect "Code Coverage" --filter "$qry" $tests
             } else {
                 Add-Content $env:GITHUB_ENV "`nRET=TestResults--$tst--$tfm--$sys"
-                dotnet test -f $tfm --blame -v 2 --results-directory "TestResults" --logger:"console;verbosity=detailed" --logger:trx --collect "Code Coverage" $tests
             }
+
+            & $exe[0].FullName @argl
+            exit $LASTEXITCODE
+        }
+
+        if ($tests) {
+            $argl = @(
+                "-f", $tfm,
+                "-v:diag",
+                "--results-directory", "TestResults",
+                "--logger:console;verbosity=diag",
+                "--logger:trx"
+            )
+
+            $runsettings = $(gi .\tests\$tst\$tfm\*.runsettings)
+            if ($runsettings) {
+                $argl += "--settings:$runsettings"
+            }
+
+            if ($qry -ne "" -and $qry -ne $null) {
+                $argl += @("--filter", $qry)
+                Add-Content $env:GITHUB_ENV "`nRET=TestResults--$tst-$qry--$tfm--$sys"
+            } else {
+                Add-Content $env:GITHUB_ENV "`nRET=TestResults--$tst--$tfm--$sys"
+            }
+
+            dotnet test @argl $tests[0].FullName
         }
     - name: Archive Test Results
       if: always() && startsWith(env.RET, 'TestResults--')
       run: tar czvf TestResults.tar.gz TestResults
     - name: Upload Test Results
       if: always() && startsWith(env.RET, 'TestResults--')
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ env.RET }}
         path: TestResults.tar.gz
   release:
     name: Release
+    if: github.event_name != 'pull_request'
     needs:
-    - build
     - test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    # id-token lets the NuGet login step trade the job's OIDC token for a short-lived nuget.org API key.
+    # Naming any permission drops the others to none, so the release needs contents listed.
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      # Gates both the GitHub release and the nuget.org push: true for a tag build or a manual run that
+      # asks to publish.
+      PUBLISH: ${{ github.ref_type == 'tag' || inputs.publish == true }}
     steps:
     - name: Checkout Source
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
-    - name: Setup .NET 8.0
-      uses: actions/setup-dotnet@v4
+    - name: Setup .NET 10.0
+      uses: actions/setup-dotnet@v6
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 10.0.x
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v3
+      uses: gittools/actions/gitversion/setup@v4
       with:
-        versionSpec: 5.x
+        versionSpec: 6.x
     - name: Execute GitVersion
       id: GitVersion
-      uses: gittools/actions/gitversion/execute@v3
-      with:
-        useConfigFile: true
+      uses: gittools/actions/gitversion/execute@v4
     - name: Download NuGet Packages
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: nuget
         path: dist/nuget
+    # `commit` lets the action create the tag when it does not exist. When the release already exists
+    # (a tag build or a re-run) it is updated in place, keeping hand-written notes and replacing the
+    # packages.
     - name: Create Release
-      if: github.ref_type == 'tag'
+      if: env.PUBLISH == 'true'
       uses: ncipollo/release-action@v1
       with:
         tag: ${{ steps.GitVersion.outputs.semVer }}
+        commit: ${{ github.sha }}
         allowUpdates: true
         omitBodyDuringUpdate: true
+        replacesArtifacts: true
         artifacts: dist/nuget/*.nupkg,dist/nuget/*.snupkg
-        makeLatest: true
+        prerelease: ${{ contains(steps.GitVersion.outputs.semVer, '-') }}
+        makeLatest: ${{ !contains(steps.GitVersion.outputs.semVer, '-') }}
         token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Push NuGet (GitHub)
-      if: github.event_name != 'pull_request'
-      shell: pwsh
-      run: dotnet nuget push dist/nuget/*.nupkg --source $env:GITHUB_REPOS --api-key $env:GITHUB_TOKEN --skip-duplicate
-      env:
-        GITHUB_REPOS: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # Trusted publishing: no stored key. NUGET_USER is the nuget.org username, not an organization, that
+    # created the trusted publishing policy for this repository and workflow.
+    - name: NuGet Login
+      if: env.PUBLISH == 'true'
+      id: NuGetLogin
+      uses: NuGet/login@v1
+      with:
+        user: ${{ secrets.NUGET_USER }}
+    # --skip-duplicate makes pushing a version nuget.org already has a no-op.
     - name: Push NuGet
-      if: github.ref_type == 'tag'
+      if: env.PUBLISH == 'true'
       shell: pwsh
       run: dotnet nuget push dist/nuget/*.nupkg --source $env:NUGET_REPOS --api-key $env:NUGET_TOKEN --skip-duplicate
       env:
         NUGET_REPOS: https://api.nuget.org/v3/index.json
-        NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+        NUGET_TOKEN: ${{ steps.NuGetLogin.outputs.NUGET_API_KEY }}
